@@ -1,0 +1,90 @@
+import type { Framework } from "./types"
+
+export const juliaFrameworks: Record<string, Framework> = {
+  Flux: {
+    name: "Flux",
+    description: "Bibliothèque de machine learning élégante et flexible pour Julia",
+    usedFor: "Machine learning, deep learning, modèles neuronaux, recherche en IA",
+    features: [
+      "API intuitive",
+      "Différentiation automatique",
+      "Intégration GPU",
+      "Modèles pré-entraînés",
+      "Extensibilité",
+    ],
+    officialWebsite: "https://fluxml.ai/",
+    uniqueSellingPoint: "Machine learning en Julia avec simplicité et performances",
+    bestFor: "Chercheurs et data scientists utilisant Julia pour l'IA",
+    version: "0.14.0",
+    documentation: "https://fluxml.ai/Flux.jl/stable/",
+    resources: [
+      { name: "Documentation officielle", url: "https://fluxml.ai/Flux.jl/stable/" },
+      { name: "GitHub", url: "https://github.com/FluxML/Flux.jl" },
+      { name: "Tutoriels", url: "https://fluxml.ai/Flux.jl/stable/tutorials/deep_learning/" },
+    ],
+  },
+  JuMP: {
+    name: "JuMP",
+    description: "Langage de modélisation pour l'optimisation mathématique en Julia",
+    usedFor: "Optimisation mathématique, recherche opérationnelle, planification",
+    features: [
+      "Syntaxe déclarative",
+      "Support pour différents solveurs",
+      "Performances élevées",
+      "Extensibilité",
+      "Dérivées automatiques",
+    ],
+    officialWebsite: "https://jump.dev/",
+    uniqueSellingPoint: "Modélisation d'optimisation mathématique expressive et performante",
+    bestFor: "Chercheurs et ingénieurs travaillant sur des problèmes d'optimisation",
+    version: "1.12.0",
+    documentation: "https://jump.dev/JuMP.jl/stable/",
+    resources: [
+      { name: "Documentation officielle", url: "https://jump.dev/JuMP.jl/stable/" },
+      { name: "GitHub", url: "https://github.com/jump-dev/JuMP.jl" },
+      {
+        name: "Tutoriels",
+        url: "https://jump.dev/JuMP.jl/stable/tutorials/getting_started/getting_started_with_JuMP/",
+      },
+    ],
+  },
+  "Genie.jl": {
+    name: "Genie.jl",
+    description: "Framework web MVC pour Julia",
+    usedFor: "Applications web, APIs, microservices, applications full-stack",
+    features: ["Architecture MVC", "Routage", "ORM (SearchLight)", "Templates", "WebSockets"],
+    officialWebsite: "https://genieframework.com/",
+    uniqueSellingPoint: "Framework web Julia complet avec performances exceptionnelles",
+    bestFor: "Applications web Julia nécessitant productivité et performances",
+    version: "5.0",
+    documentation: "https://genieframework.com/docs/",
+    resources: [
+      { name: "Documentation officielle", url: "https://genieframework.com/docs/" },
+      { name: "GitHub", url: "https://github.com/GenieFramework/Genie.jl" },
+      { name: "Tutoriels", url: "https://genieframework.com/tutorials/" },
+    ],
+  },
+  "Plots.jl": {
+    name: "Plots.jl",
+    description: "Écosystème de visualisation puissant et flexible pour Julia",
+    usedFor: "Visualisation de données, graphiques scientifiques, figures pour publications",
+    features: [
+      "Interface unifiée pour différents backends",
+      "Graphiques interactifs",
+      "Personnalisation avancée",
+      "Animations",
+      "Intégration avec l'écosystème Julia",
+    ],
+    officialWebsite: "http://docs.juliaplots.org/",
+    uniqueSellingPoint: "Visualisation de données puissante avec syntaxe unifiée et multiple backends",
+    bestFor: "Scientifiques et data scientists nécessitant visualisations avancées",
+    version: "1.38.0",
+    documentation: "http://docs.juliaplots.org/latest/",
+    resources: [
+      { name: "Documentation officielle", url: "http://docs.juliaplots.org/latest/" },
+      { name: "GitHub", url: "https://github.com/JuliaPlots/Plots.jl" },
+      { name: "Tutoriels", url: "http://docs.juliaplots.org/latest/tutorials/basics/" },
+    ],
+  },
+}
+

@@ -1,0 +1,93 @@
+import type { Framework } from "./types"
+
+export const clojureFrameworks: Record<string, Framework> = {
+  Ring: {
+    name: "Ring",
+    description: "Bibliothèque pour applications web Clojure, inspirée par WSGI/Rack",
+    usedFor: "Applications web, middleware HTTP, fondation pour frameworks web",
+    features: [
+      "Abstraction HTTP simple",
+      "Middleware composable",
+      "Adaptateurs pour différents serveurs",
+      "Gestion des sessions",
+      "Traitement des paramètres",
+    ],
+    officialWebsite: "https://github.com/ring-clojure/ring",
+    uniqueSellingPoint: "Fondation simple et composable pour applications web Clojure",
+    bestFor: "Applications web Clojure nécessitant flexibilité et composabilité",
+    version: "1.10.0",
+    documentation: "https://github.com/ring-clojure/ring/wiki",
+    resources: [
+      { name: "Documentation officielle", url: "https://github.com/ring-clojure/ring/wiki" },
+      { name: "GitHub", url: "https://github.com/ring-clojure/ring" },
+      { name: "Tutoriels", url: "https://github.com/ring-clojure/ring/wiki/Getting-Started" },
+    ],
+  },
+  Compojure: {
+    name: "Compojure",
+    description: "Bibliothèque de routage concise pour Ring",
+    usedFor: "Routage HTTP, applications web, APIs RESTful",
+    features: [
+      "Routage déclaratif",
+      "Composition de routes",
+      "Middleware",
+      "Intégration avec Ring",
+      "Gestion des paramètres",
+    ],
+    officialWebsite: "https://github.com/weavejester/compojure",
+    uniqueSellingPoint: "Routage élégant et concis pour applications web Clojure",
+    bestFor: "Applications Ring nécessitant routage simple et expressif",
+    version: "1.7.0",
+    documentation: "https://github.com/weavejester/compojure/wiki",
+    resources: [
+      { name: "Documentation officielle", url: "https://github.com/weavejester/compojure/wiki" },
+      { name: "GitHub", url: "https://github.com/weavejester/compojure" },
+      { name: "Tutoriels", url: "https://github.com/weavejester/compojure/wiki/Getting-Started" },
+    ],
+  },
+  Reagent: {
+    name: "Reagent",
+    description: "Interface minimaliste entre ClojureScript et React",
+    usedFor: "Applications web frontend, interfaces utilisateur réactives, SPAs",
+    features: [
+      "Composants React en ClojureScript",
+      "Gestion d'état simplifiée",
+      "Rendu efficace",
+      "Hiccup pour HTML",
+      "Interopérabilité avec JavaScript",
+    ],
+    officialWebsite: "https://reagent-project.github.io/",
+    uniqueSellingPoint: "React en ClojureScript avec simplicité et élégance fonctionnelle",
+    bestFor: "Applications frontend ClojureScript avec interfaces réactives",
+    version: "1.2.0",
+    documentation: "https://cljdoc.org/d/reagent/reagent/1.2.0/doc/documentation-index",
+    resources: [
+      { name: "Documentation officielle", url: "https://cljdoc.org/d/reagent/reagent/1.2.0/doc/documentation-index" },
+      { name: "GitHub", url: "https://github.com/reagent-project/reagent" },
+      { name: "Tutoriels", url: "https://reagent-project.github.io/tutorials.html" },
+    ],
+  },
+  "re-frame": {
+    name: "re-frame",
+    description: "Framework pour construire des applications SPAs avec Reagent",
+    usedFor: "Applications web frontend, SPAs, applications avec état complexe",
+    features: [
+      "Architecture basée sur les événements",
+      "Gestion d'état centralisée",
+      "Effets et coeffets",
+      "Subscriptions réactives",
+      "Intégration avec Reagent",
+    ],
+    officialWebsite: "https://day8.github.io/re-frame/",
+    uniqueSellingPoint: "Architecture frontend complète pour applications ClojureScript complexes",
+    bestFor: "Applications frontend ClojureScript avec gestion d'état complexe",
+    version: "1.3.0",
+    documentation: "https://day8.github.io/re-frame/re-frame/",
+    resources: [
+      { name: "Documentation officielle", url: "https://day8.github.io/re-frame/re-frame/" },
+      { name: "GitHub", url: "https://github.com/day8/re-frame" },
+      { name: "Tutoriels", url: "https://day8.github.io/re-frame/docs/tutorials/overview.html" },
+    ],
+  },
+}
+

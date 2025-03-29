@@ -1,0 +1,16 @@
+/* Styles critiques pour le LCP */
+h1.text-5xl.md\:text-7xl.font-black.mb-4.text-black.uppercase.tracking-tighter {
+  font-family: var(--font-inter), system-ui, Arial, sans-serif;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.05em;
+  color: black;
+  margin-bottom: 1rem;
+  font-size: 3rem;
+}
+@media (min-width: 768px) {
+  h1.text-5xl.md\:text-7xl.font-black.mb-4.text-black.uppercase.tracking-tighter {
+    font-size: 4.5rem;
+  }
+}
+

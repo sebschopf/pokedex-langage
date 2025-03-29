@@ -1,0 +1,97 @@
+import type { Framework } from "./types"
+
+export const purescriptFrameworks: Record<string, Framework> = {
+  Halogen: {
+    name: "Halogen",
+    description: "Framework UI déclaratif pour PureScript",
+    usedFor: "Applications web, interfaces utilisateur, applications single-page",
+    features: [
+      "Architecture basée sur les composants",
+      "Typage statique fort",
+      "Gestion d'état typée",
+      "Effets contrôlés",
+      "Composants réutilisables",
+    ],
+    officialWebsite: "https://github.com/purescript-halogen/purescript-halogen",
+    uniqueSellingPoint: "Framework UI PureScript avec typage fort et architecture de composants robuste",
+    bestFor: "Applications web PureScript nécessitant robustesse et maintenabilité",
+    version: "7.0.0",
+    documentation: "https://purescript-halogen.github.io/purescript-halogen/",
+    resources: [
+      { name: "Documentation", url: "https://purescript-halogen.github.io/purescript-halogen/" },
+      { name: "GitHub", url: "https://github.com/purescript-halogen/purescript-halogen" },
+      { name: "Guide", url: "https://github.com/purescript-halogen/purescript-halogen-guide" },
+      { name: "Exemples", url: "https://github.com/purescript-halogen/purescript-halogen/tree/master/examples" },
+    ],
+  },
+  "React-Basic": {
+    name: "React-Basic",
+    description: "Binding PureScript pour React avec une API simplifiée",
+    usedFor: "Applications web React en PureScript, interfaces utilisateur",
+    features: [
+      "API React simplifiée",
+      "Typage statique",
+      "Hooks",
+      "Composants fonctionnels",
+      "Interopérabilité avec l'écosystème React",
+    ],
+    officialWebsite: "https://github.com/lumihq/purescript-react-basic",
+    uniqueSellingPoint: "Utilisation de React avec les avantages du typage fort de PureScript",
+    bestFor: "Développeurs React souhaitant utiliser PureScript",
+    version: "15.0.0",
+    documentation: "https://github.com/lumihq/purescript-react-basic/tree/master/docs",
+    resources: [
+      { name: "Documentation", url: "https://github.com/lumihq/purescript-react-basic/tree/master/docs" },
+      { name: "GitHub", url: "https://github.com/lumihq/purescript-react-basic" },
+      { name: "Hooks", url: "https://github.com/spicydonuts/purescript-react-basic-hooks" },
+    ],
+  },
+  Concur: {
+    name: "Concur",
+    description: "Framework UI pour PureScript basé sur les widgets et la composition",
+    usedFor: "Applications web, interfaces utilisateur interactives",
+    features: [
+      "Widgets composables",
+      "Gestion d'état simplifiée",
+      "Programmation concurrente",
+      "Typage fort",
+      "Rendu efficace",
+    ],
+    officialWebsite: "https://github.com/purescript-concur/purescript-concur-react",
+    uniqueSellingPoint: "Approche unique basée sur les widgets pour simplifier la gestion d'état et la concurrence",
+    bestFor: "Applications avec logique d'interface utilisateur complexe",
+    version: "0.4.2",
+    documentation: "https://github.com/purescript-concur/purescript-concur-react/blob/master/docs/index.md",
+    resources: [
+      {
+        name: "Documentation",
+        url: "https://github.com/purescript-concur/purescript-concur-react/blob/master/docs/index.md",
+      },
+      { name: "GitHub", url: "https://github.com/purescript-concur/purescript-concur-react" },
+      { name: "Exemples", url: "https://github.com/purescript-concur/purescript-concur-react/tree/master/examples" },
+    ],
+  },
+  Thermite: {
+    name: "Thermite",
+    description: "Binding PureScript pour React avec une API inspirée par Elm",
+    usedFor: "Applications web React en PureScript, interfaces utilisateur",
+    features: [
+      "Architecture inspirée par Elm",
+      "Composants typés",
+      "Gestion d'état pure",
+      "Rendu déclaratif",
+      "Interopérabilité avec React",
+    ],
+    officialWebsite: "https://github.com/paf31/purescript-thermite",
+    uniqueSellingPoint: "Combinaison de l'architecture Elm avec React et PureScript",
+    bestFor: "Applications React nécessitant une architecture plus stricte et fonctionnelle",
+    version: "6.3.1",
+    documentation: "https://pursuit.purescript.org/packages/purescript-thermite",
+    resources: [
+      { name: "Documentation", url: "https://pursuit.purescript.org/packages/purescript-thermite" },
+      { name: "GitHub", url: "https://github.com/paf31/purescript-thermite" },
+      { name: "Exemples", url: "https://github.com/paf31/purescript-thermite/tree/master/test" },
+    ],
+  },
+}
+

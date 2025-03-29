@@ -1,0 +1,55 @@
+import type { Framework } from "./types"
+
+export const rFrameworks: Record<string, Framework> = {
+  Shiny: {
+    name: "Shiny",
+    description: "Framework pour créer des applications web interactives avec R",
+    usedFor: "Visualisation de données, tableaux de bord, applications statistiques",
+    features: ["Réactivité", "Widgets interactifs", "Intégration avec ggplot2", "Thèmes", "Déploiement facile"],
+    officialWebsite: "https://shiny.posit.co/",
+    uniqueSellingPoint: "Création d'applications web interactives en R sans connaissances en HTML/CSS/JS",
+    bestFor: "Scientifiques des données et statisticiens nécessitant des interfaces web pour leurs analyses",
+    version: "1.7.5",
+    documentation: "https://shiny.posit.co/r/getstarted/",
+  },
+  ggplot2: {
+    name: "ggplot2",
+    description: "Système de visualisation de données déclaratif pour R",
+    usedFor: "Visualisation de données, graphiques statistiques, rapports",
+    features: ["Grammaire des graphiques", "Esthétiques", "Facettes", "Thèmes", "Extensions"],
+    officialWebsite: "https://ggplot2.tidyverse.org/",
+    uniqueSellingPoint: "Création de graphiques élégants et complexes avec une syntaxe déclarative",
+    bestFor: "Visualisation de données statistiques en R",
+    version: "3.4.4",
+    documentation: "https://ggplot2.tidyverse.org/reference/",
+  },
+  dplyr: {
+    name: "dplyr",
+    description: "Grammaire de manipulation de données pour R",
+    usedFor: "Transformation de données, nettoyage, agrégation, jointures",
+    features: ["Verbes de manipulation de données", "Pipes", "Groupement", "Jointures", "Résumés"],
+    officialWebsite: "https://dplyr.tidyverse.org/",
+    uniqueSellingPoint: "Manipulation de données intuitive et expressive en R",
+    bestFor: "Préparation et transformation de données en R",
+    version: "1.1.3",
+    documentation: "https://dplyr.tidyverse.org/reference/",
+  },
+  tidyverse: {
+    name: "tidyverse",
+    description: "Collection de packages R pour la science des données",
+    usedFor: "Science des données, analyse statistique, visualisation, reporting",
+    features: [
+      "Manipulation de données (dplyr)",
+      "Visualisation (ggplot2)",
+      "Importation (readr)",
+      "Transformation (tidyr)",
+      "Programmation (purrr)",
+    ],
+    officialWebsite: "https://www.tidyverse.org/",
+    uniqueSellingPoint: "Écosystème cohérent pour l'analyse de données en R",
+    bestFor: "Flux de travail complet en science des données avec R",
+    version: "2.0.0",
+    documentation: "https://www.tidyverse.org/packages/",
+  },
+}
+
