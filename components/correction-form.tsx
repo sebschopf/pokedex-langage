@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { X } from "lucide-react"
-import { submitCorrection } from "@/actions/correction-actions"
+import { submitCorrection } from "@/app/actions/correction-actions"
 import type { Language } from "@/types/language"
 
 // Mettre à jour l'interface pour inclure un paramètre optionnel pour le framework
