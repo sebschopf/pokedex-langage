@@ -76,7 +76,7 @@ export default async function LanguagePage({ params }: { params: { slug: string 
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <div className={`${getTypeBadgeColor(language.type)} text-white font-bold px-2 py-1`}>
+              <div className={`${getTypeBadgeColor(language.type || "Autre")} text-white font-bold px-2 py-1`}>
                 {language.type || "Autre"}
               </div>
               {language.isOpenSource ? (
@@ -200,9 +200,9 @@ export default async function LanguagePage({ params }: { params: { slug: string 
                       )}
 
                       <div className="flex flex-wrap gap-2 pt-2">
-                        {framework.website && (
+                        {framework.officialWebsite && (
                           <a
-                            href={framework.website}
+                            href={framework.officialWebsite}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center text-sm bg-blue-600 text-white px-2 py-1 rounded-sm hover:bg-blue-700"

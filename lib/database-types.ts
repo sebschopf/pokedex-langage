@@ -23,6 +23,11 @@ export interface Database {
           license: string | null
           created_at: string
           updated_at: string
+          slug: string
+          year_created: number
+          creator: string | null
+          description: string | null
+          logo_path: string | null
         }
         Insert: {
           id?: string
@@ -43,6 +48,11 @@ export interface Database {
           license?: string | null
           created_at?: string
           updated_at?: string
+          slug?: string
+          year_created?: number
+          creator?: string | null
+          description?: string | null
+          logo_path?: string | null
         }
         Update: {
           id?: string
@@ -63,6 +73,11 @@ export interface Database {
           license?: string | null
           created_at?: string
           updated_at?: string
+          slug?: string
+          year_created?: number
+          creator?: string | null
+          description?: string | null
+          logo_path?: string | null
         }
       }
       libraries: {
@@ -79,6 +94,11 @@ export interface Database {
           version: string | null
           created_at: string
           updated_at: string
+          github_url: string | null
+          logo_path: string | null
+          popularity: number | null
+          is_open_source: boolean | null
+          documentation_url: string | null
         }
         Insert: {
           id?: string
@@ -93,6 +113,11 @@ export interface Database {
           version?: string | null
           created_at?: string
           updated_at?: string
+          github_url?: string | null
+          logo_path?: string | null
+          popularity?: number | null
+          is_open_source?: boolean | null
+          documentation_url?: string | null
         }
         Update: {
           id?: string
@@ -107,6 +132,11 @@ export interface Database {
           version?: string | null
           created_at?: string
           updated_at?: string
+          github_url?: string | null
+          logo_path?: string | null
+          popularity?: number | null
+          is_open_source?: boolean | null
+          documentation_url?: string | null
         }
       }
       corrections: {
@@ -120,6 +150,9 @@ export interface Database {
           status: string
           created_at: string
           updated_at: string
+          framework: string | null
+          correction_text: string
+          user_id: string | null
         }
         Insert: {
           id?: string
@@ -131,6 +164,9 @@ export interface Database {
           status?: string
           created_at?: string
           updated_at?: string
+          framework?: string | null
+          correction_text?: string
+          user_id?: string | null
         }
         Update: {
           id?: string
@@ -142,6 +178,113 @@ export interface Database {
           status?: string
           created_at?: string
           updated_at?: string
+          framework?: string | null
+          correction_text?: string
+          user_id?: string | null
+        }
+      }
+      language_proposals: {
+        Row: {
+          id: string
+          name: string
+          type: string | null
+          description: string | null
+          created_year: number | null
+          creator: string | null
+          used_for: string | null
+          strengths: string[] | null
+          popular_frameworks: string[] | null
+          user_id: string | null
+          status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          type?: string | null
+          description?: string | null
+          created_year?: number | null
+          creator?: string | null
+          used_for?: string | null
+          strengths?: string[] | null
+          popular_frameworks?: string[] | null
+          user_id?: string | null
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          type?: string | null
+          description?: string | null
+          created_year?: number | null
+          creator?: string | null
+          used_for?: string | null
+          strengths?: string[] | null
+          popular_frameworks?: string[] | null
+          user_id?: string | null
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          role: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          role?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      language_usage: {
+        Row: {
+          id: string
+          language_id: number | null
+          category_id: number | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          language_id?: number | null
+          category_id?: number | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          language_id?: number | null
+          category_id?: number | null
+          created_at?: string
+        }
+      }
+      usage_categories: {
+        Row: {
+          id: string
+          name: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          created_at?: string
         }
       }
     }

@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
-import type { Database } from "./database.types"
+import type { Database } from "./database-types"
 
 // Création d'un singleton pour le client Supabase côté client
 let supabaseClient: SupabaseClient<Database> | null = null

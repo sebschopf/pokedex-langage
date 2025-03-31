@@ -15,8 +15,8 @@ interface CorrectionFormProps {
   onSuccess: () => void
 }
 
-// Mettre à jour le composant pour gérer les corrections de frameworks
-export default function CorrectionForm({ language, framework, onClose, onSuccess }: CorrectionFormProps) {
+// Utiliser export function au lieu de export default function
+export function CorrectionForm({ language, framework, onClose, onSuccess }: CorrectionFormProps) {
   const [correctionType, setCorrectionType] = useState<string>("language") // "language" ou "framework"
   const [field, setField] = useState<string>("usedFor")
   const [frameworkField, setFrameworkField] = useState<string>("description")
@@ -206,4 +206,7 @@ export default function CorrectionForm({ language, framework, onClose, onSuccess
     </div>
   )
 }
+
+//  permettre l'import par défaut au cas où
+export default CorrectionForm
 

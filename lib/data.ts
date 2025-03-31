@@ -1,428 +1,544 @@
+/**
+ * Module utilitaire central pour interagir avec la base de données Supabase
+ * Fournit des fonctions CRUD pour les langages, bibliothèques et corrections
+ */
+
 import { createServerSupabaseClient } from "./supabase"
 import type { Language } from "@/types/language"
 import type { Library } from "@/types/library"
-
-// Interface pour les corrections
-export interface Correction {
-  id: string
-  languageId: string
-  languageName?: string
-  libraryName?: string
-  field: string
-  suggestion: string
-  type: "language" | "library"
-  status: string
-  createdAt: string
-  updatedAt: string
-}
+import type { Correction } from "@/types/correction"
+import type { LanguageProposal } from "@/types/language-proposal"
+import {
+  dbToLanguage,
+  languageToDb,
+  dbToLibrary,
+  libraryToDb,
+  dbToCorrection,
+  correctionToDb,
+  dbToLanguageProposal,
+  languageProposalToDb,
+} from "../types/database-mapping"
 
 // ===== FONCTIONS DE LECTURE (READ) =====
 
+/**
+ * Récupère tous les langages de programmation
+ * @returns Liste des langages triés par nom
+ */
 export async function getLanguages(): Promise<Language[]> {
-  const supabase = createServerSupabaseClient()
+  try {
+    const supabase = createServerSupabaseClient()
+    const { data, error } = await supabase.from("languages").select("*").order("name")
 
-  const { data, error } = await supabase.from("languages").select("*").order("name")
+    if (error) {
+      console.error("Erreur lors de la récupération des langages:", error)
+      return []
+    }
 
-  if (error) {
+    // Utiliser la fonction de conversion pour normaliser les données
+    return data.map(dbToLanguage)
+  } catch (error) {
     console.error("Erreur lors de la récupération des langages:", error)
-    throw new Error("Impossible de récupérer les langages")
+    return []
   }
-
-  // Conversion du format de la base de données vers le format utilisé par l'application
-  return data.map((lang) => ({
-    id: lang.id,
-    name: lang.name,
-    logo: lang.logo,
-    shortDescription: lang.short_description,
-    type: lang.type as Language["type"],
-    usedFor: lang.used_for,
-    usageRate: lang.usage_rate,
-    createdYear: lang.created_year,
-    popularFrameworks: lang.popular_frameworks || [],
-    strengths: lang.strengths || [],
-    difficulty: lang.difficulty as Language["difficulty"],
-    isOpenSource: lang.is_open_source,
-    tools: lang.tools as Language["tools"],
-    currentVersion: lang.current_version,
-    lastUpdated: lang.last_updated,
-    license: lang.license,
-  }))
 }
 
+/**
+ * Récupère un langage par son ID
+ * @param id ID du langage à récupérer
+ * @returns Le langage ou null si non trouvé
+ */
 export async function getLanguageById(id: string): Promise<Language | null> {
-  const supabase = createServerSupabaseClient()
+  try {
+    const supabase = createServerSupabaseClient()
+    const { data, error } = await supabase.from("languages").select("*").eq("id", id).single()
 
-  const { data, error } = await supabase.from("languages").select("*").eq("id", id).single()
+    if (error) {
+      console.error(`Erreur lors de la récupération du langage avec l'ID ${id}:`, error)
+      return null
+    }
 
-  if (error) {
+    return dbToLanguage(data)
+  } catch (error) {
     console.error(`Erreur lors de la récupération du langage avec l'ID ${id}:`, error)
     return null
   }
-
-  return {
-    id: data.id,
-    name: data.name,
-    logo: data.logo,
-    shortDescription: data.short_description,
-    type: data.type as Language["type"],
-    usedFor: data.used_for,
-    usageRate: data.usage_rate,
-    createdYear: data.created_year,
-    popularFrameworks: data.popular_frameworks || [],
-    strengths: data.strengths || [],
-    difficulty: data.difficulty as Language["difficulty"],
-    isOpenSource: data.is_open_source,
-    tools: data.tools as Language["tools"],
-    currentVersion: data.current_version,
-    lastUpdated: data.last_updated,
-    license: data.license,
-  }
 }
 
+/**
+ * Récupère toutes les bibliothèques associées à un langage
+ * @param languageId ID du langage parent
+ * @returns Liste des bibliothèques triées par nom
+ */
 export async function getLibrariesByLanguageId(languageId: string): Promise<Library[]> {
-  const supabase = createServerSupabaseClient()
+  try {
+    const supabase = createServerSupabaseClient()
+    const { data, error } = await supabase.from("libraries").select("*").eq("language_id", languageId).order("name")
 
-  const { data, error } = await supabase.from("libraries").select("*").eq("language_id", languageId).order("name")
+    if (error) {
+      console.error(`Erreur lors de la récupération des bibliothèques pour le langage ${languageId}:`, error)
+      return []
+    }
 
-  if (error) {
+    return data.map(dbToLibrary)
+  } catch (error) {
     console.error(`Erreur lors de la récupération des bibliothèques pour le langage ${languageId}:`, error)
     return []
   }
-
-  // Conversion du format de la base de données vers le format utilisé par l'application
-  return data.map((lib) => ({
-    id: lib.id,
-    name: lib.name,
-    description: lib.description,
-    usedFor: lib.used_for,
-    features: lib.features || [],
-    officialWebsite: lib.official_website,
-    uniqueSellingPoint: lib.unique_selling_point,
-    bestFor: lib.best_for,
-    version: lib.version,
-  }))
 }
 
+/**
+ * Récupère une bibliothèque par son ID
+ * @param id ID de la bibliothèque à récupérer
+ * @returns La bibliothèque ou null si non trouvée
+ */
 export async function getLibraryById(id: string): Promise<Library | null> {
-  const supabase = createServerSupabaseClient()
+  try {
+    const supabase = createServerSupabaseClient()
+    const { data, error } = await supabase.from("libraries").select("*").eq("id", id).single()
 
-  const { data, error } = await supabase.from("libraries").select("*").eq("id", id).single()
+    if (error) {
+      console.error(`Erreur lors de la récupération de la bibliothèque avec l'ID ${id}:`, error)
+      return null
+    }
 
-  if (error) {
+    return dbToLibrary(data)
+  } catch (error) {
     console.error(`Erreur lors de la récupération de la bibliothèque avec l'ID ${id}:`, error)
     return null
   }
-
-  return {
-    id: data.id,
-    name: data.name,
-    description: data.description,
-    usedFor: data.used_for,
-    features: data.features || [],
-    officialWebsite: data.official_website,
-    uniqueSellingPoint: data.unique_selling_point,
-    bestFor: data.best_for,
-    version: data.version,
-  }
 }
 
+/**
+ * Récupère toutes les corrections associées à un langage
+ * @param languageId ID du langage parent
+ * @returns Liste des corrections triées par date de création (plus récentes d'abord)
+ */
 export async function getCorrectionsByLanguageId(languageId: string): Promise<Correction[]> {
-  const supabase = createServerSupabaseClient()
+  try {
+    const supabase = createServerSupabaseClient()
+    const { data, error } = await supabase
+      .from("corrections")
+      .select("*")
+      .eq("language_id", languageId)
+      .order("created_at", { ascending: false })
 
-  const { data, error } = await supabase
-    .from("corrections")
-    .select("*")
-    .eq("language_id", languageId)
-    .order("created_at", { ascending: false })
+    if (error) {
+      console.error(`Erreur lors de la récupération des corrections pour le langage ${languageId}:`, error)
+      return []
+    }
 
-  if (error) {
+    return data.map(dbToCorrection)
+  } catch (error) {
     console.error(`Erreur lors de la récupération des corrections pour le langage ${languageId}:`, error)
     return []
   }
-
-  return data.map((correction) => ({
-    id: correction.id,
-    languageId: correction.language_id,
-    libraryName: correction.library_name || undefined,
-    field: correction.field,
-    suggestion: correction.suggestion,
-    type: correction.type as "language" | "library",
-    status: correction.status,
-    createdAt: correction.created_at,
-    updatedAt: correction.updated_at,
-  }))
 }
 
+/**
+ * Récupère toutes les corrections avec le nom du langage associé
+ * @returns Liste des corrections triées par date de création (plus récentes d'abord)
+ */
 export async function getAllCorrections(): Promise<Correction[]> {
-  const supabase = createServerSupabaseClient()
+  try {
+    const supabase = createServerSupabaseClient()
+    const { data, error } = await supabase
+      .from("corrections")
+      .select("*, languages(name)")
+      .order("created_at", { ascending: false })
 
-  const { data, error } = await supabase
-    .from("corrections")
-    .select("*, languages(name)")
-    .order("created_at", { ascending: false })
+    if (error) {
+      console.error("Erreur lors de la récupération des corrections:", error)
+      return []
+    }
 
-  if (error) {
+    return data.map((correction) => {
+      const correctionObj = dbToCorrection(correction)
+      // Ajouter le nom du langage qui vient de la jointure
+      return {
+        ...correctionObj,
+        languageName: correction.languages?.name,
+      }
+    })
+  } catch (error) {
     console.error("Erreur lors de la récupération des corrections:", error)
     return []
   }
+}
 
-  return data.map((correction) => ({
-    id: correction.id,
-    languageId: correction.language_id,
-    languageName: correction.languages?.name,
-    libraryName: correction.library_name || undefined,
-    field: correction.field,
-    suggestion: correction.suggestion,
-    type: correction.type as "language" | "library",
-    status: correction.status,
-    createdAt: correction.created_at,
-    updatedAt: correction.updated_at,
-  }))
+/**
+ * Récupère toutes les propositions de langages
+ * @returns Liste des propositions triées par date de création (plus récentes d'abord)
+ */
+export async function getAllProposals(): Promise<LanguageProposal[]> {
+  try {
+    const supabase = createServerSupabaseClient()
+    const { data, error } = await supabase
+      .from("language_proposals")
+      .select("*")
+      .order("created_at", { ascending: false })
+
+    if (error) {
+      console.error("Erreur lors de la récupération des propositions:", error)
+      return []
+    }
+
+    return data.map(dbToLanguageProposal)
+  } catch (error) {
+    console.error("Erreur lors de la récupération des propositions:", error)
+    return []
+  }
+}
+
+/**
+ * Récupère une proposition de langage par son ID
+ * @param id ID de la proposition à récupérer
+ * @returns La proposition ou null si non trouvée
+ */
+export async function getProposalById(id: string): Promise<LanguageProposal | null> {
+  try {
+    const supabase = createServerSupabaseClient()
+    const { data, error } = await supabase.from("language_proposals").select("*").eq("id", id).single()
+
+    if (error) {
+      console.error(`Erreur lors de la récupération de la proposition avec l'ID ${id}:`, error)
+      return null
+    }
+
+    return dbToLanguageProposal(data)
+  } catch (error) {
+    console.error(`Erreur lors de la récupération de la proposition avec l'ID ${id}:`, error)
+    return null
+  }
 }
 
 // ===== FONCTIONS DE CRÉATION (CREATE) =====
 
+/**
+ * Crée un nouveau langage de programmation
+ * @param language Données du langage à créer (sans l'ID)
+ * @returns Le langage créé ou null en cas d'erreur
+ */
 export async function createLanguage(language: Omit<Language, "id">): Promise<Language | null> {
-  const supabase = createServerSupabaseClient()
+  try {
+    const supabase = createServerSupabaseClient()
+    const dbData = languageToDb(language)
 
-  const { data, error } = await supabase
-    .from("languages")
-    .insert({
-      name: language.name,
-      logo: language.logo,
-      short_description: language.shortDescription,
-      type: language.type,
-      used_for: language.usedFor,
-      usage_rate: language.usageRate,
-      created_year: language.createdYear,
-      popular_frameworks: language.popularFrameworks,
-      strengths: language.strengths,
-      difficulty: language.difficulty,
-      is_open_source: language.isOpenSource,
-      tools: language.tools,
-      current_version: language.currentVersion,
-      last_updated: language.lastUpdated,
-      license: language.license,
-    })
-    .select()
-    .single()
+    const { data, error } = await supabase.from("languages").insert(dbData).select().single()
 
-  if (error) {
+    if (error) {
+      console.error("Erreur lors de la création du langage:", error)
+      return null
+    }
+
+    return dbToLanguage(data)
+  } catch (error) {
     console.error("Erreur lors de la création du langage:", error)
     return null
   }
-
-  return {
-    id: data.id,
-    name: data.name,
-    logo: data.logo,
-    shortDescription: data.short_description,
-    type: data.type as Language["type"],
-    usedFor: data.used_for,
-    usageRate: data.usage_rate,
-    createdYear: data.created_year,
-    popularFrameworks: data.popular_frameworks || [],
-    strengths: data.strengths || [],
-    difficulty: data.difficulty as Language["difficulty"],
-    isOpenSource: data.is_open_source,
-    tools: data.tools as Language["tools"],
-    currentVersion: data.current_version,
-    lastUpdated: data.last_updated,
-    license: data.license,
-  }
 }
 
+/**
+ * Crée une nouvelle bibliothèque associée à un langage
+ * @param library Données de la bibliothèque à créer (sans l'ID)
+ * @param languageId ID du langage parent
+ * @returns La bibliothèque créée ou null en cas d'erreur
+ */
 export async function createLibrary(library: Omit<Library, "id">, languageId: string): Promise<Library | null> {
-  const supabase = createServerSupabaseClient()
-
-  const { data, error } = await supabase
-    .from("libraries")
-    .insert({
-      language_id: languageId,
-      name: library.name,
-      description: library.description,
-      used_for: library.usedFor,
-      features: library.features,
-      official_website: library.officialWebsite,
-      unique_selling_point: library.uniqueSellingPoint,
-      best_for: library.bestFor,
-      version: library.version,
+  try {
+    const supabase = createServerSupabaseClient()
+    const dbData = libraryToDb({
+      ...library,
+      languageId: typeof languageId === "string" ? Number.parseInt(languageId, 10) : languageId,
     })
-    .select()
-    .single()
 
-  if (error) {
+    const { data, error } = await supabase.from("libraries").insert(dbData).select().single()
+
+    if (error) {
+      console.error("Erreur lors de la création de la bibliothèque:", error)
+      return null
+    }
+
+    return dbToLibrary(data)
+  } catch (error) {
     console.error("Erreur lors de la création de la bibliothèque:", error)
     return null
   }
-
-  return {
-    id: data.id,
-    name: data.name,
-    description: data.description,
-    usedFor: data.used_for,
-    features: data.features || [],
-    officialWebsite: data.official_website,
-    uniqueSellingPoint: data.unique_selling_point,
-    bestFor: data.best_for,
-    version: data.version,
-  }
 }
 
+/**
+ * Crée une nouvelle correction/suggestion
+ * @param correction Données de la correction à créer (sans l'ID et les timestamps)
+ * @returns La correction créée ou null en cas d'erreur
+ */
 export async function createCorrection(
   correction: Omit<Correction, "id" | "createdAt" | "updatedAt">,
 ): Promise<Correction | null> {
-  const supabase = createServerSupabaseClient()
-
-  const { data, error } = await supabase
-    .from("corrections")
-    .insert({
-      language_id: correction.languageId,
-      library_name: correction.libraryName,
-      field: correction.field,
-      suggestion: correction.suggestion,
-      type: correction.type,
+  try {
+    const supabase = createServerSupabaseClient()
+    const dbData = correctionToDb({
+      ...correction,
       status: correction.status || "pending",
     })
-    .select()
-    .single()
 
-  if (error) {
+    const { data, error } = await supabase.from("corrections").insert(dbData).select().single()
+
+    if (error) {
+      console.error("Erreur lors de la création de la correction:", error)
+      return null
+    }
+
+    return dbToCorrection(data)
+  } catch (error) {
     console.error("Erreur lors de la création de la correction:", error)
     return null
   }
+}
 
-  return {
-    id: data.id,
-    languageId: data.language_id,
-    libraryName: data.library_name || undefined,
-    field: data.field,
-    suggestion: data.suggestion,
-    type: data.type as "language" | "library",
-    status: data.status,
-    createdAt: data.created_at,
-    updatedAt: data.updated_at,
+/**
+ * Crée une nouvelle proposition de langage
+ * @param proposal Données de la proposition à créer (sans l'ID et les timestamps)
+ * @returns La proposition créée ou null en cas d'erreur
+ */
+export async function createProposal(
+  proposal: Omit<LanguageProposal, "id" | "createdAt" | "updatedAt">,
+): Promise<LanguageProposal | null> {
+  try {
+    const supabase = createServerSupabaseClient()
+    const dbData = languageProposalToDb({
+      ...proposal,
+      status: proposal.status || "pending",
+    })
+
+    const { data, error } = await supabase.from("language_proposals").insert(dbData).select().single()
+
+    if (error) {
+      console.error("Erreur lors de la création de la proposition:", error)
+      return null
+    }
+
+    return dbToLanguageProposal(data)
+  } catch (error) {
+    console.error("Erreur lors de la création de la proposition:", error)
+    return null
   }
 }
 
 // ===== FONCTIONS DE MISE À JOUR (UPDATE) =====
 
-export async function updateLanguage(id: string, language: Partial<Omit<Language, "id">>): Promise<boolean> {
-  const supabase = createServerSupabaseClient()
+/**
+ * Met à jour un langage existant
+ * @param id ID du langage à mettre à jour
+ * @param language Données partielles du langage à mettre à jour
+ * @returns true si la mise à jour a réussi, false sinon
+ */
+export async function updateLanguage(id: string, language: Partial<Language>): Promise<boolean> {
+  try {
+    const supabase = createServerSupabaseClient()
+    const dbData = languageToDb(language)
 
-  const { error } = await supabase
-    .from("languages")
-    .update({
-      name: language.name,
-      logo: language.logo,
-      short_description: language.shortDescription,
-      type: language.type,
-      used_for: language.usedFor,
-      usage_rate: language.usageRate,
-      created_year: language.createdYear,
-      popular_frameworks: language.popularFrameworks,
-      strengths: language.strengths,
-      difficulty: language.difficulty,
-      is_open_source: language.isOpenSource,
-      tools: language.tools,
-      current_version: language.currentVersion,
-      last_updated: language.lastUpdated,
-      license: language.license,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", id)
+    const { error } = await supabase
+      .from("languages")
+      .update({
+        ...dbData,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id)
 
-  if (error) {
+    if (error) {
+      console.error(`Erreur lors de la mise à jour du langage avec l'ID ${id}:`, error)
+      return false
+    }
+
+    return true
+  } catch (error) {
     console.error(`Erreur lors de la mise à jour du langage avec l'ID ${id}:`, error)
     return false
   }
-
-  return true
 }
 
-export async function updateLibrary(id: string, library: Partial<Omit<Library, "id">>): Promise<boolean> {
-  const supabase = createServerSupabaseClient()
+/**
+ * Met à jour une bibliothèque existante
+ * @param id ID de la bibliothèque à mettre à jour
+ * @param library Données partielles de la bibliothèque à mettre à jour
+ * @returns true si la mise à jour a réussi, false sinon
+ */
+export async function updateLibrary(id: string, library: Partial<Library>): Promise<boolean> {
+  try {
+    const supabase = createServerSupabaseClient()
+    const dbData = libraryToDb(library)
 
-  const { error } = await supabase
-    .from("libraries")
-    .update({
-      name: library.name,
-      description: library.description,
-      used_for: library.usedFor,
-      features: library.features,
-      official_website: library.officialWebsite,
-      unique_selling_point: library.uniqueSellingPoint,
-      best_for: library.bestFor,
-      version: library.version,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", id)
+    const { error } = await supabase
+      .from("libraries")
+      .update({
+        ...dbData,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id)
 
-  if (error) {
+    if (error) {
+      console.error(`Erreur lors de la mise à jour de la bibliothèque avec l'ID ${id}:`, error)
+      return false
+    }
+
+    return true
+  } catch (error) {
     console.error(`Erreur lors de la mise à jour de la bibliothèque avec l'ID ${id}:`, error)
     return false
   }
-
-  return true
 }
 
+/**
+ * Met à jour le statut d'une correction
+ * @param id ID de la correction à mettre à jour
+ * @param status Nouveau statut
+ * @returns true si la mise à jour a réussi, false sinon
+ */
 export async function updateCorrectionStatus(id: string, status: string): Promise<boolean> {
-  const supabase = createServerSupabaseClient()
+  try {
+    const supabase = createServerSupabaseClient()
 
-  const { error } = await supabase
-    .from("corrections")
-    .update({
-      status,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", id)
+    const { error } = await supabase
+      .from("corrections")
+      .update({
+        status,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id)
 
-  if (error) {
+    if (error) {
+      console.error(`Erreur lors de la mise à jour du statut de la correction avec l'ID ${id}:`, error)
+      return false
+    }
+
+    return true
+  } catch (error) {
     console.error(`Erreur lors de la mise à jour du statut de la correction avec l'ID ${id}:`, error)
     return false
   }
+}
 
-  return true
+/**
+ * Met à jour le statut d'une proposition de langage
+ * @param id ID de la proposition à mettre à jour
+ * @param status Nouveau statut
+ * @returns true si la mise à jour a réussi, false sinon
+ */
+export async function updateProposalStatus(id: string, status: string): Promise<boolean> {
+  try {
+    const supabase = createServerSupabaseClient()
+
+    const { error } = await supabase
+      .from("language_proposals")
+      .update({
+        status,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+
+    if (error) {
+      console.error(`Erreur lors de la mise à jour du statut de la proposition avec l'ID ${id}:`, error)
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error(`Erreur lors de la mise à jour du statut de la proposition avec l'ID ${id}:`, error)
+    return false
+  }
 }
 
 // ===== FONCTIONS DE SUPPRESSION (DELETE) =====
 
+/**
+ * Supprime un langage
+ * @param id ID du langage à supprimer
+ * @returns true si la suppression a réussi, false sinon
+ */
 export async function deleteLanguage(id: string): Promise<boolean> {
-  const supabase = createServerSupabaseClient()
+  try {
+    const supabase = createServerSupabaseClient()
 
-  const { error } = await supabase.from("languages").delete().eq("id", id)
+    const { error } = await supabase.from("languages").delete().eq("id", id)
 
-  if (error) {
+    if (error) {
+      console.error(`Erreur lors de la suppression du langage avec l'ID ${id}:`, error)
+      return false
+    }
+
+    return true
+  } catch (error) {
     console.error(`Erreur lors de la suppression du langage avec l'ID ${id}:`, error)
     return false
   }
-
-  return true
 }
 
+/**
+ * Supprime une bibliothèque
+ * @param id ID de la bibliothèque à supprimer
+ * @returns true si la suppression a réussi, false sinon
+ */
 export async function deleteLibrary(id: string): Promise<boolean> {
-  const supabase = createServerSupabaseClient()
+  try {
+    const supabase = createServerSupabaseClient()
 
-  const { error } = await supabase.from("libraries").delete().eq("id", id)
+    const { error } = await supabase.from("libraries").delete().eq("id", id)
 
-  if (error) {
+    if (error) {
+      console.error(`Erreur lors de la suppression de la bibliothèque avec l'ID ${id}:`, error)
+      return false
+    }
+
+    return true
+  } catch (error) {
     console.error(`Erreur lors de la suppression de la bibliothèque avec l'ID ${id}:`, error)
     return false
   }
-
-  return true
 }
 
+/**
+ * Supprime une correction
+ * @param id ID de la correction à supprimer
+ * @returns true si la suppression a réussi, false sinon
+ */
 export async function deleteCorrection(id: string): Promise<boolean> {
-  const supabase = createServerSupabaseClient()
+  try {
+    const supabase = createServerSupabaseClient()
 
-  const { error } = await supabase.from("corrections").delete().eq("id", id)
+    const { error } = await supabase.from("corrections").delete().eq("id", id)
 
-  if (error) {
+    if (error) {
+      console.error(`Erreur lors de la suppression de la correction avec l'ID ${id}:`, error)
+      return false
+    }
+
+    return true
+  } catch (error) {
     console.error(`Erreur lors de la suppression de la correction avec l'ID ${id}:`, error)
     return false
   }
+}
 
-  return true
+/**
+ * Supprime une proposition de langage
+ * @param id ID de la proposition à supprimer
+ * @returns true si la suppression a réussi, false sinon
+ */
+export async function deleteProposal(id: string): Promise<boolean> {
+  try {
+    const supabase = createServerSupabaseClient()
+
+    const { error } = await supabase.from("language_proposals").delete().eq("id", id)
+
+    if (error) {
+      console.error(`Erreur lors de la suppression de la proposition avec l'ID ${id}:`, error)
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error(`Erreur lors de la suppression de la proposition avec l'ID ${id}:`, error)
+    return false
+  }
 }
 

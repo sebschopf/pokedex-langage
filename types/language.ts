@@ -1,46 +1,35 @@
+//types/language.ts
+export type LanguageType = "Frontend" | "Backend" | "Fullstack" | "Mobile" | "Data" | "Business"
+
 export interface Language {
-  // Propriétés principales
+  // Propriétés principales (camelCase pour l'utilisation dans l'application)
   id: string | number
   name: string
-  slug?: string
+  slug: string
+  createdYear?: number | null
+  creator?: string | null
+  description?: string | null
+  logo?: string | null
+  shortDescription?: string | null
+  type?: LanguageType | null
+  usedFor?: string | null
+  usageRate?: number | null
+  isOpenSource?: boolean | null
+  strengths?: string[] | null
+  popularFrameworks?: string[] | null
+  tools?: any | null
+  createdAt?: string | null
+  updatedAt?: string | null
 
-  // Propriétés en camelCase (pour la compatibilité avec votre code existant)
-  logo?: string
-  shortDescription?: string
-  type?: "Frontend" | "Backend" | "Fullstack" | "Mobile" | "Data" | "Business"
-  usedFor?: string
-  usageRate?: number
-  createdYear?: number
-  popularFrameworks?: string[]
-  strengths?: string[]
-  difficulty?: 1 | 2 | 3 | 4 | 5
-  isOpenSource?: boolean
-  currentVersion?: string
-  lastUpdated?: string
-
-  // Propriétés en snake_case (pour la compatibilité avec Supabase)
-  logo_path?: string
-  short_description?: string
-  used_for?: string
-  usage_rate?: number
-  year_created?: number
-  popular_frameworks?: string[]
-  is_open_source?: boolean
-  current_version?: string
-  last_updated?: string
-
-  // Propriétés communes
-  tools?: {
-    parsers?: string[]
-    validators?: string[]
-    templateEngines?: string[]
-    [key: string]: string[] | undefined
-  }
-  license?: string
-  created_at?: string
-  updated_at?: string
-
-  // Propriété pour la description complète
-  description?: string
+  // Propriétés en snake_case pour la compatibilité avec la base de données
+  year_created?: number | null
+  logo_path?: string | null
+  short_description?: string | null
+  used_for?: string | null
+  usage_rate?: number | null
+  is_open_source?: boolean | null
+  popular_frameworks?: string[] | null
+  created_at?: string | null
+  updated_at?: string | null
 }
 

@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
-import type { Database } from "./database.types"
+import type { Database } from "./database-types"
 
 // Client Supabase avec les droits d'administration
 // À utiliser uniquement côté serveur pour les opérations administratives
