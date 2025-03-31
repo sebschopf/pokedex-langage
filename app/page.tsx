@@ -1,7 +1,7 @@
 import SearchBar from "@/components/search-bar"
 import FilterBar from "@/components/filter-bar"
 import { LanguageGrid } from "@/components/language-grid"
-import { AuthButton } from "@/components/auth-button"
+import { AuthButton } from "@/./components/auth-button"
 import { getLanguages } from "@/lib/data"
 import Link from "next/link"
 
