@@ -1,5 +1,7 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
+export type UserRoleType = "admin" | "validator" | "verified" | "registered" | "anonymous"
+
 export interface Database {
   public: {
     Tables: {
@@ -233,19 +235,19 @@ export interface Database {
       user_roles: {
         Row: {
           id: string
-          role: string
+          role: UserRoleType
           created_at: string
           updated_at: string
         }
         Insert: {
           id: string
-          role: string
+          role: UserRoleType
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
-          role?: string
+          role?: UserRoleType
           created_at?: string
           updated_at?: string
         }
@@ -287,6 +289,230 @@ export interface Database {
           created_at?: string
         }
       }
+      profiles: {
+        Row: {
+          id: string
+          username: string | null
+          avatar_url: string | null
+          updated_at: string
+          created_at: string
+        }
+        Insert: {
+          id: string
+          username?: string | null
+          avatar_url?: string | null
+          updated_at?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          username?: string | null
+          avatar_url?: string | null
+          updated_at?: string
+          created_at?: string
+        }
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+  }
+  auth: {
+    Tables: {
+      users: {
+        Row: {
+          id: string
+          email: string
+          created_at: string
+          last_sign_in_at: string | null
+          confirmed_at: string | null
+          confirmation_sent_at: string | null
+          recovery_sent_at: string | null
+          email_change_sent_at: string | null
+          aud: string | null
+          role: string | null
+        }
+        Insert: {
+          id?: string
+          email: string
+          created_at?: string
+          last_sign_in_at?: string | null
+          confirmed_at?: string | null
+          confirmation_sent_at?: string | null
+          recovery_sent_at?: string | null
+          email_change_sent_at?: string | null
+          aud?: string | null
+          role?: string | null
+        }
+        Update: {
+          id?: string
+          email?: string
+          created_at?: string
+          last_sign_in_at?: string | null
+          confirmed_at?: string | null
+          confirmation_sent_at?: string | null
+          recovery_sent_at?: string | null
+          email_change_sent_at?: string | null
+          aud?: string | null
+          role?: string | null
+        }
+      }
+      identities: {
+        Row: {
+          id: string
+          user_id: string
+          provider: string
+          identity_data: Json
+          created_at: string | null
+          last_sign_in_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          provider: string
+          identity_data: Json
+          created_at?: string | null
+          last_sign_in_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          provider?: string
+          identity_data?: Json
+          created_at?: string | null
+          last_sign_in_at?: string | null
+          updated_at?: string | null
+        }
+      }
+      sessions: {
+        Row: {
+          id: string
+          user_id: string
+          created_at: string | null
+          updated_at: string | null
+          factor_id: string | null
+          aal: string | null
+          not_after: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          created_at?: string | null
+          updated_at?: string | null
+          factor_id?: string | null
+          aal?: string | null
+          not_after?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          created_at?: string | null
+          updated_at?: string | null
+          factor_id?: string | null
+          aal?: string | null
+          not_after?: string | null
+        }
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+  }
+  storage: {
+    Tables: {
+      buckets: {
+        Row: {
+          id: string
+          name: string
+          owner: string | null
+          created_at: string | null
+          updated_at: string | null
+          public: boolean | null
+          avif_autodetection: boolean | null
+          file_size_limit: number | null
+          allowed_mime_types: string[] | null
+          owner_id: string | null
+        }
+        Insert: {
+          id: string
+          name: string
+          owner?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+          public?: boolean | null
+          avif_autodetection?: boolean | null
+          file_size_limit?: number | null
+          allowed_mime_types?: string[] | null
+          owner_id?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          owner?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+          public?: boolean | null
+          avif_autodetection?: boolean | null
+          file_size_limit?: number | null
+          allowed_mime_types?: string[] | null
+          owner_id?: string | null
+        }
+      }
+      objects: {
+        Row: {
+          id: string
+          bucket_id: string | null
+          name: string | null
+          owner: string | null
+          created_at: string | null
+          updated_at: string | null
+          last_accessed_at: string | null
+          metadata: Json | null
+          path_tokens: string[] | null
+          version: string | null
+          owner_id: string | null
+        }
+        Insert: {
+          id?: string
+          bucket_id?: string | null
+          name?: string | null
+          owner?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+          last_accessed_at?: string | null
+          metadata?: Json | null
+          path_tokens?: string[] | null
+          version?: string | null
+          owner_id?: string | null
+        }
+        Update: {
+          id?: string
+          bucket_id?: string | null
+          name?: string | null
+          owner?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+          last_accessed_at?: string | null
+          metadata?: Json | null
+          path_tokens?: string[] | null
+          version?: string | null
+          owner_id?: string | null
+        }
+      }
     }
     Views: {
       [_ in never]: never
@@ -299,4 +525,3 @@ export interface Database {
     }
   }
 }
-

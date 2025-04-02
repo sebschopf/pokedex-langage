@@ -3,17 +3,20 @@
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
-import { useSupabaseMutation } from "@/hooks/use-supabase-mutation"
-import { createSupabaseClient } from "@/lib/supabase"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import AvatarUpload from "@/components/avatar-upload"
+import { UserRoleBadge } from "@/components/user-role-badge"
+import type { Database } from "@/lib/database-types"
+import type { UserRoleType } from "@/types/user-role"
 
 interface User {
   id: string
-  role: string
+  role: UserRoleType
   created_at: string
+  avatar_url?: string | null
   auth_users: {
     email: string
     created_at: string
@@ -28,9 +31,9 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
   const [users, setUsers] = useState<User[]>(initialUsers)
   const [searchTerm, setSearchTerm] = useState("")
   const [isUpdating, setIsUpdating] = useState<Record<string, boolean>>({})
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const { toast } = useToast()
-  const { update } = useSupabaseMutation()
-  const supabase = createSupabaseClient()
+  const supabase = createClientComponentClient<Database>()
 
   // Filtrer les utilisateurs en fonction du terme de recherche
   const filteredUsers = users.filter(
@@ -40,23 +43,33 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
   )
 
   // Mettre à jour le rôle d'un utilisateur
-  const updateUserRole = async (userId: string, newRole: string) => {
+  const updateUserRole = async (userId: string, newRole: UserRoleType) => {
     setIsUpdating({ ...isUpdating, [userId]: true })
 
     try {
-      await update({
-        table: "user_roles",
-        data: { role: newRole },
-        match: { id: userId },
-        successMessage: "Rôle mis à jour avec succès",
-        errorMessage: "Erreur lors de la mise à jour du rôle",
-        onSuccess: () => {
-          // Mettre à jour l'état local
-          setUsers(users.map((user) => (user.id === userId ? { ...user, role: newRole } : user)))
-        },
+      const { error } = await supabase.from("user_roles").update({ role: newRole }).eq("id", userId)
+
+      if (error) throw error
+
+      toast({
+        title: "Rôle mis à jour avec succès",
+        description: `Le rôle de l'utilisateur a été mis à jour.`,
       })
-    } catch (error) {
+
+      // Mettre à jour l'état local
+      setUsers(users.map((user) => (user.id === userId ? { ...user, role: newRole } : user)))
+
+      // Mettre à jour l'utilisateur sélectionné si nécessaire
+      if (selectedUser && selectedUser.id === userId) {
+        setSelectedUser({ ...selectedUser, role: newRole })
+      }
+    } catch (error: any) {
       console.error("Erreur lors de la mise à jour du rôle:", error)
+      toast({
+        title: "Erreur lors de la mise à jour du rôle",
+        description: error.message,
+        variant: "destructive",
+      })
     } finally {
       setIsUpdating({ ...isUpdating, [userId]: false })
     }
@@ -84,95 +97,145 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
         </Button>
       </div>
 
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Rechercher des utilisateurs</CardTitle>
-          <CardDescription>Recherchez par email ou par rôle</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Input
-            placeholder="Rechercher..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-md"
-          />
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2">
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Rechercher des utilisateurs</CardTitle>
+              <CardDescription>Recherchez par email ou par rôle</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Input
+                placeholder="Rechercher..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-md"
+              />
+            </CardContent>
+          </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Liste des utilisateurs</CardTitle>
-          <CardDescription>{users.length} utilisateurs enregistrés</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-4">Email</th>
-                  <th className="text-left py-3 px-4">Rôle</th>
-                  <th className="text-left py-3 px-4">Date d'inscription</th>
-                  <th className="text-left py-3 px-4">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="text-center py-4 text-gray-500">
-                      Aucun utilisateur trouvé
-                    </td>
-                  </tr>
-                ) : (
-                  filteredUsers.map((user) => (
-                    <tr key={user.id} className="border-b">
-                      <td className="py-3 px-4">{user.auth_users.email}</td>
-                      <td className="py-3 px-4">
-                        <Badge
-                          className={
-                            user.role === "admin"
-                              ? "bg-red-500"
-                              : user.role === "validator"
-                                ? "bg-blue-500"
-                                : user.role === "verified"
-                                  ? "bg-green-500"
-                                  : "bg-gray-500"
-                          }
-                        >
-                          {user.role === "admin"
-                            ? "Administrateur"
-                            : user.role === "validator"
-                              ? "Validateur"
-                              : user.role === "verified"
-                                ? "Vérifié"
-                                : "Enregistré"}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-4">{formatDate(user.created_at)}</td>
-                      <td className="py-3 px-4">
-                        <Select
-                          defaultValue={user.role}
-                          onValueChange={(value) => updateUserRole(user.id, value)}
-                          disabled={isUpdating[user.id]}
-                        >
-                          <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Changer le rôle" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="admin">Administrateur</SelectItem>
-                            <SelectItem value="validator">Validateur</SelectItem>
-                            <SelectItem value="verified">Vérifié</SelectItem>
-                            <SelectItem value="registered">Enregistré</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </td>
+          <Card>
+            <CardHeader>
+              <CardTitle>Liste des utilisateurs</CardTitle>
+              <CardDescription>{users.length} utilisateurs enregistrés</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4">Utilisateur</th>
+                      <th className="text-left py-3 px-4">Email</th>
+                      <th className="text-left py-3 px-4">Rôle</th>
+                      <th className="text-left py-3 px-4">Date d'inscription</th>
+                      <th className="text-right py-3 px-4">Actions</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+                  </thead>
+                  <tbody>
+                    {filteredUsers.length > 0 ? (
+                      filteredUsers.map((user) => (
+                        <tr
+                          key={user.id}
+                          className={`border-b hover:bg-gray-50 cursor-pointer ${selectedUser?.id === user.id ? "bg-gray-50" : ""}`}
+                          onClick={() => setSelectedUser(user)}
+                        >
+                          <td className="py-3 px-4">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 mr-3">
+                                <AvatarUpload userId={user.id} avatarUrl={user.avatar_url || null} size="sm" />
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">{user.auth_users.email}</td>
+                          <td className="py-3 px-4">
+                            <UserRoleBadge role={user.role} />
+                          </td>
+                          <td className="py-3 px-4">{formatDate(user.auth_users.created_at)}</td>
+                          <td className="py-3 px-4 text-right">
+                            <Select
+                              value={user.role}
+                              onValueChange={(value) => updateUserRole(user.id, value as UserRoleType)}
+                              disabled={isUpdating[user.id]}
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue placeholder="Changer le rôle" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="admin">Admin</SelectItem>
+                                <SelectItem value="validator">Validator</SelectItem>
+                                <SelectItem value="verified">Verified</SelectItem>
+                                <SelectItem value="registered">Registered</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="py-6 text-center text-gray-500">
+                          Aucun utilisateur trouvé
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div>
+          {selectedUser ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Détails de l'utilisateur</CardTitle>
+                <CardDescription>Informations et paramètres</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex justify-center">
+                  <AvatarUpload userId={selectedUser.id} avatarUrl={selectedUser.avatar_url || null} size="lg" />
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Email</h3>
+                    <p className="font-medium">{selectedUser.auth_users.email}</p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Date d'inscription</h3>
+                    <p className="font-medium">{formatDate(selectedUser.auth_users.created_at)}</p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Rôle</h3>
+                    <Select
+                      defaultValue={selectedUser.role}
+                      onValueChange={(value) => updateUserRole(selectedUser.id, value as UserRoleType)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un rôle" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="validator">Validateur</SelectItem>
+                        <SelectItem value="verified">Vérifié</SelectItem>
+                        <SelectItem value="registered">Inscrit</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+                <p>Sélectionnez un utilisateur pour voir ses détails</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

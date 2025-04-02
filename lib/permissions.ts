@@ -30,3 +30,42 @@ export async function getUserRole(): Promise<UserRole | null> {
   return data as UserRole
 }
 
+// Vérifier si l'utilisateur est connecté
+export async function isAuthenticated(): Promise<boolean> {
+  const supabase = createSupabaseClient()
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  return !!session
+}
+
+// Vérifier si l'utilisateur est un administrateur
+export async function isAdmin(): Promise<boolean> {
+  return hasRole("admin")
+}
+
+// Vérifier si l'utilisateur est un validateur
+export async function isValidator(): Promise<boolean> {
+  return hasRole("validator")
+}
+
+// Vérifier si l'utilisateur est un administrateur ou un validateur
+export async function isAdminOrValidator(): Promise<boolean> {
+  const role = await getUserRole()
+  return role === "admin" || role === "validator"
+}
+
+// Obtenir le niveau de rôle numérique (utile pour les comparaisons)
+export function getRoleLevel(role: UserRole | null): number {
+  const roleHierarchy: Record<UserRole, number> = {
+    admin: 4,
+    validator: 3,
+    verified: 2,
+    registered: 1,
+  }
+
+  return role ? roleHierarchy[role] : 0
+}
+

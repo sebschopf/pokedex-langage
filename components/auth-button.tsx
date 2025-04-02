@@ -1,77 +1,154 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState, useEffect } from "react"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Loader2, LogOut, User } from "lucide-react"
 import Link from "next/link"
-import { createSupabaseClient } from "@/lib/supabase"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export function AuthButton() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [user, setUser] = useState<any>(null)
   const [userRole, setUserRole] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  const supabase = createClientComponentClient()
 
   useEffect(() => {
-    async function checkAuthStatus() {
-      const supabase = createSupabaseClient()
+    const getUser = async () => {
+      try {
+        setLoading(true)
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
 
-      // Vérifier si l'utilisateur est connecté
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+        if (session?.user) {
+          setUser(session.user)
 
-      if (session) {
-        setIsLoggedIn(true)
+          // Récupérer le rôle de l'utilisateur
+          const { data: userRoleData } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("id", session.user.id)
+            .single()
 
-        // Récupérer le rôle de l'utilisateur
-        const { data: userRoleData } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("id", session.user.id)
-          .single()
+          if (userRoleData) {
+            setUserRole(userRoleData.role)
+          }
 
-        if (userRoleData) {
-          setUserRole(userRoleData.role)
+          // Récupérer l'avatar de l'utilisateur
+          try {
+            const { data: profileData } = await supabase
+              .from("profiles")
+              .select("avatar_url")
+              .eq("id", session.user.id)
+              .single()
+
+            if (profileData?.avatar_url) {
+              const { data } = supabase.storage.from("avatars").getPublicUrl(profileData.avatar_url)
+
+              setAvatarUrl(data.publicUrl)
+            }
+          } catch (error) {
+            console.log("Erreur lors de la récupération de l'avatar:", error)
+          }
         }
+      } catch (error) {
+        console.log("Erreur lors de la récupération de l'utilisateur:", error)
+      } finally {
+        setLoading(false)
       }
-
-      setIsLoading(false)
     }
 
-    checkAuthStatus()
-  }, [])
+    getUser()
 
-  if (isLoading) {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        getUser()
+      } else if (event === "SIGNED_OUT") {
+        setUser(null)
+        setUserRole(null)
+        setAvatarUrl(null)
+      }
+    })
+
+    return () => {
+      authListener.subscription.unsubscribe()
+    }
+  }, [supabase, router])
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    router.push("/")
+    router.refresh()
+  }
+
+  if (loading) {
     return (
-      <div className="px-6 py-3 bg-white border-4 border-black text-black font-black text-lg uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-        ...
-      </div>
+      <Button variant="ghost" size="icon" disabled>
+        <Loader2 className="h-5 w-5 animate-spin" />
+      </Button>
     )
   }
 
-  if (isLoggedIn) {
-    // Déterminer la destination en fonction du rôle
-    let dashboardUrl = "/profile"
-
-    if (userRole === "admin" || userRole === "validator") {
-      dashboardUrl = "/admin/dashboard"
-    }
-
+  if (user) {
     return (
-      <Link
-        href={dashboardUrl}
-        className="px-6 py-3 bg-white border-4 border-black text-black font-black text-lg uppercase hover:bg-blue-300 hover:-translate-y-1 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
-      >
-        Dashboard
-      </Link>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+            <Avatar className="h-10 w-10">
+              {avatarUrl ? (
+                <AvatarImage src={avatarUrl} alt={user.email} />
+              ) : (
+                <AvatarFallback>{user.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
+              )}
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <div className="flex items-center justify-start gap-2 p-2">
+            <div className="flex flex-col space-y-1 leading-none">
+              <p className="font-medium">{user.email}</p>
+              <p className="text-sm text-muted-foreground">{userRole || "Utilisateur"}</p>
+            </div>
+          </div>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link href="/profile">
+              <User className="mr-2 h-4 w-4" />
+              <span>Profil</span>
+            </Link>
+          </DropdownMenuItem>
+          {(userRole === "admin" || userRole === "validator") && (
+            <DropdownMenuItem asChild>
+              <Link href="/admin/dashboard">
+                <span>Tableau de bord</span>
+              </Link>
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleSignOut}>
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Se déconnecter</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     )
   }
 
   return (
-    <Link
-      href="/login"
-      className="px-6 py-3 bg-white border-4 border-black text-black font-black text-lg uppercase hover:bg-green-300 hover:-translate-y-1 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
-    >
-      Connexion
-    </Link>
+    <Button asChild>
+      <Link href="/login">Connexion</Link>
+    </Button>
   )
 }
 

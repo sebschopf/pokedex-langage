@@ -1,9 +1,9 @@
 //types/library.ts
 export interface Library {
   // Propriétés principales (camelCase pour l'utilisation dans l'application)
-  id: string | number
+  id: string
   name: string
-  languageId?: number | null
+  languageId: string // Changé de number | null à string
   description?: string | null
   officialWebsite?: string | null
   githubUrl?: string | null
@@ -20,7 +20,7 @@ export interface Library {
   version?: string | null
 
   // Propriétés en snake_case pour la compatibilité avec la base de données
-  language_id?: number | null
+  language_id?: string // Changé de number | null à string
   official_website?: string | null
   github_url?: string | null
   logo_path?: string | null
@@ -32,4 +32,3 @@ export interface Library {
   used_for?: string | null
   documentation_url?: string | null
 }
-

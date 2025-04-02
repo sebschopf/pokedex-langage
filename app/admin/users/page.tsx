@@ -56,3 +56,40 @@ export default async function AdminUsersPage() {
   return <UserManagement users={users} />
 }
 
+// Récupérer tous les utilisateurs avec leurs rôles
+async function fetchUsers() {
+  const supabase = createServerSupabaseClient();
+  const { data: usersData } = await supabase
+    .from("user_roles")
+    .select(`
+      id,
+      role,
+      created_at,
+      profiles:id (
+        avatar_url
+      ),
+      auth_users:id (
+        email,
+        created_at
+      )
+    `)
+    .order("created_at", { ascending: false })
+
+  // Transformer les données
+  return (
+    usersData?.map((user) => ({
+      id: user.id,
+      role: user.role,
+      created_at: user.created_at,
+      avatar_url: user.profiles?.[0]?.avatar_url || null,
+      auth_users: {
+        email: user.auth_users[0]?.email || "",
+        created_at: user.auth_users[0]?.created_at || "",
+      },
+    })) || []
+  )
+}
+
+(async () => {
+  const users = await fetchUsers();
+})();

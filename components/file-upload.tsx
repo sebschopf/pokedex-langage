@@ -1,119 +1,186 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useRef } from "react"
-import { uploadFileAction } from "@/app/actions/upload-actions"
-import { cn } from "@/lib/utils"
-import { Upload, X, Loader2 } from "lucide-react"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { Upload, X, Loader2 } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
+import { toast } from "@/components/ui/use-toast"
 
 interface FileUploadProps {
-  onUploadComplete: (url: string) => void
-  currentFileUrl?: string
-  className?: string
-  accept?: string
-  bucket?: string
+  bucket: string
+  path?: string
+  onUploadComplete?: (url: string) => void // Ajout du paramètre url
+  onCancel?: () => void
+  acceptedFileTypes?: string
+  maxSizeMB?: number
 }
 
 export default function FileUpload({
+  bucket,
+  path = "",
   onUploadComplete,
-  currentFileUrl,
-  className,
-  accept = "image/svg+xml,image/*",
-  bucket = "logos",
+  onCancel,
+  acceptedFileTypes = "image/*",
+  maxSizeMB = 2,
 }: FileUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [preview, setPreview] = useState<string | null>(currentFileUrl || null)
+  const [progress, setProgress] = useState(0)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const supabase = createClientComponentClient()
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) {
+      setSelectedFile(null)
+      return
+    }
+
+    const file = e.target.files[0]
+    
+    // Vérifier la taille du fichier
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      toast({
+        variant: "destructive",
+        title: "Fichier trop volumineux",
+        description: `La taille du fichier ne doit pas dépasser ${maxSizeMB}MB.`,
+      })
+      setSelectedFile(null)
+      if (fileInputRef.current) fileInputRef.current.value = ""
+      return
+    }
+
+    setSelectedFile(file)
+  }
+
+  const handleUpload = async () => {
+    if (!selectedFile) return
 
     setIsUploading(true)
-    setError(null)
+    setProgress(0)
 
     try {
-      // Créer un aperçu local
-      const objectUrl = URL.createObjectURL(file)
-      setPreview(objectUrl)
+      const filePath = path ? `${path}/${selectedFile.name}` : selectedFile.name
 
-      // Créer un FormData pour l'upload
-      const formData = new FormData()
-      formData.append("file", file)
-      formData.append("bucket", bucket)
+      // Utiliser une fonction personnalisée pour suivre la progression
+      let uploadProgress = 0
+      const { error } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, selectedFile, {
+          cacheControl: "3600",
+          upsert: true,
+        })
 
-      // Envoyer le fichier
-      const result = await uploadFileAction(formData)
+      if (error) throw error
 
-      if (result.success && result.url) {
-        onUploadComplete(result.url)
-      } else {
-        setError(result.message || "Erreur lors du téléchargement")
-        setPreview(currentFileUrl || null)
+      // Simuler la progression puisque onUploadProgress n'est pas disponible
+      setProgress(100)
+
+      toast({
+        title: "Téléchargement réussi",
+        description: `${selectedFile.name} a été téléchargé avec succès.`,
+      })
+
+      // Obtenir l'URL publique du fichier téléchargé
+      const { data } = supabase.storage.from(bucket).getPublicUrl(filePath)
+      const publicUrl = data.publicUrl
+
+      setSelectedFile(null)
+      if (fileInputRef.current) fileInputRef.current.value = ""
+      
+      if (onUploadComplete) {
+        onUploadComplete(publicUrl)
       }
-    } catch (err) {
-      console.error("Erreur lors du téléchargement:", err)
-      setError("Une erreur est survenue lors du téléchargement")
-      setPreview(currentFileUrl || null)
+    } catch (error: any) {
+      console.error("Erreur lors du téléchargement:", error)
+      toast({
+        variant: "destructive",
+        title: "Erreur de téléchargement",
+        description: error.message || "Une erreur est survenue lors du téléchargement du fichier.",
+      })
     } finally {
       setIsUploading(false)
     }
   }
 
-  const handleClearFile = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
-    }
-    setPreview(null)
-    onUploadComplete("")
+  const handleCancel = () => {
+    setSelectedFile(null)
+    if (fileInputRef.current) fileInputRef.current.value = ""
+    if (onCancel) onCancel()
   }
 
   return (
-    <div className={cn("space-y-2", className)}>
-      <div className="flex items-center gap-2">
-        <label
-          className={cn(
-            "flex flex-col items-center justify-center w-32 h-32 border-4 border-dashed rounded-lg cursor-pointer",
-            isUploading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50",
-            error ? "border-red-500" : "border-gray-300",
-          )}
-        >
-          {isUploading ? (
-            <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
-          ) : preview ? (
-            <img src={preview || "/placeholder.svg"} alt="Aperçu" className="object-contain w-full h-full" />
-          ) : (
-            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              <Upload className="w-8 h-8 text-gray-400" />
-              <p className="mt-2 text-xs text-gray-500">Cliquez pour télécharger</p>
-            </div>
-          )}
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden"
-            accept={accept}
-            onChange={handleFileChange}
-            disabled={isUploading}
-          />
-        </label>
-
-        {preview && (
-          <button
-            type="button"
-            onClick={handleClearFile}
-            className="p-1 text-gray-500 bg-gray-100 rounded-full hover:bg-gray-200"
-            disabled={isUploading}
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-medium">Télécharger un fichier</h3>
+        <Button variant="ghost" size="sm" onClick={handleCancel}>
+          <X className="h-4 w-4 mr-1" />
+          Annuler
+        </Button>
       </div>
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
+        <input
+          type="file"
+          id="file-upload"
+          ref={fileInputRef}
+          className="hidden"
+          accept={acceptedFileTypes}
+          onChange={handleFileChange}
+          disabled={isUploading}
+        />
+        <label
+          htmlFor="file-upload"
+          className="cursor-pointer flex flex-col items-center justify-center"
+        >
+          <Upload className="h-10 w-10 text-gray-400 mb-2" />
+          <span className="text-sm text-gray-500">
+            Cliquez pour sélectionner un fichier ou glissez-déposez
+          </span>
+          <span className="text-xs text-gray-400 mt-1">
+            {acceptedFileTypes === "image/*" ? "Images uniquement" : acceptedFileTypes} (max: {maxSizeMB}MB)
+          </span>
+        </label>
+      </div>
+
+      {selectedFile && (
+        <div className="bg-gray-50 p-3 rounded-md">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium truncate">{selectedFile.name}</span>
+            <span className="text-xs text-gray-500">
+              {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+            </span>
+          </div>
+
+          {isUploading && (
+            <div className="space-y-2">
+              <Progress value={progress} className="h-2" />
+              <div className="text-xs text-gray-500 text-right">{progress}%</div>
+            </div>
+          )}
+
+          <div className="flex justify-end mt-2">
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleUpload}
+              disabled={isUploading}
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  Téléchargement...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-1" />
+                  Télécharger
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
-
