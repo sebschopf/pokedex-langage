@@ -8,6 +8,9 @@ interface FrameworkCardProps {
 }
 
 const FrameworkCard: React.FC<FrameworkCardProps> = ({ name, language, frameworksData }) => {
+  // Ajouter un log pour déboguer
+  console.log(`Rendering framework: ${name}`, frameworksData[name]);
+  
   // Récupérer les données du framework ou utiliser des données par défaut simplifiées
   const frameworkData = frameworksData[name] || {
     name,
@@ -20,8 +23,6 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({ name, language, framework
     version: "N/A",
     documentation: null,
     githubUrl: null,
-    subtype: null,
-    popularity: null,
   }
 
   return (
@@ -106,19 +107,6 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({ name, language, framework
             </a>
           )}
         </div>
-
-        {/* Popularité (si disponible) */}
-        {frameworkData.popularity && (
-          <div className="mt-3">
-            <p className="text-xs mb-1">Popularité: {frameworkData.popularity}%</p>
-            <div className="w-full h-2 bg-gray-200 rounded-full">
-              <div
-                className="h-full bg-yellow-400 rounded-full"
-                style={{ width: `${frameworkData.popularity}%` }}
-              ></div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )

@@ -54,14 +54,23 @@ export default async function LanguagePage({ params }: { params: { slug: string 
   // Préparer l'URL de l'image
   const imageSrc = language.logo || `/images/${getImageName(language.name)}.svg`
 
-  // Préparer les données des frameworks dans le format attendu par FrameworkCard
+  // Assurez-vous que la transformation des données est correcte
   const frameworksData: { [key: string]: any } = {}
   frameworks.forEach(framework => {
+    // Utilisez l'ID comme clé pour éviter les problèmes de noms dupliqués
     frameworksData[framework.name] = {
       name: framework.name,
       description: framework.description || `Framework pour ${language.name}`,
-      usedFor: framework.usedFor || `Développement avec ${language.name}`,
-      features: framework.features || [],
+      // Convertir les tableaux en chaînes si nécessaire
+      usedFor: Array.isArray(framework.usedFor) 
+        ? framework.usedFor.join(', ') 
+        : framework.usedFor || `Développement avec ${language.name}`,
+      // S'assurer que features est toujours un tableau
+      features: Array.isArray(framework.features) 
+        ? framework.features 
+        : framework.features 
+          ? [framework.features] 
+          : [`Framework pour ${language.name}`],
       officialWebsite: framework.officialWebsite || null,
       uniqueSellingPoint: framework.uniqueSellingPoint || null,
       bestFor: framework.bestFor || null,
@@ -72,6 +81,10 @@ export default async function LanguagePage({ params }: { params: { slug: string 
       popularity: framework.popularity || null,
     }
   })
+
+  // Ajoutez cette fonction de débogage juste avant le return
+  console.log("Frameworks disponibles:", frameworks.map(f => f.name));
+  console.log("Données transformées:", frameworksData);
 
   return (
     <div className="container py-8 space-y-8">
