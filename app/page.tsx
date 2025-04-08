@@ -1,7 +1,7 @@
 import SearchBar from "@/components/search-bar"
 import FilterBar from "@/components/filter-bar"
 import { LanguageGrid } from "@/components/language-grid"
-import { AuthButton } from "@/./components/auth-button"
+import { AuthButton } from "@/components/auth-button"
 import { getLanguages } from "@/lib/data"
 import Link from "next/link"
 
@@ -16,6 +16,12 @@ export default async function Home() {
         </h1>
         <div className="flex gap-4">
           <AuthButton />
+          <Link
+            href="/dashboard"
+            className="px-6 py-3 bg-white border-4 border-black text-black font-black text-lg uppercase hover:bg-blue-300 hover:-translate-y-1 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
+          >
+            Dashboard
+          </Link>
           <Link
             href="/about"
             className="px-6 py-3 bg-white border-4 border-black text-black font-black text-lg uppercase hover:bg-yellow-300 hover:-translate-y-1 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
@@ -34,4 +40,4 @@ export default async function Home() {
     </div>
   )
 }
- 
+

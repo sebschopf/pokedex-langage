@@ -1,41 +1,17 @@
 "use client"
 
 import Link from "next/link"
-import type { Language } from "@/types/language"
-import LanguageImage from "./language-image"
+import Image from "next/image"
+import { useState } from "react"
+import type { Language } from "@/types"
+import { getImageName, getTypeBadgeColor } from "@/lib/utils"
 
 interface LanguageCardProps {
   language: Language
 }
 
 export function LanguageCard({ language }: LanguageCardProps) {
-  // Fonction pour obtenir le nom correct de l'image en fonction du nom du langage
-  const getImageName = (name: string) => {
-    // Conversion en minuscules et gestion des caractères spéciaux
-    if (name === "C++") return "cpp"
-    if (name === "C#") return "csharp"
-    // Pour les autres langages, conversion en minuscules et suppression des caractères spéciaux
-    return name.toLowerCase().replace(/[^a-z0-9]/g, "")
-  }
-
-  // Déterminer la couleur du badge de type
-  const getTypeBadgeColor = (type: string) => {
-    switch (type.toLowerCase()) {
-      case "backend":
-        return "bg-purple-600"
-      case "frontend":
-        return "bg-blue-500"
-      case "fullstack":
-        return "bg-indigo-600"
-      case "mobile":
-        return "bg-red-500"
-      case "système":
-      case "systeme":
-        return "bg-purple-600"
-      default:
-        return "bg-gray-600"
-    }
-  }
+  const [imageError, setImageError] = useState(false)
 
   // Générer un slug à partir du nom si nécessaire
   const getSlug = () => {
@@ -51,6 +27,11 @@ export function LanguageCard({ language }: LanguageCardProps) {
 
   // Valeur par défaut pour le taux d'utilisation
   const usageRate = language.usageRate !== undefined ? language.usageRate : 0
+
+  // Gérer l'erreur de chargement d'image
+  const handleImageError = () => {
+    setImageError(true)
+  }
 
   return (
     <Link
@@ -68,16 +49,23 @@ export function LanguageCard({ language }: LanguageCardProps) {
         {/* Nom du langage */}
         <h2 className="text-2xl font-bold mb-4">{language.name}</h2>
 
-        {/* Logo */}
+        {/* Logo - Correction pour la taille du logo */}
         <div className="flex justify-center items-center mb-4 flex-grow">
-          <div className="relative h-24 w-24">
-            <LanguageImage
-              src={imageSrc}
-              alt={`Logo ${language.name}`}
-              width={96}
-              height={96}
-              className="object-contain"
-            />
+          <div className="relative w-24 h-24 flex items-center justify-center">
+            {imageError ? (
+              <div className="w-full h-full flex items-center justify-center bg-gray-200 border-2 border-black">
+                <span className="text-2xl font-bold">{language.name.charAt(0).toUpperCase()}</span>
+              </div>
+            ) : (
+              <Image
+                src={imageSrc || "/placeholder.svg"}
+                alt={`Logo ${language.name}`}
+                width={96}
+                height={96}
+                className="object-contain max-w-full max-h-full"
+                onError={handleImageError}
+              />
+            )}
           </div>
         </div>
 
@@ -97,4 +85,3 @@ export function LanguageCard({ language }: LanguageCardProps) {
     </Link>
   )
 }
-

@@ -1,100 +1,10 @@
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { createServerSupabaseClient } from "./supabase"
 import type { Language } from "@/types/language"
 import type { Library } from "@/types/library"
+// Importer depuis index.ts qui réexporte correctement maintenant
+import { dbToLanguage, dbToLibrary } from "@/types"
 
-// Définir le type pour les valeurs de type de langage
-type LanguageType = "Frontend" | "Backend" | "Fullstack" | "Mobile" | "Data" | "Business"
-
-// Définir une interface pour les données brutes de la base de données
-interface LanguageRecord {
-  id: string | number
-  name: string
-  slug?: string
-  logo_path?: string
-  short_description?: string
-  type?: string
-  used_for?: string
-  usage_rate?: number
-  year_created?: number
-  popular_frameworks?: string[]
-  strengths?: string[]
-  difficulty?: number
-  is_open_source?: boolean
-  current_version?: string
-  last_updated?: string
-  tools?: any
-  license?: string
-  created_at?: string
-  updated_at?: string
-  [key: string]: any // Pour les propriétés supplémentaires non listées
-}
-
-/**
- * Vérifie si une chaîne est un type de langage valide
- */
-function isValidLanguageType(type: string | undefined): type is LanguageType {
-  if (!type) return false
-  return ["Frontend", "Backend", "Fullstack", "Mobile", "Data", "Business"].includes(type)
-}
-
-/**
- * Convertit un enregistrement de base de données en objet Language
- * @param record - L'enregistrement de la base de données
- * @returns Un objet Language ou null si l'enregistrement est invalide
- */
-function dbToLanguage(record: LanguageRecord | null): Language | null {
-  if (!record || !record.id || !record.name) {
-    return null
-  }
-
-  // Vérifier et convertir le type
-  const languageType: LanguageType | undefined = isValidLanguageType(record.type)
-    ? (record.type as LanguageType)
-    : undefined
-
-  return {
-    id: record.id,
-    name: record.name,
-    slug: record.slug,
-
-    // Propriétés en camelCase
-    logo: record.logo_path,
-    shortDescription: record.short_description,
-    type: languageType,
-    usedFor: record.used_for,
-    usageRate: record.usage_rate,
-    createdYear: record.year_created,
-    popularFrameworks: record.popular_frameworks || [],
-    strengths: record.strengths || [],
-    difficulty: record.difficulty as 1 | 2 | 3 | 4 | 5 | undefined,
-    isOpenSource: record.is_open_source,
-    currentVersion: record.current_version,
-    lastUpdated: record.last_updated,
-
-    // Propriétés en snake_case
-    logo_path: record.logo_path,
-    short_description: record.short_description,
-    used_for: record.used_for,
-    usage_rate: record.usage_rate,
-    year_created: record.year_created,
-    popular_frameworks: record.popular_frameworks || [],
-    is_open_source: record.is_open_source,
-    current_version: record.current_version,
-    last_updated: record.last_updated,
-
-    // Autres propriétés
-    tools: record.tools,
-    license: record.license,
-    created_at: record.created_at,
-    updated_at: record.updated_at,
-  }
-}
-
-/**
- * Récupère un langage par son slug
- * @param slug - Le slug ou l'identifiant du langage
- * @returns Le langage trouvé ou null
- */
+// Correction pour l'erreur de type string | undefined
 export async function getLanguageBySlug(slug: string): Promise<Language | null> {
   try {
     console.log("Recherche du langage avec le slug:", slug)
@@ -142,92 +52,56 @@ export async function getLanguageBySlug(slug: string): Promise<Language | null> 
       return null
     }
 
-    // Convertir les données en format camelCase
-    return data ? dbToLanguage(data) : null
+    // Si dbToLanguage n'est pas disponible, créer une fonction locale
+    const convertLanguage = (data: any): Language => {
+      return {
+        id: data.id,
+        name: data.name,
+        slug: data.slug,
+        // Propriétés en camelCase
+        createdYear: data.year_created,
+        creator: data.creator,
+        description: data.description,
+        logo: data.logo_path,
+        shortDescription: data.short_description,
+        type: data.type,
+        usedFor: data.used_for,
+        usageRate: data.usage_rate,
+        isOpenSource: data.is_open_source,
+        strengths: data.strengths || [],
+        popularFrameworks: data.popular_frameworks || [],
+        tools: data.tools,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+
+        // Propriétés en snake_case
+        year_created: data.year_created,
+        logo_path: data.logo_path,
+        short_description: data.short_description,
+        used_for: data.used_for,
+        usage_rate: data.usage_rate,
+        is_open_source: data.is_open_source,
+        popular_frameworks: data.popular_frameworks || [],
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+      }
+    }
+
+    // Utiliser la fonction locale ou importée
+    return data ? (dbToLanguage ? dbToLanguage(data) : convertLanguage(data)) : null
   } catch (error) {
     console.error("Error fetching language by slug:", error)
     return null
   }
 }
 
-/**
- * Récupère la liste des langages avec filtrage et tri
- */
-export async function getLanguages({
-  type,
-  sort,
-  openSource,
-  search,
-}: {
-  type?: string
-  sort?: string
-  openSource?: string
-  search?: string
-} = {}): Promise<Language[]> {
-  try {
-    const supabase = createServerSupabaseClient()
-
-    if (!supabase) {
-      console.error("Client Supabase non initialisé")
-      return []
-    }
-
-    // Construire la requête
-    let query = supabase.from("languages").select("*")
-
-    // Appliquer les filtres
-    if (type && type !== "all") {
-      query = query.eq("type", type)
-    }
-
-    if (openSource === "true") {
-      query = query.eq("is_open_source", true)
-    }
-
-    if (search) {
-      query = query.ilike("name", `%${search}%`)
-    }
-
-    // Appliquer le tri
-    switch (sort) {
-      case "name":
-        query = query.order("name", { ascending: true })
-        break
-      case "year":
-        query = query.order("year_created", { ascending: false })
-        break
-      case "usage":
-        query = query.order("usage_rate", { ascending: false })
-        break
-      default:
-        query = query.order("name", { ascending: true })
-    }
-
-    // Exécuter la requête
-    const { data, error } = await query
-
-    if (error) {
-      console.error("Erreur lors de la récupération des langages:", error)
-      return []
-    }
-
-    // Convertir les données en format camelCase et filtrer les valeurs nulles
-    return (data || []).map((record) => dbToLanguage(record)).filter((lang): lang is Language => lang !== null)
-  } catch (error) {
-    console.error("Exception dans getLanguages:", error)
-    return []
-  }
-}
-
-/**
- * Récupère les frameworks associés à un langage
- */
-export async function getFrameworksByLanguageId(languageId: number | string): Promise<Library[]> {
+// Correction pour l'erreur de type Library[]
+export async function getFrameworksByLanguageId(languageId: string): Promise<Library[]> {
   try {
     console.log("Récupération des frameworks pour le langage ID:", languageId)
 
     // Si languageId est undefined ou null, retourner un tableau vide
-    if (languageId === undefined || languageId === null) {
+    if (!languageId) {
       console.log("ID de langage non défini, retour d'un tableau vide")
       return []
     }
@@ -253,25 +127,45 @@ export async function getFrameworksByLanguageId(languageId: number | string): Pr
 
     console.log(`Trouvé ${data?.length || 0} frameworks dans la table libraries`)
 
-    // Si des bibliothèques sont trouvées, les retourner
-    if (data && data.length > 0) {
-      return data.map((lib) => ({
+    // Fonction locale de conversion au cas où dbToLibrary n'est pas disponible
+    const convertLibrary = (lib: any): Library => {
+      return {
         id: lib.id,
         name: lib.name,
-        language_id: lib.language_id,
-        description: lib.description || `Framework populaire pour ${lib.name}`,
-        website: lib.website || lib.official_website,
-        github_url: lib.github_url,
-        documentation_url: lib.documentation_url,
-        logo_path: lib.logo_path,
+        languageId: lib.language_id,
+        description: lib.description,
+        officialWebsite: lib.official_website,
+        githubUrl: lib.github_url,
+        logoPath: lib.logo_path,
         popularity: lib.popularity,
-        is_open_source: lib.is_open_source,
+        isOpenSource: lib.is_open_source,
         features: lib.features || [],
+        uniqueSellingPoint: lib.unique_selling_point,
+        bestFor: lib.best_for,
+        usedFor: lib.used_for,
+        documentationUrl: lib.documentation_url,
+        version: lib.version,
+        createdAt: lib.created_at,
+        updatedAt: lib.updated_at,
+
+        // Propriétés en snake_case
+        language_id: lib.language_id,
+        official_website: lib.official_website,
+        github_url: lib.github_url,
+        logo_path: lib.logo_path,
+        is_open_source: lib.is_open_source,
+        created_at: lib.created_at,
+        updated_at: lib.updated_at,
         unique_selling_point: lib.unique_selling_point,
         best_for: lib.best_for,
         used_for: lib.used_for,
-        version: lib.version,
-      }))
+        documentation_url: lib.documentation_url,
+      }
+    }
+
+    // Si des bibliothèques sont trouvées, les convertir
+    if (data && data.length > 0) {
+      return data.map(dbToLibrary || convertLibrary)
     }
 
     // Si aucune bibliothèque n'est trouvée, essayer de récupérer depuis popular_frameworks
@@ -287,14 +181,40 @@ export async function getFrameworksByLanguageId(languageId: number | string): Pr
       return []
     }
 
-    // Si le langage a des frameworks populaires, les transformer en objets
+    // Si le langage a des frameworks populaires, les transformer en objets Library
     if (langData && langData.popular_frameworks && Array.isArray(langData.popular_frameworks)) {
       console.log(`Trouvé ${langData.popular_frameworks.length} frameworks dans popular_frameworks`)
       return langData.popular_frameworks.map((name, index) => ({
         id: `${languageId}-${index}`,
         name,
-        description: `Framework populaire pour ${name}`,
+        // Garder languageId comme string
+        languageId,
         language_id: languageId,
+        description: `Framework populaire pour ${name}`,
+        usedFor: "",
+        used_for: "",
+        features: [],
+        officialWebsite: "",
+        official_website: "",
+        uniqueSellingPoint: "",
+        unique_selling_point: "",
+        bestFor: "",
+        best_for: "",
+        // Propriétés optionnelles
+        version: null,
+        githubUrl: null,
+        github_url: null,
+        logoPath: null,
+        logo_path: null,
+        popularity: null,
+        isOpenSource: true,
+        is_open_source: true,
+        documentationUrl: null,
+        documentation_url: null,
+        createdAt: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       }))
     }
 

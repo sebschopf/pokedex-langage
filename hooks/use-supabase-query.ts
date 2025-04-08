@@ -6,7 +6,7 @@ import { useToast } from "./use-toast"
 import { useIsMobile } from "./use-mobile"
 
 // Options pour la requête
-interface QueryOptions<T> {
+export interface QueryOptions<T> {
   table: string
   columns?: string
   filter?: Record<string, any>

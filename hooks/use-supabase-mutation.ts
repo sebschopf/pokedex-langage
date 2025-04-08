@@ -1,3 +1,4 @@
+//hooks/use-supabase-mutation.ts
 "use client"
 
 import { useState } from "react"
@@ -5,7 +6,7 @@ import { createSupabaseClient } from "@/lib/supabase"
 import { useToast } from "./use-toast"
 
 // Type générique pour les options de mutation
-interface MutationOptions<T> {
+export interface MutationOptions<T> {
   table: string
   onSuccess?: (data: T) => void
   onError?: (error: Error) => void
@@ -15,18 +16,18 @@ interface MutationOptions<T> {
 }
 
 // Type pour les options d'insertion
-interface InsertOptions<T> extends MutationOptions<T> {
+export interface InsertOptions<T> extends MutationOptions<T> {
   data: Partial<T> | Partial<T>[]
 }
 
 // Type pour les options de mise à jour
-interface UpdateOptions<T> extends MutationOptions<T> {
+export interface UpdateOptions<T> extends MutationOptions<T> {
   data: Partial<T>
   match: Record<string, any>
 }
 
 // Type pour les options de suppression
-interface DeleteOptions<T> extends MutationOptions<T> {
+export interface DeleteOptions<T> extends MutationOptions<T> {
   match: Record<string, any>
 }
 

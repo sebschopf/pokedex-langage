@@ -1,7 +1,6 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import Image from "next/image"
+import React, { useState } from 'react'
 
 interface LanguageImageProps {
   src: string
@@ -11,26 +10,31 @@ interface LanguageImageProps {
   className?: string
 }
 
-export default function LanguageImage({ src, alt, width, height, className }: LanguageImageProps) {
-  const [error, setError] = useState(false)
+const LanguageImage: React.FC<LanguageImageProps> = ({ src, alt, width, height, className = '' }) => {
+  const [error, setError] = useState(!src)
 
   if (error) {
     return (
-      <div className={`flex items-center justify-center bg-gray-200 ${className || ""}`} style={{ width, height }}>
-        <span className="text-2xl font-bold">{alt.charAt(0)}</span>
+      <div 
+        className={`flex items-center justify-center bg-gray-200 border-2 border-black ${className}`}
+        style={{ width, height }}
+      >
+        <span className="text-2xl font-bold">{alt.charAt(0).toUpperCase()}</span>
       </div>
     )
   }
 
   return (
-    <Image
+    <img
       src={src || "/placeholder.svg"}
       alt={alt}
       width={width}
       height={height}
       className={className}
+      style={{ objectFit: 'contain' }}
       onError={() => setError(true)}
     />
   )
 }
 
+export default LanguageImage

@@ -12,6 +12,7 @@ export default function SearchBar() {
   const searchParams = useSearchParams()
   const inputRef = useRef<HTMLInputElement>(null)
   const [query, setQuery] = useState(searchParams.get("query") || "")
+  const [isFocused, setIsFocused] = useState(false)
 
   // Focus sur l'input au chargement
   useEffect(() => {
@@ -43,6 +44,25 @@ export default function SearchBar() {
     }
   }
 
+  // Recherche automatique après un délai de frappe
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (query !== searchParams.get("query")) {
+        const params = new URLSearchParams(searchParams.toString())
+
+        if (query) {
+          params.set("query", query)
+        } else {
+          params.delete("query")
+        }
+
+        router.push(`${pathname}?${params.toString()}`)
+      }
+    }, 500) // Délai de 500ms
+
+    return () => clearTimeout(timer)
+  }, [query, router, pathname, searchParams])
+
   return (
     <div className="relative" role="search" aria-label="Rechercher un langage de programmation">
       <form onSubmit={handleSearch} className="w-full">
@@ -52,8 +72,12 @@ export default function SearchBar() {
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
             placeholder="Rechercher un langage..."
-            className="w-full p-4 pl-12 border-4 border-black font-medium text-lg shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+            className={`w-full p-4 pl-12 border-4 border-black font-medium text-lg shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all ${
+              isFocused ? "border-blue-500" : ""
+            }`}
             aria-label="Rechercher un langage de programmation"
             autoComplete="off"
           />

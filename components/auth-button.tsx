@@ -3,17 +3,9 @@
 import { useState, useEffect } from "react"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Loader2, LogOut, User } from "lucide-react"
+import { Loader2, LogOut, User, LayoutDashboard } from 'lucide-react'
 import Link from "next/link"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 export function AuthButton() {
   const [user, setUser] = useState<any>(null)
@@ -38,7 +30,7 @@ export function AuthButton() {
           const { data: userRoleData } = await supabase
             .from("user_roles")
             .select("role")
-            .eq("id", session.user.id)
+            .eq("user_id", session.user.id) // Utiliser user_id au lieu de id
             .single()
 
           if (userRoleData) {
@@ -50,7 +42,7 @@ export function AuthButton() {
             const { data: profileData } = await supabase
               .from("profiles")
               .select("avatar_url")
-              .eq("id", session.user.id)
+              .eq("user_id", session.user.id) // Utiliser user_id au lieu de id
               .single()
 
             if (profileData?.avatar_url) {
@@ -94,9 +86,10 @@ export function AuthButton() {
 
   if (loading) {
     return (
-      <Button variant="ghost" size="icon" disabled>
-        <Loader2 className="h-5 w-5 animate-spin" />
-      </Button>
+      <div className="px-6 py-3 bg-gray-200 border-4 border-black text-black font-black text-lg uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center">
+        <Loader2 className="h-5 w-5 animate-spin mr-2" />
+        <span>Chargement</span>
+      </div>
     )
   }
 
@@ -104,51 +97,65 @@ export function AuthButton() {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-            <Avatar className="h-10 w-10">
-              {avatarUrl ? (
-                <AvatarImage src={avatarUrl} alt={user.email} />
-              ) : (
-                <AvatarFallback>{user.email?.charAt(0).toUpperCase() || "U"}</AvatarFallback>
-              )}
-            </Avatar>
-          </Button>
+          <button className="relative h-12 w-12 rounded-none border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-300 hover:-translate-y-1 transition-all hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+            {avatarUrl ? (
+              <img src={avatarUrl || "/placeholder.svg"} alt={user.email} className="h-full w-full object-cover" />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center bg-blue-300 font-black text-xl">
+                {user.email?.charAt(0).toUpperCase() || "U"}
+              </div>
+            )}
+          </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <div className="flex items-center justify-start gap-2 p-2">
+        <DropdownMenuContent
+          align="end"
+          className="border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-none p-0 min-w-[200px]"
+        >
+          <div className="flex items-center justify-start gap-2 p-3 border-b-4 border-black bg-yellow-100">
             <div className="flex flex-col space-y-1 leading-none">
-              <p className="font-medium">{user.email}</p>
-              <p className="text-sm text-muted-foreground">{userRole || "Utilisateur"}</p>
+              <p className="font-bold">{user.email}</p>
+              <p className="text-sm font-medium">{userRole || "Utilisateur"}</p>
             </div>
           </div>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-            <Link href="/profile">
+
+          <div className="p-1">
+            <Link href="/profile" className="flex items-center w-full p-2 hover:bg-yellow-300 transition-colors">
               <User className="mr-2 h-4 w-4" />
-              <span>Profil</span>
+              <span className="font-bold">Profil</span>
             </Link>
-          </DropdownMenuItem>
-          {(userRole === "admin" || userRole === "validator") && (
-            <DropdownMenuItem asChild>
-              <Link href="/admin/dashboard">
-                <span>Tableau de bord</span>
+
+            <Link href="/dashboard" className="flex items-center w-full p-2 hover:bg-yellow-300 transition-colors">
+              <LayoutDashboard className="mr-2 h-4 w-4" />
+              <span className="font-bold">Tableau de bord</span>
+            </Link>
+
+            {(userRole === "admin" || userRole === "validator") && (
+              <Link
+                href="/admin/dashboard"
+                className="flex items-center w-full p-2 hover:bg-yellow-300 transition-colors"
+              >
+                <span className="font-bold">Tableau de bord</span>
               </Link>
-            </DropdownMenuItem>
-          )}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleSignOut}>
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Se déconnecter</span>
-          </DropdownMenuItem>
+            )}
+          </div>
+
+          <div className="border-t-4 border-black p-1">
+            <button onClick={handleSignOut} className="flex items-center w-full p-2 hover:bg-red-300 transition-colors">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span className="font-bold">Se déconnecter</span>
+            </button>
+          </div>
         </DropdownMenuContent>
       </DropdownMenu>
     )
   }
 
   return (
-    <Button asChild>
-      <Link href="/login">Connexion</Link>
-    </Button>
+    <Link
+      href="/login"
+      className="px-6 py-3 bg-white border-4 border-black text-black font-black text-lg uppercase hover:bg-yellow-300 hover:-translate-y-1 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
+    >
+      Connexion
+    </Link>
   )
 }
-

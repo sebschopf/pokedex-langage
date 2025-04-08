@@ -86,6 +86,8 @@ export interface Database {
         Row: {
           id: string
           language_id: string
+          technology_type: string | null
+          subtype: string | null
           name: string
           description: string
           used_for: string
@@ -105,6 +107,8 @@ export interface Database {
         Insert: {
           id?: string
           language_id: string
+          technology_type?: string | null
+          subtype?: string | null
           name: string
           description: string
           used_for: string
@@ -124,6 +128,8 @@ export interface Database {
         Update: {
           id?: string
           language_id?: string
+          technology_type?: string | null
+          subtype?: string | null
           name?: string
           description?: string
           used_for?: string
@@ -139,6 +145,72 @@ export interface Database {
           popularity?: number | null
           is_open_source?: boolean | null
           documentation_url?: string | null
+        }
+      }
+      library_languages: {
+        Row: {
+          id: string
+          library_id: string
+          language_id: string
+          primary_language: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          library_id: string
+          language_id: string
+          primary_language?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          library_id?: string
+          language_id?: string
+          primary_language?: boolean
+          created_at?: string
+        }
+      }
+      technology_categories: {
+        Row: {
+          id: string
+          type: string
+          icon_name: string
+          color: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          type: string
+          icon_name: string
+          color: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          type?: string
+          icon_name?: string
+          color?: string
+          created_at?: string
+        }
+      }
+      technology_subtypes: {
+        Row: {
+          id: string
+          category_id: string
+          name: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          category_id: string
+          name: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          category_id?: string
+          name?: string
+          created_at?: string
         }
       }
       corrections: {

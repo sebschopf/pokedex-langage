@@ -28,3 +28,5 @@ export function formatDate(dateString: string): string {
   return new Intl.DateTimeFormat("fr-FR", options).format(date)
 }
 
+export { getImageName } from "./get-image-name";
+export { getTypeBadgeColor } from "./get-type-badge-color";

@@ -1,8 +1,10 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useRef } from "react"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { Upload, X, Loader2 } from 'lucide-react'
+import { Upload, X, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { toast } from "@/components/ui/use-toast"
@@ -10,7 +12,7 @@ import { toast } from "@/components/ui/use-toast"
 interface FileUploadProps {
   bucket: string
   path?: string
-  onUploadComplete?: (url: string) => void // Ajout du paramètre url
+  onUploadComplete?: (url: string) => void
   onCancel?: () => void
   acceptedFileTypes?: string
   maxSizeMB?: number
@@ -37,7 +39,7 @@ export default function FileUpload({
     }
 
     const file = e.target.files[0]
-    
+
     // Vérifier la taille du fichier
     if (file.size > maxSizeMB * 1024 * 1024) {
       toast({
@@ -60,34 +62,61 @@ export default function FileUpload({
     setProgress(0)
 
     try {
-      const filePath = path ? `${path}/${selectedFile.name}` : selectedFile.name
+      // Générer un nom de fichier unique pour éviter les conflits
+      const fileExt = selectedFile.name.split(".").pop()?.toLowerCase() || "png"
+      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`
+      const filePath = path ? `${path}/${fileName}` : fileName
 
-      // Utiliser une fonction personnalisée pour suivre la progression
-      let uploadProgress = 0
-      const { error } = await supabase.storage
-        .from(bucket)
-        .upload(filePath, selectedFile, {
-          cacheControl: "3600",
-          upsert: true,
-        })
+      console.log("Début du téléchargement", {
+        bucket,
+        filePath,
+        fileSize: selectedFile.size,
+        fileType: selectedFile.type,
+      })
+
+      // Déterminer le type MIME
+      let contentType = selectedFile.type
+      if (!contentType || contentType === "application/octet-stream") {
+        // Déterminer le type MIME basé sur l'extension
+        if (fileExt === "png") contentType = "image/png"
+        else if (fileExt === "jpg" || fileExt === "jpeg") contentType = "image/jpeg"
+        else if (fileExt === "gif") contentType = "image/gif"
+        else if (fileExt === "svg") contentType = "image/svg+xml"
+      }
+
+      // Télécharger le fichier avec le type MIME explicite
+      const { data, error } = await supabase.storage.from(bucket).upload(filePath, selectedFile, {
+        cacheControl: "3600",
+        upsert: true,
+        contentType: contentType,
+      })
+
+      console.log("Résultat du téléchargement", { data, error })
 
       if (error) throw error
 
-      // Simuler la progression puisque onUploadProgress n'est pas disponible
+      // Simuler la progression
       setProgress(100)
+
+      // Obtenir l'URL publique du fichier téléchargé
+      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(filePath)
+      const publicUrl = urlData.publicUrl
+
+      if (!publicUrl) {
+        throw new Error("Impossible d'obtenir l'URL publique du fichier")
+      }
+
+      console.log("URL publique obtenue", publicUrl)
 
       toast({
         title: "Téléchargement réussi",
-        description: `${selectedFile.name} a été téléchargé avec succès.`,
+        description: `Le fichier a été téléchargé avec succès.`,
       })
-
-      // Obtenir l'URL publique du fichier téléchargé
-      const { data } = supabase.storage.from(bucket).getPublicUrl(filePath)
-      const publicUrl = data.publicUrl
 
       setSelectedFile(null)
       if (fileInputRef.current) fileInputRef.current.value = ""
-      
+
+      // Appeler le callback avec l'URL publique
       if (onUploadComplete) {
         onUploadComplete(publicUrl)
       }
@@ -129,14 +158,9 @@ export default function FileUpload({
           onChange={handleFileChange}
           disabled={isUploading}
         />
-        <label
-          htmlFor="file-upload"
-          className="cursor-pointer flex flex-col items-center justify-center"
-        >
+        <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center justify-center">
           <Upload className="h-10 w-10 text-gray-400 mb-2" />
-          <span className="text-sm text-gray-500">
-            Cliquez pour sélectionner un fichier ou glissez-déposez
-          </span>
+          <span className="text-sm text-gray-500">Cliquez pour sélectionner un fichier ou glissez-déposez</span>
           <span className="text-xs text-gray-400 mt-1">
             {acceptedFileTypes === "image/*" ? "Images uniquement" : acceptedFileTypes} (max: {maxSizeMB}MB)
           </span>
@@ -147,9 +171,7 @@ export default function FileUpload({
         <div className="bg-gray-50 p-3 rounded-md">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium truncate">{selectedFile.name}</span>
-            <span className="text-xs text-gray-500">
-              {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-            </span>
+            <span className="text-xs text-gray-500">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</span>
           </div>
 
           {isUploading && (
@@ -160,12 +182,7 @@ export default function FileUpload({
           )}
 
           <div className="flex justify-end mt-2">
-            <Button
-              variant="default"
-              size="sm"
-              onClick={handleUpload}
-              disabled={isUploading}
-            >
+            <Button variant="default" size="sm" onClick={handleUpload} disabled={isUploading}>
               {isUploading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-1 animate-spin" />
@@ -184,3 +201,4 @@ export default function FileUpload({
     </div>
   )
 }
+
