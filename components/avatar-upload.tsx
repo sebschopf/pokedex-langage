@@ -1,39 +1,32 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { User, Upload, Loader2, X } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { toast } from "@/components/ui/use-toast"
+import { createSupabaseClient } from "@/lib/supabase"
+import { useToast } from "@/hooks/use-toast"
+import { Upload, Trash2 } from "lucide-react"
 
 interface AvatarUploadProps {
   userId: string
   avatarUrl: string | null
   onAvatarChange?: (url: string) => void
-  size?: "sm" | "md" | "lg"
+  size?: "sm" | "md" | "lg" | "xl"
 }
 
-export default function AvatarUpload({
-  userId,
-  avatarUrl,
-  onAvatarChange,
-  size = "md",
-}: AvatarUploadProps) {
-  const [uploading, setUploading] = useState(false)
+export default function AvatarUpload({ userId, avatarUrl, onAvatarChange, size = "md" }: AvatarUploadProps) {
   const [avatarPath, setAvatarPath] = useState<string | null>(avatarUrl)
-  const supabase = createClientComponentClient()
-
-  // Tailles d'avatar en fonction de la prop size
-  const avatarSizes = {
-    sm: "h-16 w-16",
-    md: "h-24 w-24",
-    lg: "h-32 w-32",
-  }
+  const [uploading, setUploading] = useState(false)
+  const supabase = createSupabaseClient()
+  const { toast } = useToast()
 
   useEffect(() => {
-    setAvatarPath(avatarUrl)
-  }, [avatarUrl])
+    if (avatarUrl !== avatarPath) {
+      setAvatarPath(avatarUrl)
+    }
+  }, [avatarUrl, avatarPath])
 
   const uploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
@@ -45,7 +38,8 @@ export default function AvatarUpload({
 
       const file = event.target.files[0]
       const fileExt = file.name.split(".").pop()
-      const filePath = `${userId}/${Math.random().toString(36).substring(2)}.${fileExt}`
+      const fileName = `${userId}-${Math.random().toString(36).substring(2)}.${fileExt}`
+      const filePath = fileName
 
       // Vérifier la taille du fichier (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
@@ -53,21 +47,33 @@ export default function AvatarUpload({
       }
 
       // Vérifier le type de fichier
-      if (!file.type.match(/^image\/(jpeg|png|gif|webp)$/)) {
+      if (!file.type.match(/image\/(jpeg|jpg|png|gif|webp)/i)) {
         throw new Error("Le fichier doit être une image (JPEG, PNG, GIF, WEBP).")
       }
 
-      const { error: uploadError } = await supabase.storage
+      console.log("Téléchargement du fichier:", filePath)
+
+      // Télécharger le fichier dans le bucket avatars
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(filePath, file, { upsert: true })
 
       if (uploadError) {
-        throw uploadError
+        console.error("Erreur lors du téléchargement:", uploadError)
+        throw new Error(`Erreur lors du téléchargement: ${uploadError.message}`)
       }
 
+      console.log("Fichier téléchargé avec succès:", uploadData)
+
       // Obtenir l'URL publique
-      const { data } = supabase.storage.from("avatars").getPublicUrl(filePath)
-      const newAvatarUrl = data.publicUrl
+      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath)
+
+      if (!urlData || !urlData.publicUrl) {
+        throw new Error("Impossible d'obtenir l'URL publique de l'avatar")
+      }
+
+      const newAvatarUrl = urlData.publicUrl
+      console.log("URL publique obtenue:", newAvatarUrl)
 
       // Mettre à jour le profil utilisateur avec la nouvelle URL d'avatar
       const { error: updateError } = await supabase
@@ -76,11 +82,12 @@ export default function AvatarUpload({
         .eq("id", userId)
 
       if (updateError) {
-        throw updateError
+        console.error("Erreur lors de la mise à jour du profil:", updateError)
+        throw new Error(`Erreur lors de la mise à jour du profil: ${updateError.message}`)
       }
 
       setAvatarPath(newAvatarUrl)
-      
+
       if (onAvatarChange) {
         onAvatarChange(newAvatarUrl)
       }
@@ -90,12 +97,12 @@ export default function AvatarUpload({
         description: "Votre avatar a été mis à jour avec succès.",
       })
     } catch (error: any) {
+      console.error("Erreur complète:", error)
       toast({
         variant: "destructive",
         title: "Erreur",
         description: error.message || "Une erreur est survenue lors du téléchargement de l'avatar.",
       })
-      console.error("Erreur:", error)
     } finally {
       setUploading(false)
     }
@@ -106,17 +113,15 @@ export default function AvatarUpload({
       setUploading(true)
 
       // Mettre à jour le profil utilisateur pour supprimer l'URL d'avatar
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({ avatar_url: null })
-        .eq("id", userId)
+      const { error: updateError } = await supabase.from("profiles").update({ avatar_url: null }).eq("id", userId)
 
       if (updateError) {
-        throw updateError
+        console.error("Erreur lors de la suppression de l'avatar:", updateError)
+        throw new Error(`Erreur lors de la suppression de l'avatar: ${updateError.message}`)
       }
 
       setAvatarPath(null)
-      
+
       if (onAvatarChange) {
         onAvatarChange("")
       }
@@ -126,65 +131,53 @@ export default function AvatarUpload({
         description: "Votre avatar a été supprimé avec succès.",
       })
     } catch (error: any) {
+      console.error("Erreur complète:", error)
       toast({
         variant: "destructive",
         title: "Erreur",
         description: error.message || "Une erreur est survenue lors de la suppression de l'avatar.",
       })
-      console.error("Erreur:", error)
     } finally {
       setUploading(false)
     }
   }
 
+  const sizeClasses = {
+    sm: "h-10 w-10",
+    md: "h-16 w-16",
+    lg: "h-24 w-24",
+    xl: "h-32 w-32",
+  }
+
   return (
-    <div className="flex flex-col items-center space-y-4">
-      <Avatar className={avatarSizes[size]}>
-        {avatarPath ? (
-          <AvatarImage src={avatarPath} alt="Avatar" />
-        ) : (
-          <AvatarFallback>
-            <User className="h-1/2 w-1/2" />
-          </AvatarFallback>
-        )}
+    <div className="flex flex-col items-center gap-2">
+      <Avatar className={sizeClasses[size]}>
+        <AvatarImage src={avatarPath || undefined} alt="Avatar" />
+        <AvatarFallback>{userId.charAt(0).toUpperCase()}</AvatarFallback>
       </Avatar>
 
-      <div className="flex space-x-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="relative"
-          disabled={uploading}
-        >
-          {uploading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <>
-              <Upload className="h-4 w-4 mr-1" />
-              Changer
-            </>
-          )}
-          <input
-            type="file"
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            accept="image/jpeg,image/png,image/gif,image/webp"
-            onChange={uploadAvatar}
-            disabled={uploading}
-          />
-        </Button>
-
-        {avatarPath && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={removeAvatar}
-            disabled={uploading}
-          >
-            <X className="h-4 w-4 mr-1" />
-            Supprimer
+      {size !== "sm" && (
+        <div className="flex gap-2 mt-2">
+          <Button type="button" variant="outline" size="sm" className="relative" disabled={uploading}>
+            <input
+              type="file"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              onChange={uploadAvatar}
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              disabled={uploading}
+            />
+            <Upload className="h-4 w-4 mr-1" />
+            {uploading ? "Téléchargement..." : "Télécharger"}
           </Button>
-        )}
-      </div>
+
+          {avatarPath && (
+            <Button type="button" variant="outline" size="sm" onClick={removeAvatar} disabled={uploading}>
+              <Trash2 className="h-4 w-4 mr-1" />
+              Supprimer
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   )
 }

@@ -1,46 +1,71 @@
-import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs"
+import { createServerClient } from "@supabase/ssr"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
-  
+  let response = NextResponse.next({
+    request: {
+      headers: req.headers,
+    },
+  })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            req.cookies.set(name, value)
+          })
+          response = NextResponse.next({
+            request: {
+              headers: req.headers,
+            },
+          })
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options)
+          })
+        },
+      },
+    }
+  )
+
+  // Vérifier si l'utilisateur est connecté
   const {
     data: { session },
   } = await supabase.auth.getSession()
-  
-  // Rediriger vers la page de connexion si l'utilisateur n'est pas connecté
-  // et essaie d'accéder à une page protégée
-  if (!session && (
-    req.nextUrl.pathname.startsWith("/profile") ||
-    req.nextUrl.pathname.startsWith("/admin")
-  )) {
-    const redirectUrl = req.nextUrl.clone()
-    redirectUrl.pathname = "/login"
-    redirectUrl.searchParams.set("redirect", req.nextUrl.pathname)
+
+  // Si l'utilisateur n'est pas connecté et essaie d'accéder à une route protégée
+  if (!session && (req.nextUrl.pathname.startsWith("/admin") || req.nextUrl.pathname === "/profile")) {
+    const redirectUrl = new URL("/login", req.url)
+    redirectUrl.searchParams.set("redirectedFrom", req.nextUrl.pathname)
     return NextResponse.redirect(redirectUrl)
   }
-  
-  // Vérifier les autorisations pour les pages d'administration
-  if (req.nextUrl.pathname.startsWith("/admin")) {
-    if (session) {
-      const { data: userRole } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("id", session.user.id)
-        .single()
-      
-      // Rediriger vers la page d'accueil si l'utilisateur n'a pas les droits d'administration
-      if (!userRole || (userRole.role !== "admin" && userRole.role !== "validator")) {
-        return NextResponse.redirect(new URL("/", req.url))
-      }
+
+  // Si l'utilisateur est connecté et essaie d'accéder à /admin
+  if (session && req.nextUrl.pathname.startsWith("/admin")) {
+    // Vérifier si l'utilisateur a le rôle admin ou validator
+    const { data: userRoleData } = await supabase.from("user_roles").select("role").eq("id", session.user.id).single()
+
+    // Si l'utilisateur n'a pas le rôle admin ou validator, le rediriger vers la page d'accueil
+    if (!userRoleData || (userRoleData.role !== "admin" && userRoleData.role !== "validator")) {
+      return NextResponse.redirect(new URL("/", req.url))
     }
   }
-  
-  return res
+
+  // Si l'utilisateur est connecté et essaie d'accéder à /login ou /register
+  if (session && (req.nextUrl.pathname === "/login" || req.nextUrl.pathname === "/register")) {
+    return NextResponse.redirect(new URL("/", req.url))
+  }
+
+  return response
 }
 
+// Spécifier les chemins sur lesquels le middleware doit s'exécuter
 export const config = {
-  matcher: ["/profile/:path*", "/admin/:path*"],
+  matcher: ["/admin/:path*", "/profile", "/login", "/register"],
 }

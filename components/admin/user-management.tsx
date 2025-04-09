@@ -10,36 +10,28 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import AvatarUpload from "@/components/avatar-upload"
 import { UserRoleBadge } from "@/components/user-role-badge"
 import type { Database } from "@/lib/database-types"
+import type { UserWithDetails } from "@/types/user-management"
 import type { UserRoleType } from "@/types/user-role"
 
-interface User {
-  id: string
-  role: UserRoleType
-  created_at: string
-  avatar_url?: string | null
-  auth_users: {
-    email: string
-    created_at: string
-  }
-}
-
 interface UserManagementProps {
-  users: User[]
+  users: UserWithDetails[]
 }
 
 export function UserManagement({ users: initialUsers }: UserManagementProps) {
-  const [users, setUsers] = useState<User[]>(initialUsers)
+  const [users, setUsers] = useState<UserWithDetails[]>(initialUsers)
   const [searchTerm, setSearchTerm] = useState("")
   const [isUpdating, setIsUpdating] = useState<Record<string, boolean>>({})
-  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [selectedUser, setSelectedUser] = useState<UserWithDetails | null>(null)
   const { toast } = useToast()
   const supabase = createClientComponentClient<Database>()
 
   // Filtrer les utilisateurs en fonction du terme de recherche
   const filteredUsers = users.filter(
     (user) =>
-      user.auth_users.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchTerm.toLowerCase()),
+      user.auth.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.role.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.profile.full_name && user.profile.full_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (user.profile.username && user.profile.username.toLowerCase().includes(searchTerm.toLowerCase())),
   )
 
   // Mettre à jour le rôle d'un utilisateur
@@ -47,7 +39,13 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
     setIsUpdating({ ...isUpdating, [userId]: true })
 
     try {
-      const { error } = await supabase.from("user_roles").update({ role: newRole }).eq("id", userId)
+      const { error } = await supabase
+        .from("user_roles")
+        .update({
+          role: newRole,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", userId)
 
       if (error) throw error
 
@@ -57,11 +55,24 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
       })
 
       // Mettre à jour l'état local
-      setUsers(users.map((user) => (user.id === userId ? { ...user, role: newRole } : user)))
+      setUsers(
+        users.map((user) =>
+          user.id === userId
+            ? { ...user, role: { ...user.role, role: newRole, updated_at: new Date().toISOString() } }
+            : user,
+        ),
+      )
 
       // Mettre à jour l'utilisateur sélectionné si nécessaire
       if (selectedUser && selectedUser.id === userId) {
-        setSelectedUser({ ...selectedUser, role: newRole })
+        setSelectedUser({
+          ...selectedUser,
+          role: {
+            ...selectedUser.role,
+            role: newRole,
+            updated_at: new Date().toISOString(),
+          },
+        })
       }
     } catch (error: any) {
       console.error("Erreur lors de la mise à jour du rôle:", error)
@@ -76,13 +87,20 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
   }
 
   // Formater la date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    }).format(date)
+  const formatDate = (dateString: string | undefined | null) => {
+    if (!dateString) return "Non disponible"
+
+    try {
+      const date = new Date(dateString)
+      return new Intl.DateTimeFormat("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      }).format(date)
+    } catch (error) {
+      console.error("Erreur de formatage de date:", error)
+      return "Format invalide"
+    }
   }
 
   return (
@@ -102,7 +120,7 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
           <Card className="mb-8">
             <CardHeader>
               <CardTitle>Rechercher des utilisateurs</CardTitle>
-              <CardDescription>Recherchez par email ou par rôle</CardDescription>
+              <CardDescription>Recherchez par email, nom ou rôle</CardDescription>
             </CardHeader>
             <CardContent>
               <Input
@@ -142,18 +160,23 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
                           <td className="py-3 px-4">
                             <div className="flex items-center">
                               <div className="flex-shrink-0 mr-3">
-                                <AvatarUpload userId={user.id} avatarUrl={user.avatar_url || null} size="sm" />
+                                <AvatarUpload userId={user.id} avatarUrl={user.profile.avatar_url || null} size="sm" />
+                              </div>
+                              <div>
+                                {(user.profile.full_name || user.profile.username) && (
+                                  <p className="font-medium">{user.profile.full_name || user.profile.username}</p>
+                                )}
                               </div>
                             </div>
                           </td>
-                          <td className="py-3 px-4">{user.auth_users.email}</td>
+                          <td className="py-3 px-4">{user.auth.email}</td>
                           <td className="py-3 px-4">
-                            <UserRoleBadge role={user.role} />
+                            <UserRoleBadge role={user.role.role} />
                           </td>
-                          <td className="py-3 px-4">{formatDate(user.auth_users.created_at)}</td>
+                          <td className="py-3 px-4">{formatDate(user.auth.created_at)}</td>
                           <td className="py-3 px-4 text-right">
                             <Select
-                              value={user.role}
+                              value={user.role.role}
                               onValueChange={(value) => updateUserRole(user.id, value as UserRoleType)}
                               disabled={isUpdating[user.id]}
                             >
@@ -193,24 +216,70 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex justify-center">
-                  <AvatarUpload userId={selectedUser.id} avatarUrl={selectedUser.avatar_url || null} size="lg" />
+                  <AvatarUpload
+                    userId={selectedUser.id}
+                    avatarUrl={selectedUser.profile.avatar_url || null}
+                    size="lg"
+                  />
                 </div>
 
                 <div className="space-y-4">
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">Email</h3>
-                    <p className="font-medium">{selectedUser.auth_users.email}</p>
+                    <p className="font-medium">{selectedUser.auth.email}</p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Nom d'utilisateur</h3>
+                    <p className="font-medium">{selectedUser.profile.username || "Non défini"}</p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Nom complet</h3>
+                    <p className="font-medium">{selectedUser.profile.full_name || "Non défini"}</p>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Biographie</h3>
+                    {selectedUser.profile.bio ? (
+                      <p className="font-medium">{selectedUser.profile.bio}</p>
+                    ) : (
+                      <p className="text-sm text-gray-400 italic">Aucune biographie</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Site web</h3>
+                    {selectedUser.profile.website ? (
+                      <a
+                        href={selectedUser.profile.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline"
+                      >
+                        {selectedUser.profile.website}
+                      </a>
+                    ) : (
+                      <p className="text-sm text-gray-400 italic">Non défini</p>
+                    )}
                   </div>
 
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">Date d'inscription</h3>
-                    <p className="font-medium">{formatDate(selectedUser.auth_users.created_at)}</p>
+                    <p className="font-medium">{formatDate(selectedUser.auth.created_at)}</p>
                   </div>
+
+                  {selectedUser.auth.last_sign_in_at && (
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-1">Dernière connexion</h3>
+                      <p className="font-medium">{formatDate(selectedUser.auth.last_sign_in_at)}</p>
+                    </div>
+                  )}
 
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">Rôle</h3>
                     <Select
-                      defaultValue={selectedUser.role}
+                      defaultValue={selectedUser.role.role}
                       onValueChange={(value) => updateUserRole(selectedUser.id, value as UserRoleType)}
                     >
                       <SelectTrigger>
@@ -239,4 +308,3 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
     </div>
   )
 }
-

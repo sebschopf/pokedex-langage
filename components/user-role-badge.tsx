@@ -23,7 +23,6 @@ export function UserRoleBadge({ role: initialRole, className, editable = false, 
     validator: "bg-amber-500 text-white hover:bg-amber-600",
     verified: "bg-green-500 text-white hover:bg-green-600",
     registered: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-    anonymous: "bg-gray-300 text-gray-700 hover:bg-gray-400",
   }
 
   // Déterminer la variante de base à utiliser

@@ -1,12 +1,14 @@
 "use client"
 
+import type { UserRoleType } from "@/types/user-role"
+
 import { useState } from "react"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Users, Code, FileEdit, CheckCircle, XCircle, Clock } from "lucide-react"
+import { Users, Code, FileEdit, CheckCircle, XCircle, Clock, Database, ImageIcon, Settings, User } from "lucide-react"
 
 interface Suggestion {
   id: number
@@ -30,7 +32,7 @@ interface AdminDashboardProps {
   languagesCount: number
   usersCount: number
   recentSuggestions: Suggestion[]
-  userRole: string
+  userRole: UserRoleType
 }
 
 export function AdminDashboard({
@@ -63,15 +65,22 @@ export function AdminDashboard({
           <h1 className="text-4xl font-bold">Tableau de bord d'administration</h1>
           <p className="text-gray-500 mt-2">Gérez les suggestions, les langages et les utilisateurs</p>
         </div>
-        <div>
+        <div className="flex items-center gap-2">
           <Badge className="ml-2 text-sm">{userRole === "admin" ? "Administrateur" : "Validateur"}</Badge>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/profile">
+              <User className="h-4 w-4 mr-2" />
+              Mon profil
+            </Link>
+          </Button>
         </div>
       </div>
 
       <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-3 mb-8">
+        <TabsList className="grid grid-cols-4 mb-8">
           <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
           <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
+          <TabsTrigger value="content">Contenu</TabsTrigger>
           <TabsTrigger value="users" disabled={userRole !== "admin"}>
             Utilisateurs
           </TabsTrigger>
@@ -123,7 +132,7 @@ export function AdminDashboard({
               </CardContent>
               <CardFooter>
                 <Button asChild variant="outline" size="sm" className="w-full">
-                  <Link href="/">Voir les langages</Link>
+                  <Link href="/admin/languages">Gérer les langages</Link>
                 </Button>
               </CardFooter>
             </Card>
@@ -148,6 +157,54 @@ export function AdminDashboard({
                   <Link href={userRole === "admin" ? "/admin/users" : "#"}>Gérer les utilisateurs</Link>
                 </Button>
               </CardFooter>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Gestion du contenu</CardTitle>
+                <CardDescription>Gérez les médias et les langages</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <Button asChild variant="outline" className="h-24 flex flex-col items-center justify-center">
+                    <Link href="/admin/storage">
+                      <ImageIcon className="h-8 w-8 mb-2" />
+                      Gérer les médias
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="h-24 flex flex-col items-center justify-center">
+                    <Link href="/admin/languages">
+                      <Database className="h-8 w-8 mb-2" />
+                      Gérer les langages
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Mon compte</CardTitle>
+                <CardDescription>Gérez votre profil et vos paramètres</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <Button asChild variant="outline" className="h-24 flex flex-col items-center justify-center">
+                    <Link href="/profile">
+                      <User className="h-8 w-8 mb-2" />
+                      Mon profil
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="h-24 flex flex-col items-center justify-center">
+                    <Link href="/admin/settings">
+                      <Settings className="h-8 w-8 mb-2" />
+                      Paramètres
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
             </Card>
           </div>
 
@@ -237,7 +294,61 @@ export function AdminDashboard({
                   </CardContent>
                   <CardFooter>
                     <Button asChild variant="outline" size="sm" className="w-full">
-                      <Link href="/suggestions?tab=new">Ajouter un langage</Link>
+                      <Link href="/admin/languages/new">Ajouter un langage</Link>
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="content">
+          <Card>
+            <CardHeader>
+              <CardTitle>Gestion du contenu</CardTitle>
+              <CardDescription>Gérez les langages et les médias du site</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Langages</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-500">Gérez les langages de programmation</p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button asChild variant="default" size="sm" className="w-full">
+                      <Link href="/admin/languages">Gérer les langages</Link>
+                    </Button>
+                  </CardFooter>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Médias</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-500">Gérez les logos, avatars et autres médias</p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button asChild variant="default" size="sm" className="w-full">
+                      <Link href="/admin/storage">Gérer les médias</Link>
+                    </Button>
+                  </CardFooter>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Ajouter un langage</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-500">Créer un nouveau langage de programmation</p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button asChild variant="outline" size="sm" className="w-full">
+                      <Link href="/admin/languages/new">Ajouter un langage</Link>
                     </Button>
                   </CardFooter>
                 </Card>
@@ -265,4 +376,3 @@ export function AdminDashboard({
     </div>
   )
 }
-

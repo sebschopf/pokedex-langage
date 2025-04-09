@@ -117,7 +117,7 @@ export default function DashboardPage() {
       const { data: proposalsData } = await supabase
         .from("language_proposals")
         .select("*")
-        .eq("user_id", userId)
+        .eq("id", userId)
         .order("created_at", { ascending: false })
 
       if (proposalsData) {
@@ -128,7 +128,7 @@ export default function DashboardPage() {
       const { data: correctionsData } = await supabase
         .from("corrections")
         .select("*")
-        .eq("user_id", userId)
+        .eq("id", userId)
         .order("created_at", { ascending: false })
 
       if (correctionsData) {

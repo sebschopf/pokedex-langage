@@ -12,6 +12,8 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
   const [username, setUsername] = useState("")
+  const [bio, setBio] = useState("")
+  const [website, setWebsite] = useState("")
   const router = useRouter()
   const { toast } = useToast()
   const supabase = createClientComponentClient()
@@ -33,22 +35,43 @@ export default function ProfilePage() {
         const { user } = session
         setUser(user)
 
-        // Récupérer le rôle de l'utilisateur
-        const { data: userRoleData } = await supabase.from("user_roles").select("role").eq("id", user.id).single()
+        // Récupérer le rôle de l'utilisateur - Ajout de logs pour déboguer
+        const { data: userRoleData, error: roleError } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("id", user.id)
+          .single()
+
+        console.log("User ID:", user.id)
+        console.log("User role data:", userRoleData)
+
+        if (roleError) {
+          console.error("Erreur lors de la récupération du rôle:", roleError)
+        }
 
         if (userRoleData) {
           setUserRole(userRoleData.role)
+          console.log("Rôle défini:", userRoleData.role)
         }
 
-        // Récupérer le profil de l'utilisateur si une table profiles existe
+        // Récupérer le profil de l'utilisateur
         try {
-          const { data } = await supabase.from("profiles").select("username").eq("id", user.id).single()
+          const { data, error: profileError } = await supabase
+            .from("profiles")
+            .select("username, bio, website")
+            .eq("id", user.id)
+            .single()
+
+          if (profileError) {
+            console.error("Erreur lors de la récupération du profil:", profileError)
+          }
 
           if (data) {
             setUsername(data.username || "")
+            setBio(data.bio || "")
+            setWebsite(data.website || "")
           }
         } catch (error) {
-          // La table profiles n'existe peut-être pas encore
           console.log("Erreur lors de la récupération du profil:", error)
         }
       } catch (error: any) {
@@ -76,6 +99,8 @@ export default function ProfilePage() {
         const { error } = await supabase.from("profiles").upsert({
           id: user.id,
           username,
+          bio,
+          website,
           updated_at: new Date().toISOString(),
         })
 
@@ -129,46 +154,24 @@ export default function ProfilePage() {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="px-8 py-6 bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex items-center">
-          <Loader2 className="h-8 w-8 animate-spin mr-3" />
-          <span className="font-bold text-xl">Chargement...</span>
+          <Loader2 className="h-6 w-6 animate-spin mr-2" />
+          <span>Chargement...</span>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto py-12">
-      <div className="max-w-2xl mx-auto border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+    <div className="container max-w-4xl mx-auto py-12 px-4">
+      <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
         {/* Header */}
-        <div className="border-b-4 border-black p-6 bg-yellow-300 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-black uppercase tracking-tight">Profil Utilisateur</h1>
-            <p className="text-lg font-bold mt-1">Gérez vos informations personnelles</p>
-          </div>
-          <button
-            onClick={() => router.push("/")}
-            className="px-4 py-2 bg-white border-4 border-black text-black font-black text-base uppercase hover:bg-blue-300 hover:-translate-y-1 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex items-center"
-          >
-            <Home className="mr-2 h-5 w-5" />
-            Accueil
-          </button>
+        <div className="border-b-4 border-black p-6">
+          <h1 className="text-3xl font-black">Mon Profil</h1>
+          <p className="text-gray-600">Gérez vos informations personnelles</p>
         </div>
 
         {/* Content */}
         <div className="p-6 space-y-6">
-          <div className="space-y-2">
-            <label htmlFor="email" className="text-lg font-bold">
-              Email
-            </label>
-            <input
-              id="email"
-              type="text"
-              value={user?.email}
-              disabled
-              className="w-full p-3 border-4 border-black font-medium text-base bg-gray-100"
-            />
-          </div>
-
           <div className="space-y-2">
             <label htmlFor="username" className="text-lg font-bold">
               Nom d'utilisateur
@@ -179,6 +182,34 @@ export default function ProfilePage() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Entrez votre nom d'utilisateur"
+              className="w-full p-3 border-4 border-black font-medium text-base"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="bio" className="text-lg font-bold">
+              Biographie
+            </label>
+            <textarea
+              id="bio"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Parlez-nous de vous"
+              className="w-full p-3 border-4 border-black font-medium text-base"
+              rows={4}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="website" className="text-lg font-bold">
+              Site web
+            </label>
+            <input
+              id="website"
+              type="url"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+              placeholder="https://votre-site-web.com"
               className="w-full p-3 border-4 border-black font-medium text-base"
             />
           </div>
@@ -196,6 +227,26 @@ export default function ProfilePage() {
             />
           </div>
 
+          <div className="pt-4">
+            <button
+              onClick={updateProfile}
+              disabled={updating}
+              className="w-full px-6 py-3 bg-black text-white font-black text-lg uppercase hover:bg-gray-800 hover:-translate-y-1 transition-all"
+            >
+              {updating ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin mr-2 inline" />
+                  Mise à jour...
+                </>
+              ) : (
+                <>
+                  <Save className="h-5 w-5 mr-2 inline" />
+                  Enregistrer les modifications
+                </>
+              )}
+            </button>
+          </div>
+
           {/* Lien vers le dashboard admin si l'utilisateur est admin ou validator */}
           {(userRole === "admin" || userRole === "validator") && (
             <div className="pt-4">
@@ -207,6 +258,19 @@ export default function ProfilePage() {
               </button>
             </div>
           )}
+
+          {/* Lien direct vers le dashboard admin (pour déboguer) */}
+          <div className="pt-4">
+            <p className="text-sm text-gray-500 mb-2">
+              Si le bouton ci-dessus n'apparaît pas malgré votre rôle d'administrateur, utilisez ce lien direct :
+            </p>
+            <button
+              onClick={() => router.push("/admin/dashboard")}
+              className="w-full px-6 py-3 bg-red-500 text-white font-black text-lg uppercase hover:bg-red-600 hover:-translate-y-1 transition-all"
+            >
+              Accès direct au tableau de bord admin
+            </button>
+          </div>
         </div>
 
         {/* Footer */}
@@ -214,32 +278,29 @@ export default function ProfilePage() {
           <button
             onClick={handleSignOut}
             disabled={updating}
-            className="px-6 py-3 bg-white border-4 border-black text-black font-black text-lg uppercase hover:bg-red-300 hover:-translate-y-1 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] disabled:hover:bg-white flex items-center"
+            className="px-6 py-3 bg-white border-4 border-black text-black font-bold hover:bg-red-100 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
           >
-            <LogOut className="mr-2 h-5 w-5" />
-            Se déconnecter
+            <LogOut className="h-5 w-5 mr-2 inline" />
+            Déconnexion
           </button>
 
           <button
-            onClick={updateProfile}
-            disabled={updating}
-            className="px-6 py-3 bg-white border-4 border-black text-black font-black text-lg uppercase hover:bg-green-300 hover:-translate-y-1 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] disabled:hover:bg-white flex items-center"
+            onClick={() => router.push("/")}
+            className="px-6 py-3 bg-white border-4 border-black text-black font-bold hover:bg-blue-100 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
           >
-            {updating ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Mise à jour...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-5 w-5" />
-                Mettre à jour
-              </>
-            )}
+            <Home className="h-5 w-5 mr-2 inline" />
+            Retour à l'accueil
           </button>
         </div>
+      </div>
+
+      {/* Informations de débogage */}
+      <div className="mt-8 p-4 bg-gray-100 border border-gray-300 rounded-md">
+        <h3 className="font-bold mb-2">Informations de débogage :</h3>
+        <p>User ID: {user?.id}</p>
+        <p>Rôle: {userRole || "non défini"}</p>
+        <p>Email: {user?.email}</p>
       </div>
     </div>
   )
 }
-

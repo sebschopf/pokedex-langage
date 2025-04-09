@@ -49,6 +49,7 @@ export type { TechnologyCategory } from "./technology-category";
 // Types pour les sous-types de technologies
 export type { TechnologySubtype } from "./technology-subtype";
 
+
 // Fonctions de conversion pour la base de données
 export {
   dbToLanguage,

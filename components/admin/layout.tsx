@@ -5,9 +5,29 @@ import type React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { LayoutDashboard, FileEdit, Users, LogOut, ChevronRight } from "lucide-react"
+import {
+  LayoutDashboard,
+  FileEdit,
+  Users,
+  LogOut,
+  ChevronRight,
+  User,
+  Settings,
+  Database,
+  ImageIcon,
+} from "lucide-react"
 import { createSupabaseClient } from "@/lib/supabase"
 import { useRouter } from "next/navigation"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useState, useEffect } from "react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface AdminLayoutProps {
   children: React.ReactNode
@@ -18,6 +38,25 @@ export function AdminLayout({ children, userRole }: AdminLayoutProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createSupabaseClient()
+  const [userProfile, setUserProfile] = useState<{ avatar_url?: string; email?: string } | null>(null)
+
+  useEffect(() => {
+    async function loadUserProfile() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (user) {
+        const { data: profile } = await supabase.from("profiles").select("avatar_url").eq("id", user.id).single()
+
+        setUserProfile({
+          avatar_url: profile?.avatar_url || undefined,
+          email: user.email,
+        })
+      }
+    }
+
+    loadUserProfile()
+  }, [])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -43,6 +82,18 @@ export function AdminLayout({ children, userRole }: AdminLayoutProps) {
       icon: <Users className="h-5 w-5 mr-2" />,
       active: pathname === "/admin/users",
       disabled: userRole !== "admin",
+    },
+    {
+      label: "Gestion des médias",
+      href: "/admin/storage",
+      icon: <ImageIcon className="h-5 w-5 mr-2" />,
+      active: pathname === "/admin/storage",
+    },
+    {
+      label: "Gestion des langages",
+      href: "/admin/languages",
+      icon: <Database className="h-5 w-5 mr-2" />,
+      active: pathname.includes("/admin/languages"),
     },
   ]
 
@@ -85,26 +136,71 @@ export function AdminLayout({ children, userRole }: AdminLayoutProps) {
 
       <div className="flex-1">
         <header className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 p-4">
-          <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-            <Link href="/" className="hover:text-gray-900 dark:hover:text-gray-100">
-              Accueil
-            </Link>
-            <ChevronRight className="h-4 w-4 mx-2" />
-            <Link href="/admin/dashboard" className="hover:text-gray-900 dark:hover:text-gray-100">
-              Administration
-            </Link>
-            {pathname !== "/admin/dashboard" && (
-              <>
-                <ChevronRight className="h-4 w-4 mx-2" />
-                <span className="text-gray-900 dark:text-gray-100">
-                  {pathname.includes("/admin/suggestions")
-                    ? "Suggestions"
-                    : pathname.includes("/admin/users")
-                      ? "Utilisateurs"
-                      : ""}
-                </span>
-              </>
-            )}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+              <Link href="/" className="hover:text-gray-900 dark:hover:text-gray-100">
+                Accueil
+              </Link>
+              <ChevronRight className="h-4 w-4 mx-2" />
+              <Link href="/admin/dashboard" className="hover:text-gray-900 dark:hover:text-gray-100">
+                Administration
+              </Link>
+              {pathname !== "/admin/dashboard" && (
+                <>
+                  <ChevronRight className="h-4 w-4 mx-2" />
+                  <span className="text-gray-900 dark:text-gray-100">
+                    {pathname.includes("/admin/suggestions")
+                      ? "Suggestions"
+                      : pathname.includes("/admin/users")
+                        ? "Utilisateurs"
+                        : pathname.includes("/admin/storage")
+                          ? "Médias"
+                          : pathname.includes("/admin/languages")
+                            ? "Langages"
+                            : ""}
+                  </span>
+                </>
+              )}
+            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={userProfile?.avatar_url} alt="Avatar" />
+                    <AvatarFallback>{userProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{userProfile?.email}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {userRole === "admin" ? "Administrateur" : "Validateur"}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Mon profil</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/admin/settings">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Paramètres</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Déconnexion</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 
@@ -113,4 +209,3 @@ export function AdminLayout({ children, userRole }: AdminLayoutProps) {
     </div>
   )
 }
-

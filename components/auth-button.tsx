@@ -30,7 +30,7 @@ export function AuthButton() {
           const { data: userRoleData } = await supabase
             .from("user_roles")
             .select("role")
-            .eq("user_id", session.user.id) // Utiliser user_id au lieu de id
+            .eq("id", session.user.id) 
             .single()
 
           if (userRoleData) {
@@ -42,7 +42,7 @@ export function AuthButton() {
             const { data: profileData } = await supabase
               .from("profiles")
               .select("avatar_url")
-              .eq("user_id", session.user.id) // Utiliser user_id au lieu de id
+              .eq("id", session.user.id) 
               .single()
 
             if (profileData?.avatar_url) {
