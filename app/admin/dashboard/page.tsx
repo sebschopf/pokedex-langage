@@ -23,7 +23,8 @@ export default function AdminDashboardPage() {
         } = await supabase.auth.getSession()
 
         if (!session) {
-          router.push("/login")
+          // Le middleware devrait déjà gérer cette redirection, mais par sécurité
+          router.push("/")
           return
         }
 
@@ -34,18 +35,9 @@ export default function AdminDashboardPage() {
 
         if (roleData) {
           setUserRole(roleData.role)
-
-          // Si l'utilisateur n'est pas admin ou validator, le rediriger
-          if (roleData.role !== "admin" && roleData.role !== "validator") {
-            router.push("/")
-          }
-        } else {
-          // Si aucun rôle n'est trouvé, rediriger
-          router.push("/")
         }
       } catch (error) {
         console.error("Erreur lors de la vérification de l'authentification:", error)
-        router.push("/login")
       } finally {
         setLoading(false)
       }

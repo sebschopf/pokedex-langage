@@ -1,4 +1,5 @@
-import { createServerSupabaseClient } from "./supabase"
+import { cookies } from "next/headers"
+import { createServerSupabaseClient } from "@/lib/supabase-server"
 import { v4 as uuidv4 } from "uuid"
 
 /**
@@ -9,7 +10,7 @@ import { v4 as uuidv4 } from "uuid"
  */
 export async function uploadFile(file: File, bucket = "logos"): Promise<string | null> {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerSupabaseClient( { cookies})
 
     // Vérifier si c'est un SVG
     const isSvg = file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg")
@@ -50,7 +51,7 @@ export async function uploadFile(file: File, bucket = "logos"): Promise<string |
  */
 export async function deleteFile(url: string, bucket = "logos"): Promise<boolean> {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerSupabaseClient( { cookies})
 
     // Extraire le nom du fichier de l'URL
     const fileName = url.split("/").pop()

@@ -63,6 +63,7 @@ export function LanguageCard({ language }: LanguageCardProps) {
                 width={96}
                 height={96}
                 className="object-contain max-w-full max-h-full"
+                style={{ width: "auto", height: "auto", maxWidth: "96px", maxHeight: "96px" }} // Correction pour le ratio d'aspect
                 onError={handleImageError}
               />
             )}

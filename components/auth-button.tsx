@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useRouter } from "next/navigation"
-import { Loader2, LogOut, User, LayoutDashboard } from 'lucide-react'
+import { Loader2, LogOut, User, LayoutDashboard } from "lucide-react"
 import Link from "next/link"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
@@ -13,6 +13,7 @@ export function AuthButton() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+  // Utiliser le singleton pour éviter de créer plusieurs instances
   const supabase = createClientComponentClient()
 
   useEffect(() => {
@@ -30,7 +31,7 @@ export function AuthButton() {
           const { data: userRoleData } = await supabase
             .from("user_roles")
             .select("role")
-            .eq("id", session.user.id) 
+            .eq("id", session.user.id)
             .single()
 
           if (userRoleData) {
@@ -42,17 +43,20 @@ export function AuthButton() {
             const { data: profileData } = await supabase
               .from("profiles")
               .select("avatar_url")
-              .eq("id", session.user.id) 
+              .eq("id", session.user.id)
               .single()
 
             if (profileData?.avatar_url) {
-              const { data } = supabase.storage.from("avatars").getPublicUrl(profileData.avatar_url)
-
-              setAvatarUrl(data.publicUrl)
+              setAvatarUrl(profileData.avatar_url)
             }
           } catch (error) {
             console.log("Erreur lors de la récupération de l'avatar:", error)
           }
+        } else {
+          // S'assurer que les états sont réinitialisés si aucune session n'est trouvée
+          setUser(null)
+          setUserRole(null)
+          setAvatarUrl(null)
         }
       } catch (error) {
         console.log("Erreur lors de la récupération de l'utilisateur:", error)
@@ -63,6 +67,7 @@ export function AuthButton() {
 
     getUser()
 
+    // Utiliser un seul écouteur d'événements pour éviter les doublons
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
         getUser()
@@ -124,17 +129,14 @@ export function AuthButton() {
               <span className="font-bold">Profil</span>
             </Link>
 
-            <Link href="/dashboard" className="flex items-center w-full p-2 hover:bg-yellow-300 transition-colors">
-              <LayoutDashboard className="mr-2 h-4 w-4" />
-              <span className="font-bold">Tableau de bord</span>
-            </Link>
-
+            {/* Afficher le lien vers le tableau de bord admin uniquement pour les admins et validators */}
             {(userRole === "admin" || userRole === "validator") && (
               <Link
                 href="/admin/dashboard"
                 className="flex items-center w-full p-2 hover:bg-yellow-300 transition-colors"
               >
-                <span className="font-bold">Tableau de bord</span>
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+                <span className="font-bold">Admin Dashboard</span>
               </Link>
             )}
           </div>

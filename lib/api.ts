@@ -1,228 +1,256 @@
-import { createServerSupabaseClient } from "./supabase"
-import type { Language } from "@/types/language"
+import { createServerSupabaseClient } from "./supabase-server"
 import type { Library } from "@/types/library"
-// Importer depuis index.ts qui réexporte correctement maintenant
-import { dbToLanguage, dbToLibrary } from "@/types"
+import type { Language } from "@/types/language"
+import { dbToLibrary, dbToLanguage } from "./database-mapping"
 
-// Correction pour l'erreur de type string | undefined
-export async function getLanguageBySlug(slug: string): Promise<Language | null> {
+// Type pour les options de filtrage
+export interface FrameworkFilterOptions {
+  minPopularity?: number
+  type?: string
+  limit?: number
+  sortBy?: "popularity" | "name" | "created_at"
+  sortOrder?: "asc" | "desc"
+}
+
+// Cache pour stocker les résultats
+interface CacheEntry<T> {
+  data: T
+  timestamp: number
+}
+
+// Cache en mémoire avec expiration
+const frameworksCache = new Map<string, CacheEntry<Library[]>>()
+const languagesCache = new Map<string, CacheEntry<Language>>()
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes en millisecondes
+
+/**
+ * Vide le cache des frameworks
+ */
+export function clearFrameworksCache(): void {
+  frameworksCache.clear()
+}
+
+/**
+ * Vide le cache des langages
+ */
+export function clearLanguagesCache(): void {
+  languagesCache.clear()
+}
+
+/**
+ * Récupère un langage par son slug
+ * @param slug Le slug du langage
+ * @param skipCache Ignorer le cache et forcer une nouvelle requête (optionnel)
+ * @returns Le langage ou null si non trouvé
+ */
+export async function getLanguageBySlug(slug: string, skipCache = false): Promise<Language | null> {
   try {
-    console.log("Recherche du langage avec le slug:", slug)
+    // Validation du slug
+    if (!slug) {
+      throw new Error("Slug non défini ou invalide")
+    }
+
+    // Vérifier le cache si skipCache est false
+    if (!skipCache) {
+      const cachedData = languagesCache.get(slug)
+      if (cachedData && Date.now() - cachedData.timestamp < CACHE_TTL) {
+        console.log(`Utilisation des données en cache pour le langage ${slug}`)
+        return cachedData.data
+      }
+    }
 
     const supabase = createServerSupabaseClient()
-
     if (!supabase) {
-      console.error("Client Supabase non initialisé")
-      return null
+      throw new Error("Client Supabase non initialisé")
     }
 
-    // D'abord, essayez de trouver par slug
-    let { data, error } = await supabase.from("languages").select("*").eq("slug", slug).single()
-
-    // Si aucun résultat, essayez de trouver par ID
-    if (!data && !error) {
-      console.log("Aucun langage trouvé avec ce slug, essai avec l'ID")
-      const { data: dataById, error: errorById } = await supabase.from("languages").select("*").eq("id", slug).single()
-
-      data = dataById
-      error = errorById
-    }
-
-    // Si toujours aucun résultat, essayez de trouver par nom transformé en slug
-    if (!data && !error) {
-      console.log("Aucun langage trouvé avec cet ID, essai avec le nom")
-      const { data: allLanguages } = await supabase.from("languages").select("*")
-
-      if (allLanguages) {
-        // Recherche d'un langage dont le nom transformé en slug correspond
-        const matchingLanguage = allLanguages.find((lang) => {
-          const nameSlug = lang.name.toLowerCase().replace(/[^a-z0-9]/g, "-")
-          return nameSlug === slug
-        })
-
-        if (matchingLanguage) {
-          console.log("Langage trouvé par correspondance de nom:", matchingLanguage.name)
-          data = matchingLanguage
-        }
-      }
-    }
+    // Récupérer le langage par son slug
+    const { data, error } = await supabase.from("languages").select("*").eq("slug", slug).single()
 
     if (error) {
-      console.error("Error fetching language by slug:", error)
+      if (error.code === "PGRST116") {
+        // Code d'erreur pour "No rows found"
+        return null
+      }
+      throw new Error(`Erreur lors de la récupération du langage: ${error.message}`)
+    }
+
+    if (!data) {
       return null
     }
 
-    // Si dbToLanguage n'est pas disponible, créer une fonction locale
-    const convertLanguage = (data: any): Language => {
-      return {
-        id: data.id,
-        name: data.name,
-        slug: data.slug,
-        // Propriétés en camelCase
-        createdYear: data.year_created,
-        creator: data.creator,
-        description: data.description,
-        logo: data.logo_path,
-        shortDescription: data.short_description,
-        type: data.type,
-        usedFor: data.used_for,
-        usageRate: data.usage_rate,
-        isOpenSource: data.is_open_source,
-        strengths: data.strengths || [],
-        popularFrameworks: data.popular_frameworks || [],
-        tools: data.tools,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
+    // Convertir les données et mettre en cache
+    const language = dbToLanguage(data)
+    languagesCache.set(slug, {
+      data: language,
+      timestamp: Date.now(),
+    })
 
-        // Propriétés en snake_case
-        year_created: data.year_created,
-        logo_path: data.logo_path,
-        short_description: data.short_description,
-        used_for: data.used_for,
-        usage_rate: data.usage_rate,
-        is_open_source: data.is_open_source,
-        popular_frameworks: data.popular_frameworks || [],
-        created_at: data.created_at,
-        updated_at: data.updated_at,
-      }
-    }
-
-    // Utiliser la fonction locale ou importée
-    return data ? (dbToLanguage ? dbToLanguage(data) : convertLanguage(data)) : null
+    return language
   } catch (error) {
-    console.error("Error fetching language by slug:", error)
+    // Gestion structurée des erreurs
+    const errorMessage = error instanceof Error ? error.message : "Erreur inconnue lors de la récupération du langage"
+
+    console.error(`Erreur dans getLanguageBySlug: ${errorMessage}`, error)
     return null
   }
 }
 
-// Correction pour l'erreur de type Library[]
-export async function getFrameworksByLanguageId(languageId: string): Promise<Library[]> {
+/**
+ * Récupère les frameworks associés à un langage avec options de filtrage et mise en cache
+ * @param languageId L'ID du langage
+ * @param options Options de filtrage (optionnel)
+ * @param skipCache Ignorer le cache et forcer une nouvelle requête (optionnel)
+ * @returns Liste des frameworks/bibliothèques
+ */
+export async function getFrameworksByLanguageId(
+  languageId: string,
+  options: FrameworkFilterOptions = {},
+  skipCache = false,
+): Promise<Library[]> {
   try {
-    console.log("Récupération des frameworks pour le langage ID:", languageId)
-
-    // Si languageId est undefined ou null, retourner un tableau vide
+    // Validation de l'ID du langage
     if (!languageId) {
-      console.log("ID de langage non défini, retour d'un tableau vide")
-      return []
+      throw new Error("ID de langage non défini ou invalide")
     }
 
-    const supabase = createServerSupabaseClient()
+    // Générer une clé de cache unique basée sur l'ID et les options
+    const cacheKey = `${languageId}-${JSON.stringify(options)}`
 
-    if (!supabase) {
-      console.error("Client Supabase non initialisé")
-      return []
-    }
-
-    // Récupérer les bibliothèques/frameworks depuis la table libraries
-    const { data, error } = await supabase
-      .from("libraries")
-      .select("*")
-      .eq("language_id", languageId)
-      .order("popularity", { ascending: false })
-
-    if (error) {
-      console.error("Error fetching libraries for language:", error)
-      return []
-    }
-
-    console.log(`Trouvé ${data?.length || 0} frameworks dans la table libraries`)
-
-    // Fonction locale de conversion au cas où dbToLibrary n'est pas disponible
-    const convertLibrary = (lib: any): Library => {
-      return {
-        id: lib.id,
-        name: lib.name,
-        languageId: lib.language_id,
-        description: lib.description,
-        officialWebsite: lib.official_website,
-        githubUrl: lib.github_url,
-        logoPath: lib.logo_path,
-        popularity: lib.popularity,
-        isOpenSource: lib.is_open_source,
-        features: lib.features || [],
-        uniqueSellingPoint: lib.unique_selling_point,
-        bestFor: lib.best_for,
-        usedFor: lib.used_for,
-        documentationUrl: lib.documentation_url,
-        version: lib.version,
-        createdAt: lib.created_at,
-        updatedAt: lib.updated_at,
-
-        // Propriétés en snake_case
-        language_id: lib.language_id,
-        official_website: lib.official_website,
-        github_url: lib.github_url,
-        logo_path: lib.logo_path,
-        is_open_source: lib.is_open_source,
-        created_at: lib.created_at,
-        updated_at: lib.updated_at,
-        unique_selling_point: lib.unique_selling_point,
-        best_for: lib.best_for,
-        used_for: lib.used_for,
-        documentation_url: lib.documentation_url,
+    // Vérifier le cache si skipCache est false
+    if (!skipCache) {
+      const cachedData = frameworksCache.get(cacheKey)
+      if (cachedData && Date.now() - cachedData.timestamp < CACHE_TTL) {
+        console.log(`Utilisation des données en cache pour le langage ${languageId}`)
+        return cachedData.data
       }
     }
 
-    // Si des bibliothèques sont trouvées, les convertir
+    const supabase = createServerSupabaseClient()
+    if (!supabase) {
+      throw new Error("Client Supabase non initialisé")
+    }
+
+    // Construire la requête de base
+    let query = supabase.from("libraries").select("*").eq("language_id", languageId)
+
+    // Appliquer les filtres si spécifiés
+    if (options.minPopularity !== undefined) {
+      query = query.gte("popularity", options.minPopularity)
+    }
+
+    if (options.type) {
+      query = query.eq("technology_type", options.type)
+    }
+
+    // Appliquer le tri
+    const sortField = options.sortBy || "popularity"
+    const sortDirection = options.sortOrder === "asc" ? true : false
+    query = query.order(sortField, { ascending: sortDirection })
+
+    // Appliquer la limite si spécifiée
+    if (options.limit) {
+      query = query.limit(options.limit)
+    }
+
+    // Exécuter la requête
+    const { data, error } = await query
+
+    if (error) {
+      throw new Error(`Erreur lors de la récupération des bibliothèques: ${error.message}`)
+    }
+
+    // Si des bibliothèques sont trouvées, les convertir et mettre en cache
     if (data && data.length > 0) {
-      return data.map(dbToLibrary || convertLibrary)
+      const libraries = data.map((item) => dbToLibrary(item))
+
+      // Mettre en cache les résultats
+      frameworksCache.set(cacheKey, {
+        data: libraries,
+        timestamp: Date.now(),
+      })
+
+      return libraries
     }
 
     // Si aucune bibliothèque n'est trouvée, essayer de récupérer depuis popular_frameworks
-    console.log("Aucune bibliothèque trouvée, essai avec popular_frameworks")
     const { data: langData, error: langError } = await supabase
       .from("languages")
-      .select("popular_frameworks")
+      .select("popular_frameworks, name")
       .eq("id", languageId)
       .single()
 
     if (langError) {
-      console.error("Error fetching language for frameworks:", langError)
-      return []
+      throw new Error(`Erreur lors de la récupération du langage: ${langError.message}`)
     }
 
     // Si le langage a des frameworks populaires, les transformer en objets Library
-    if (langData && langData.popular_frameworks && Array.isArray(langData.popular_frameworks)) {
-      console.log(`Trouvé ${langData.popular_frameworks.length} frameworks dans popular_frameworks`)
-      return langData.popular_frameworks.map((name, index) => ({
-        id: `${languageId}-${index}`,
-        name,
-        // Garder languageId comme string
-        languageId,
-        language_id: languageId,
-        description: `Framework populaire pour ${name}`,
-        usedFor: "",
-        used_for: "",
-        features: [],
-        officialWebsite: "",
-        official_website: "",
-        uniqueSellingPoint: "",
-        unique_selling_point: "",
-        bestFor: "",
-        best_for: "",
-        // Propriétés optionnelles
-        version: null,
-        githubUrl: null,
-        github_url: null,
-        logoPath: null,
-        logo_path: null,
-        popularity: null,
-        isOpenSource: true,
-        is_open_source: true,
-        documentationUrl: null,
-        documentation_url: null,
-        createdAt: new Date().toISOString(),
-        created_at: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }))
+    if (langData?.popular_frameworks && Array.isArray(langData.popular_frameworks)) {
+      const languageName = langData.name || "ce langage"
+
+      const libraries = langData.popular_frameworks.map((name, index) => {
+        // Créer un objet au format DB pour utiliser la fonction de conversion
+        // Inclure toutes les propriétés requises par DbLibrary
+        const dbLibrary = {
+          id: `${languageId}-${index}`,
+          name,
+          language_id: languageId,
+          description: `Framework populaire pour ${languageName}`,
+          official_website: `https://www.google.com/search?q=${name}+${languageName}+framework`,
+          features: ["Intégration avec " + languageName, "Facilité d'utilisation", "Documentation"],
+          unique_selling_point: `Extension spécialisée pour ${languageName}`,
+          best_for: `Projets ${languageName} nécessitant des fonctionnalités supplémentaires`,
+          used_for: [`Extension des fonctionnalités de ${languageName}`], // Corrigé pour être un tableau
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          // Propriétés manquantes ajoutées avec des valeurs par défaut
+          github_url: null,
+          logo_path: null,
+          popularity: null,
+          is_open_source: null,
+          documentation_url: null,
+          version: null,
+          technology_type: null,
+          sub_type: null,
+        }
+
+        // Utiliser la fonction de conversion pour garantir la cohérence
+        return dbToLibrary(dbLibrary)
+      })
+
+      // Appliquer le tri et la limite aux frameworks générés
+      let sortedLibraries = [...libraries]
+
+      if (options.sortBy === "name") {
+        sortedLibraries.sort((a, b) => {
+          return options.sortOrder === "asc" ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)
+        })
+      }
+
+      if (options.limit) {
+        sortedLibraries = sortedLibraries.slice(0, options.limit)
+      }
+
+      // Mettre en cache les résultats
+      frameworksCache.set(cacheKey, {
+        data: sortedLibraries,
+        timestamp: Date.now(),
+      })
+
+      return sortedLibraries
     }
 
-    console.log("Aucun framework trouvé")
+    // Aucun framework trouvé
     return []
   } catch (error) {
-    console.error("Error in getFrameworksByLanguageId:", error)
+    // Gestion structurée des erreurs
+    const errorMessage =
+      error instanceof Error ? error.message : "Erreur inconnue lors de la récupération des frameworks"
+
+    console.error(`Erreur dans getFrameworksByLanguageId: ${errorMessage}`, error)
+
+    // On peut choisir de retourner un tableau vide ou de propager l'erreur
+    // Pour maintenir la compatibilité, on retourne un tableau vide
     return []
   }
 }
-

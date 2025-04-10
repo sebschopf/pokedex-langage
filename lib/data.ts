@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from "./supabase"
+import { createServerSupabaseClient } from "@/lib/supabase-server"
 import type { Language } from "@/types/language"
 import type { Library } from "@/types/library"
 import type { Correction } from "@/types/correction"
@@ -20,7 +20,7 @@ import {
   dbToTechnologyCategory,
   technologyCategoryToDb,
   dbToTechnologySubtype,
-  technologySubtypeToDb
+  technologySubtypeToDb,
 } from "./database-mapping"
 
 // ===== FONCTIONS DE LECTURE (READ) =====
@@ -619,18 +619,18 @@ export async function getLibrariesForLanguage(languageId: string): Promise<Libra
  * @returns L'association créée ou null en cas d'erreur
  */
 export async function createLibraryLanguage(
-  libraryLanguage: Omit<LibraryLanguage, "id" | "createdAt">
+  libraryLanguage: Omit<LibraryLanguage, "id" | "createdAt">,
 ): Promise<LibraryLanguage | null> {
   try {
     const supabase = createServerSupabaseClient()
-    
+
     // Générer un ID unique si non fourni
     const newLibraryLanguage = {
       ...libraryLanguage,
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
     }
-    
+
     const dbData = libraryLanguageToDb(newLibraryLanguage)
 
     const { data, error } = await supabase.from("library_languages").insert(dbData).select().single()
@@ -653,18 +653,12 @@ export async function createLibraryLanguage(
  * @param libraryLanguage Données partielles de l'association à mettre à jour
  * @returns true si la mise à jour a réussi, false sinon
  */
-export async function updateLibraryLanguage(
-  id: string, 
-  libraryLanguage: Partial<LibraryLanguage>
-): Promise<boolean> {
+export async function updateLibraryLanguage(id: string, libraryLanguage: Partial<LibraryLanguage>): Promise<boolean> {
   try {
     const supabase = createServerSupabaseClient()
     const dbData = libraryLanguageToDb(libraryLanguage)
 
-    const { error } = await supabase
-      .from("library_languages")
-      .update(dbData)
-      .eq("id", id)
+    const { error } = await supabase.from("library_languages").update(dbData).eq("id", id)
 
     if (error) {
       console.error(`Erreur lors de la mise à jour de l'association avec l'ID ${id}:`, error)
@@ -688,7 +682,7 @@ export async function updateLibraryLanguage(
 export async function updatePrimaryLanguageStatus(
   libraryId: string,
   languageId: string,
-  isPrimary: boolean
+  isPrimary: boolean,
 ): Promise<boolean> {
   try {
     const supabase = createServerSupabaseClient()
@@ -813,11 +807,7 @@ export async function createTechnologyCategory(
     const supabase = createServerSupabaseClient()
     const dbData = technologyCategoryToDb(category as TechnologyCategory)
 
-    const { data, error } = await supabase
-    .from("technology_categories")
-    .insert(dbData)
-    .select()
-    .single()
+    const { data, error } = await supabase.from("technology_categories").insert(dbData).select().single()
 
     if (error) {
       console.error("Erreur lors de la création de la catégorie de technologie:", error)
@@ -837,10 +827,7 @@ export async function createTechnologyCategory(
  * @param category Données partielles de la catégorie à mettre à jour
  * @returns true si la mise à jour a réussi, false sinon
  */
-export async function updateTechnologyCategory(
-  id: string,
-  category: Partial<TechnologyCategory>,
-): Promise<boolean> {
+export async function updateTechnologyCategory(id: string, category: Partial<TechnologyCategory>): Promise<boolean> {
   try {
     const supabase = createServerSupabaseClient()
     const dbData = technologyCategoryToDb(category as TechnologyCategory)
@@ -874,10 +861,7 @@ export async function deleteTechnologyCategory(id: string): Promise<boolean> {
   try {
     const supabase = createServerSupabaseClient()
 
-    const { error } = await supabase
-    .from("technology_categories")
-    .delete()
-    .eq("id", id)
+    const { error } = await supabase.from("technology_categories").delete().eq("id", id)
 
     if (error) {
       console.error(`Erreur lors de la suppression de la catégorie avec l'ID ${id}:`, error)
@@ -890,7 +874,6 @@ export async function deleteTechnologyCategory(id: string): Promise<boolean> {
     return false
   }
 }
-
 
 // ===== FONCTIONS POUR TECHNOLOGY_SUBTYPE =====
 
@@ -950,11 +933,7 @@ export async function getSubtypesByCategoryId(categoryId: string): Promise<Techn
 export async function getTechnologySubtypeById(id: string): Promise<TechnologySubtype | null> {
   try {
     const supabase = createServerSupabaseClient()
-    const { data, error } = await supabase
-      .from("technology_subtypes")
-      .select("*")
-      .eq("id", id)
-      .single()
+    const { data, error } = await supabase.from("technology_subtypes").select("*").eq("id", id).single()
 
     if (error) {
       console.error(`Erreur lors de la récupération du sous-type avec l'ID ${id}:`, error)
@@ -980,11 +959,7 @@ export async function createTechnologySubtype(
     const supabase = createServerSupabaseClient()
     const dbData = technologySubtypeToDb(subtype as TechnologySubtype)
 
-    const { data, error } = await supabase
-      .from("technology_subtypes")
-      .insert(dbData)
-      .select()
-      .single()
+    const { data, error } = await supabase.from("technology_subtypes").insert(dbData).select().single()
 
     if (error) {
       console.error("Erreur lors de la création du sous-type de technologie:", error)
@@ -1004,10 +979,7 @@ export async function createTechnologySubtype(
  * @param subtype Données partielles du sous-type à mettre à jour
  * @returns true si la mise à jour a réussi, false sinon
  */
-export async function updateTechnologySubtype(
-  id: string,
-  subtype: Partial<TechnologySubtype>,
-): Promise<boolean> {
+export async function updateTechnologySubtype(id: string, subtype: Partial<TechnologySubtype>): Promise<boolean> {
   try {
     const supabase = createServerSupabaseClient()
     const dbData = technologySubtypeToDb(subtype as TechnologySubtype)
@@ -1041,10 +1013,7 @@ export async function deleteTechnologySubtype(id: string): Promise<boolean> {
   try {
     const supabase = createServerSupabaseClient()
 
-    const { error } = await supabase
-      .from("technology_subtypes")
-      .delete()
-      .eq("id", id)
+    const { error } = await supabase.from("technology_subtypes").delete().eq("id", id)
 
     if (error) {
       console.error(`Erreur lors de la suppression du sous-type avec l'ID ${id}:`, error)
@@ -1066,7 +1035,10 @@ export async function getTechnologyTypeStats(): Promise<{ type: string; count: n
   try {
     const supabase = createServerSupabaseClient()
 
-    const { data, error } = await supabase.from("libraries").select("technology_type").not("technology_type", "is", null)
+    const { data, error } = await supabase
+      .from("libraries")
+      .select("technology_type")
+      .not("technology_type", "is", null)
 
     if (error) {
       console.error("Erreur lors de la récupération des statistiques des types de technologies:", error)

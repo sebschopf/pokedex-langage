@@ -2,7 +2,7 @@
 
 import type { Language } from "@/types"
 import { LanguageCard } from "@/components/language-card"
-import { Edit, Plus } from 'lucide-react'
+import { Edit, Plus } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
@@ -14,34 +14,41 @@ interface LanguageGridProps {
 export function LanguageGrid({ languages }: LanguageGridProps) {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userRole, setUserRole] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const supabase = createClientComponentClient()
 
   useEffect(() => {
     const checkAuthStatus = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
 
-      if (session) {
-        setIsLoggedIn(true)
+        if (session) {
+          setIsLoggedIn(true)
 
-        // Récupérer le rôle de l'utilisateur
-        try {
-          const { data: userRoleData } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", session.user.id) // Utiliser user_id au lieu de id
-            .single()
+          // Récupérer le rôle de l'utilisateur
+          try {
+            const { data: userRoleData } = await supabase
+              .from("user_roles")
+              .select("role")
+              .eq("id", session.user.id)
+              .single()
 
-          if (userRoleData) {
-            setUserRole(userRoleData.role)
+            if (userRoleData) {
+              setUserRole(userRoleData.role)
+            }
+          } catch (error) {
+            console.error("Erreur lors de la récupération du rôle:", error)
           }
-        } catch (error) {
-          console.error("Erreur lors de la récupération du rôle:", error)
+        } else {
+          setIsLoggedIn(false)
+          setUserRole(null)
         }
-      } else {
-        setIsLoggedIn(false)
-        setUserRole(null)
+      } catch (error) {
+        console.error("Erreur lors de la vérification de l'authentification:", error)
+      } finally {
+        setIsLoading(false)
       }
     }
 
@@ -55,7 +62,7 @@ export function LanguageGrid({ languages }: LanguageGridProps) {
         supabase
           .from("user_roles")
           .select("role")
-          .eq("user_id", session.user.id) // Utiliser user_id au lieu de id
+          .eq("id", session.user.id)
           .single()
           .then(({ data }) => {
             if (data) setUserRole(data.role)
@@ -73,6 +80,14 @@ export function LanguageGrid({ languages }: LanguageGridProps) {
 
   // Vérifier si l'utilisateur peut modifier (admin ou validator)
   const canEdit = isLoggedIn && (userRole === "admin" || userRole === "validator")
+
+  if (!languages || languages.length === 0) {
+    return (
+      <div className="text-center p-8 bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        <p className="text-xl">Aucun langage trouvé.</p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -105,12 +120,6 @@ export function LanguageGrid({ languages }: LanguageGridProps) {
             )}
           </div>
         ))}
-
-        {languages.length === 0 && (
-          <div className="col-span-full text-center py-12">
-            <p className="text-muted-foreground">Aucun langage trouvé correspondant à vos critères.</p>
-          </div>
-        )}
       </div>
     </div>
   )

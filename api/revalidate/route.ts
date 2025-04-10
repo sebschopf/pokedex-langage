@@ -41,4 +41,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Erreur lors de la revalidation" }, { status: 500 })
   }
 }
-

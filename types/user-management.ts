@@ -1,4 +1,5 @@
 import type { UserRoleType } from "./user-role"
+import type { Profile } from "./profile"
 
 // Type pour les données d'authentification de l'utilisateur
 export interface AuthUser {
@@ -7,17 +8,8 @@ export interface AuthUser {
   last_sign_in_at?: string | null
 }
 
-// Type pour le profil utilisateur
-export interface UserProfile {
-  id: string
-  username?: string | null
-  full_name?: string | null
-  bio?: string | null
-  website?: string | null
-  avatar_url?: string | null
-  updated_at?: string | null
-  created_at?: string | null
-}
+// Utiliser Profile au lieu de redéfinir UserProfile
+export type UserProfile = Profile
 
 // Type pour le rôle utilisateur
 export interface UserRoleData {

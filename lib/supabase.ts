@@ -1,11 +1,16 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import type { Database } from "./database-types"
 
-// Création d'un singleton pour le client Supabase côté client
-let supabaseClient: SupabaseClient<Database> | null = null
+// Singleton pour le client côté client
+let supabaseClientInstance: SupabaseClient<Database> | null = null
 
+/**
+ * Crée ou retourne une instance singleton du client Supabase côté client
+ */
 export const createSupabaseClient = () => {
-  if (supabaseClient) return supabaseClient
+  // Si l'instance existe déjà, la retourner
+  if (supabaseClientInstance) return supabaseClientInstance
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string
@@ -14,20 +19,20 @@ export const createSupabaseClient = () => {
     throw new Error("Les variables d'environnement Supabase ne sont pas définies")
   }
 
-  supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey)
-  return supabaseClient
+  // Créer une nouvelle instance et la stocker
+  supabaseClientInstance = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+    },
+  })
+
+  return supabaseClientInstance
 }
 
-// Client Supabase côté serveur (pour les Server Actions)
-export const createServerSupabaseClient = () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string
-  const supabaseServiceKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY || (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string)
-
-  if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error("Les variables d'environnement Supabase ne sont pas définies")
-  }
-
-  return createClient<Database>(supabaseUrl, supabaseServiceKey)
+/**
+ * Client pour les composants React côté client
+ */
+export const createClientSupabaseClient = () => {
+  return createClientComponentClient<Database>()
 }
-

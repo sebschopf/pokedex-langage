@@ -1,5 +1,5 @@
 import type React from "react"
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { createServerSupabaseClient } from "@/lib/supabase-server"
 import { redirect } from "next/navigation"
 import { AdminLayout } from "@/components/admin"
 
@@ -28,4 +28,3 @@ export default async function AdminRootLayout({
 
   return <AdminLayout userRole={userRole.role}>{children}</AdminLayout>
 }
-

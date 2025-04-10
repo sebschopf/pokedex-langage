@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { Loader2 } from "lucide-react"
@@ -15,15 +15,21 @@ export default function LoginPage() {
   const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin")
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirectUrl = searchParams.get("redirect") || "/"
   const { toast } = useToast()
   const supabase = createClientComponentClient()
+
+  // Ajouter un log pour voir si la page est rechargée en boucle
+  useEffect(() => {
+    console.log("Page de login chargée")
+    console.log("Paramètres d'URL:", Object.fromEntries(searchParams.entries()))
+  }, [searchParams])
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
 
     try {
       setIsLoading(true)
+      console.log("Tentative de connexion avec:", email)
 
       const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -32,6 +38,8 @@ export default function LoginPage() {
 
       if (error) throw error
 
+      console.log("Connexion réussie")
+
       // Vérifier le rôle de l'utilisateur pour rediriger vers le bon dashboard
       const {
         data: { session },
@@ -39,18 +47,31 @@ export default function LoginPage() {
 
       if (session) {
         const { data: userRole } = await supabase.from("user_roles").select("role").eq("id", session.user.id).single()
+        console.log("Rôle de l'utilisateur:", userRole?.role)
 
-        if (userRole && (userRole.role === "admin" || userRole.role === "validator")) {
+        // Récupérer l'URL de redirection depuis les paramètres d'URL
+        const redirectedFrom = searchParams.get("redirectedFrom")
+
+        if (redirectedFrom) {
+          // Si l'utilisateur a été redirigé depuis une page protégée, le renvoyer à cette page
+          console.log("Redirection vers:", redirectedFrom)
+          router.push(redirectedFrom)
+        } else if (userRole && (userRole.role === "admin" || userRole.role === "validator")) {
+          // Si c'est un admin ou validator, rediriger vers le dashboard admin
+          console.log("Redirection vers /admin/dashboard")
           router.push("/admin/dashboard")
         } else {
-          router.push("/profile")
+          // Pour les utilisateurs normaux, rediriger vers la page principale
+          console.log("Redirection vers /")
+          router.push("/")
         }
       } else {
-        router.push(redirectUrl)
+        // Si pas de session (cas improbable après connexion réussie), rediriger vers la page principale
+        console.log("Pas de session, redirection vers /")
+        router.push("/")
       }
-
-      router.refresh()
     } catch (error: any) {
+      console.error("Erreur de connexion:", error.message)
       toast({
         title: "Erreur de connexion",
         description: error.message,
@@ -117,6 +138,13 @@ export default function LoginPage() {
 
   return (
     <div className="container flex min-h-screen w-full flex-col items-center justify-center py-12">
+      {/* Ajouter un message de débogage visible */}
+      <div className="bg-yellow-100 p-4 mb-4 border-2 border-yellow-400 max-w-md">
+        <p className="font-bold">Mode débogage:</p>
+        <p>URL actuelle: {typeof window !== "undefined" ? window.location.href : ""}</p>
+        <p>Paramètres: {JSON.stringify(Object.fromEntries(searchParams.entries()))}</p>
+      </div>
+
       <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-[450px]">
         <div className="flex flex-col space-y-2 text-center">
           <h1 className="text-4xl font-black tracking-tighter uppercase">Pokedex Dev</h1>
@@ -286,4 +314,3 @@ export default function LoginPage() {
     </div>
   )
 }
-

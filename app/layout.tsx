@@ -1,7 +1,7 @@
 import type React from "react"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import ScrollToTop from "@/components/scroll-to-top"
+import ScrollToTop from "@/components/scroll-to-top" // Chemin correct avec kebab-case
 
 // Configuration optimisée de la police
 const inter = Inter({
@@ -14,7 +14,7 @@ const inter = Inter({
 export const metadata = {
   title: "Pokedex des langages de programmation",
   description: "Une encyclopédie des langages de programmation",
-    generator: 'v0.dev'
+  generator: "v0.dev",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -34,7 +34,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   )
 }
-
-
-
-import './globals.css'
