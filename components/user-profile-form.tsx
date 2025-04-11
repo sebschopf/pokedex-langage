@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import type { UserRoleType } from "@/types/user-role"
+import type { UserRoleType } from "@/types/database/user-role"
 
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"

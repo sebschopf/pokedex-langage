@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { createServerSupabaseClient } from "@/lib/supabase-server"
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
 
@@ -6,7 +6,7 @@ export async function GET() {
   try {
     const supabase = createServerSupabaseClient()
     const cookieStore = cookies()
-    const allCookies = cookieStore.getAll()
+    const allCookies = (await cookieStore).getAll()
 
     // Récupérer la session
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession()

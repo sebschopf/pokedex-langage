@@ -1,13 +1,21 @@
-// lib/utils/index.ts
+/**
+ * Point d'entrée pour toutes les fonctions utilitaires
+ * Ces fonctions peuvent être utilisées côté client et serveur
+ */
+
+// Utilitaires CSS
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
-// Fonction utilitaire pour les classes CSS (conservée ici car très utilisée)
+/**
+ * Fonction utilitaire pour combiner des classes CSS
+ */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Réexporter les autres fonctions utilitaires
-export { formatDate } from "./format-date"
-export { getImageName } from "./get-image-name"
-export { getTypeBadgeColor } from "./get-type-badge-color"
+// Utilitaires de formatage
+export { formatDate } from "./formatting/format-date"
+export { getImageName } from "./formatting/get-image-name"
+export { getTypeBadgeColor } from "./formatting/get-type-badge-color"
+export * from "./security/security-logger"

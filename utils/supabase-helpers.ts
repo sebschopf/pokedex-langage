@@ -1,5 +1,5 @@
 import { dbToUserRole } from "../lib/database-mapping"
-import type { UserRoleType } from "@/types/user-role" // Changé de UserRole à UserRoleType
+import type { UserRoleType } from "@/types/database/user-role" // Changé de UserRole à UserRoleType
 
 export interface UserWithRelations {
   id: string
@@ -56,8 +56,8 @@ export function normalizeUserData(userData: UserWithRelations): NormalizedUser {
   const userRole = dbToUserRole({
     id: userData.id,
     role: userData.role as UserRoleType, // Ajout d'une assertion de type
-    created_at: userData.created_at ?? "",
-    updated_at: userData.updated_at ?? "",
+    createdAt: userData.createdAt ?? "",
+    updatedAt: userData.updatedAt ?? "",
   })
 
   // Normaliser les relations auth_users et profiles

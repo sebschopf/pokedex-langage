@@ -1,4 +1,4 @@
-import { getLanguageBySlug, getFrameworksByLanguageId } from "@/lib/api"
+import { getLanguageBySlug, getFrameworksByLanguageId } from "@/lib/server/api/api"
 import type { Library } from "@/types"
 import { notFound } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"

@@ -1,4 +1,4 @@
-import { getLanguageBySlug, getFrameworksByLanguageId } from "@/lib/api"
+import { getLanguageBySlug, getFrameworksByLanguageId } from "@/lib/server/api/api"
 import type { Library } from "@/types"
 import { notFound } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,10 +11,16 @@ import { getImageName, getTypeBadgeColor } from "@/lib/utils"
 import ScrollToTop from "@/components/scroll-to-top"
 import TechnologyNavigation from "@/components/technology-navigation"
 
-export default async function LanguagePage({ params }: { params: { slug: string } }) {
-  console.log("Slug reçu:", params.slug)
+interface LanguagePageProps {
+  params: Promise<{ slug: string }>
+}
 
-  const language = await getLanguageBySlug(params.slug)
+export default async function LanguagePage({ params }: LanguagePageProps) {
+  // Attendre la résolution de la promesse params
+  const { slug } = await params
+  console.log("Slug reçu:", slug)
+
+  const language = await getLanguageBySlug(slug)
   console.log("Langage trouvé:", language ? language.name : "Non trouvé")
 
   if (!language) {

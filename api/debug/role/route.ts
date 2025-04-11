@@ -23,7 +23,7 @@ export async function GET() {
     return NextResponse.json({
       user: session.user,
       debugInfo,
-      cookies: cookieStore.getAll().map((c) => ({ name: c.name })),
+      cookies: (await cookieStore).getAll().map((c) => ({ name: c.name })),
     })
   } catch (error) {
     return NextResponse.json(

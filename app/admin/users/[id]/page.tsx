@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { hasRole } from "@/lib/permissions"
 import { UpdateUserRoleForm } from "@/components/admin/update-user-role-form"
 import { formatDate } from "@/lib/utils" // Utilisation de votre fonction formatDate existante
-import type { UserRoleType } from "@/types/user-role" // Importation du type UserRoleType
+import type { UserRoleType } from "@/types/database/user-role" // Importation du type UserRoleType
 
 // Définition des types pour les données Supabase
 interface AuthUser {

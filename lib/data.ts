@@ -2,10 +2,10 @@ import { createServerSupabaseClient } from "@/lib/supabase-server"
 import type { Language } from "@/types/language"
 import type { Library } from "@/types/library"
 import type { Correction } from "@/types/correction"
-import type { LanguageProposal } from "@/types/language-proposal"
-import type { LibraryLanguage } from "@/types/library-language"
-import type { TechnologyCategory } from "@/types/technology-category"
-import type { TechnologySubtype } from "@/types/technology-subtype"
+import type { LanguageProposal } from "@/types/database/language-proposal"
+import type { LibraryLanguage } from "@/types/database/library-language"
+import type { TechnologyCategory } from "@/types/database/technology-category"
+import type { TechnologySubtype } from "@/types/database/technology-subtype"
 import {
   dbToLanguage,
   languageToDb,

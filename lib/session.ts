@@ -1,7 +1,7 @@
 import { createServerSupabaseClient } from "./supabase-server"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
-import type { UserRoleType } from "@/types/user-role"
+import type { UserRoleType } from "@/types/database/user-role"
 
 /**
  * Vérifie si l'utilisateur est authentifié côté serveur

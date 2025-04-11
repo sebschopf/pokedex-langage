@@ -10,8 +10,8 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import AvatarUpload from "@/components/avatar-upload"
 import { UserRoleBadge } from "@/components/user-role-badge"
 import type { Database } from "@/lib/database-types"
-import type { UserWithDetails } from "@/types/user-management"
-import type { UserRoleType } from "@/types/user-role"
+import type { UserWithDetails } from "@/types/dto/user-management"
+import type { UserRoleType } from "@/types/database/user-role"
 
 interface UserManagementProps {
   users: UserWithDetails[]

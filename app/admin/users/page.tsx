@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button"
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { createServerSupabaseClient } from "@/lib/supabase-server"
 import { redirect } from "next/navigation"
 import { AdminLayout } from "@/components/admin/layout"
 import { UserManagement } from "@/components/admin/user-management"
-import type { UserWithDetails } from "@/types/user-management"
-import type { UserRoleType } from "@/types/user-role"
+import type { UserWithDetails } from "@/types/dto/user-management"
+import type { UserRoleType } from "@/types/database/user-role"
 
 export const metadata = {
   title: "Gestion des utilisateurs | POKEDEX_DEV",

@@ -1,6 +1,6 @@
 "use client"
 
-import type { UserRoleType } from "@/types/user-role"
+import type { UserRoleType } from "@/types/database/user-role"
 
 import { useState } from "react"
 import Link from "next/link"

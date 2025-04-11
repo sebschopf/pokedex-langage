@@ -37,7 +37,7 @@ export type DbLanguage = {
     logo_path: string | null;
     popularity: number | null;
     is_open_source: boolean | null;
-    created_at: string;
+    created_at: string | null;
     updated_at: string | null;
     features: string[] | null;
     unique_selling_point: string | null;
