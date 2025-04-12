@@ -1,16 +1,16 @@
 "use client"
 
 import type React from "react"
+import type { UserRoleType } from "@/lib/client/permissions"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createClientSupabaseClient } from "@/lib/client/supabase"
+import { withTokenRefresh } from "@/lib/client/auth-helpers"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Loader2 } from "lucide-react"
-
-type UserRole = "admin" | "validator" | "verified" | "registered"
 
 interface UpdateUserRoleFormProps {
   userId: string
@@ -18,11 +18,11 @@ interface UpdateUserRoleFormProps {
 }
 
 export function UpdateUserRoleForm({ userId, currentRole }: UpdateUserRoleFormProps) {
-  const [role, setRole] = useState<UserRole>(currentRole as UserRole)
+  const [role, setRole] = useState<UserRoleType>(currentRole as UserRoleType)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
-  const supabase = createClientComponentClient()
+  const supabase = createClientSupabaseClient()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,16 +38,18 @@ export function UpdateUserRoleForm({ userId, currentRole }: UpdateUserRoleFormPr
     try {
       setIsSubmitting(true)
 
-      const { error } = await supabase.from("user_roles").update({ role }).eq("id", userId)
+      await withTokenRefresh(async () => {
+        const { error } = await supabase.from("user_roles").update({ role }).eq("id", userId)
 
-      if (error) throw error
+        if (error) throw error
 
-      toast({
-        title: "Rôle mis à jour",
-        description: `Le rôle de l'utilisateur a été mis à jour avec succès.`,
+        toast({
+          title: "Rôle mis à jour",
+          description: `Le rôle de l'utilisateur a été mis à jour avec succès.`,
+        })
+
+        router.refresh()
       })
-
-      router.refresh()
     } catch (error: any) {
       toast({
         title: "Erreur",
@@ -65,7 +67,7 @@ export function UpdateUserRoleForm({ userId, currentRole }: UpdateUserRoleFormPr
         <label htmlFor="role" className="text-sm font-medium">
           Nouveau rôle
         </label>
-        <Select value={role} onValueChange={(value) => setRole(value as UserRole)} disabled={isSubmitting}>
+        <Select value={role} onValueChange={(value) => setRole(value as UserRoleType)} disabled={isSubmitting}>
           <SelectTrigger id="role">
             <SelectValue placeholder="Sélectionner un rôle" />
           </SelectTrigger>
@@ -91,4 +93,3 @@ export function UpdateUserRoleForm({ userId, currentRole }: UpdateUserRoleFormPr
     </form>
   )
 }
-

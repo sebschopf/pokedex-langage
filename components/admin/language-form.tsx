@@ -1,14 +1,18 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
-import { useToast } from "@/components/ui/use-toast"
-import { Loader2 } from 'lucide-react'
+import { useToast } from "@/hooks/use-toast"
+import { useSupabaseMutation } from "@/hooks/use-supabase-mutation"
+import { Loader2 } from "lucide-react"
+// Mettre à jour l'import pour utiliser le nouveau chemin
+import { generateLanguageSlug, isValidSlug } from "@/utils/slug"
 
 interface Language {
   id: string
@@ -44,83 +48,92 @@ export function LanguageForm({ language, isNew = false }: LanguageFormProps) {
       used_for: "",
       is_open_source: false,
       logo_path: null,
-    }
+    },
   )
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [slugError, setSlugError] = useState<string | null>(null)
   const router = useRouter()
   const { toast } = useToast()
-  const supabase = createClientComponentClient()
-  
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const { insert, update } = useSupabaseMutation()
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
+
+    // Réinitialiser l'erreur de slug si l'utilisateur modifie le slug manuellement
+    if (name === "slug") {
+      setSlugError(null)
+    }
   }
-  
+
   const handleCheckboxChange = (name: string, checked: boolean) => {
     setFormData((prev) => ({ ...prev, [name]: checked }))
   }
-  
-  const handleNumberChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+
+  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value ? parseInt(value) : null }))
+    setFormData((prev) => ({ ...prev, [name]: value ? Number.parseInt(value) : null }))
   }
-  
+
   const generateSlug = () => {
-    const slug = formData.name
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/\s+/g, "-")
-    
+    if (!formData.name) {
+      setSlugError("Le nom du langage est requis pour générer un slug")
+      return
+    }
+
+    const slug = generateLanguageSlug(formData.name)
+
+    if (!isValidSlug(slug)) {
+      setSlugError("Le slug généré n'est pas valide. Veuillez le modifier manuellement.")
+      return
+    }
+
     setFormData((prev) => ({ ...prev, slug }))
+    setSlugError(null)
   }
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     try {
-      setIsSubmitting(true)
-      
-      // Générer un slug si nécessaire
-      if (!formData.slug && formData.name) {
-        formData.slug = formData.name
-          .toLowerCase()
-          .replace(/[^\w\s-]/g, "")
-          .replace(/\s+/g, "-")
+      // Validation du slug
+      if (!formData.slug) {
+        setSlugError("Le slug est requis")
+        return
       }
-      
+
+      if (!isValidSlug(formData.slug)) {
+        setSlugError(
+          "Le slug n'est pas valide. Il ne doit contenir que des lettres minuscules, des chiffres et des tirets.",
+        )
+        return
+      }
+
+      setIsSubmitting(true)
+
       if (isNew) {
         // Créer un nouveau langage
-        const { error } = await supabase
-          .from("languages")
-          .insert(formData)
-        
-        if (error) throw error
-        
-        toast({
-          title: "Langage créé",
-          description: "Le langage a été créé avec succès.",
+        await insert({
+          table: "languages",
+          data: formData,
+          successMessage: "Le langage a été créé avec succès.",
+          errorMessage: "Erreur lors de la création du langage.",
+          onSuccess: () => {
+            router.push("/admin/languages")
+          },
         })
-        
-        router.push("/admin/languages")
       } else {
         // Mettre à jour un langage existant
-        const { error } = await supabase
-          .from("languages")
-          .update(formData)
-          .eq("id", formData.id)
-        
-        if (error) throw error
-        
-        toast({
-          title: "Langage mis à jour",
-          description: "Le langage a été mis à jour avec succès.",
+        await update({
+          table: "languages",
+          data: formData,
+          match: { id: formData.id },
+          successMessage: "Le langage a été mis à jour avec succès.",
+          errorMessage: "Erreur lors de la mise à jour du langage.",
+          onSuccess: () => {
+            router.refresh()
+          },
         })
-        
-        router.refresh()
       }
     } catch (error: any) {
       toast({
@@ -132,7 +145,7 @@ export function LanguageForm({ language, isNew = false }: LanguageFormProps) {
       setIsSubmitting(false)
     }
   }
-  
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
@@ -140,39 +153,35 @@ export function LanguageForm({ language, isNew = false }: LanguageFormProps) {
           <label htmlFor="name" className="text-sm font-medium">
             Nom du langage *
           </label>
-          <Input
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-          />
+          <Input id="name" name="name" value={formData.name} onChange={handleChange} required />
         </div>
-        
+
         <div className="space-y-2">
           <label htmlFor="slug" className="text-sm font-medium">
             Slug *
           </label>
           <div className="flex space-x-2">
-            <Input
-              id="slug"
-              name="slug"
-              value={formData.slug}
-              onChange={handleChange}
-              required
-            />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={generateSlug}
-              disabled={!formData.name}
-            >
+            <div className="flex-1">
+              <Input
+                id="slug"
+                name="slug"
+                value={formData.slug}
+                onChange={handleChange}
+                required
+                className={slugError ? "border-red-500" : ""}
+              />
+              {slugError && <p className="text-red-500 text-sm mt-1">{slugError}</p>}
+            </div>
+            <Button type="button" variant="outline" onClick={generateSlug} disabled={!formData.name}>
               Générer
             </Button>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Le slug est utilisé dans l'URL. Pour C#, utilisez "csharp", pour C++, utilisez "cpp", etc.
+          </p>
         </div>
       </div>
-      
+
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <label htmlFor="year_created" className="text-sm font-medium">
@@ -186,20 +195,15 @@ export function LanguageForm({ language, isNew = false }: LanguageFormProps) {
             onChange={handleNumberChange}
           />
         </div>
-        
+
         <div className="space-y-2">
           <label htmlFor="creator" className="text-sm font-medium">
             Créateur
           </label>
-          <Input
-            id="creator"
-            name="creator"
-            value={formData.creator || ""}
-            onChange={handleChange}
-          />
+          <Input id="creator" name="creator" value={formData.creator || ""} onChange={handleChange} />
         </div>
       </div>
-      
+
       <div className="space-y-2">
         <label htmlFor="short_description" className="text-sm font-medium">
           Description courte
@@ -211,7 +215,7 @@ export function LanguageForm({ language, isNew = false }: LanguageFormProps) {
           onChange={handleChange}
         />
       </div>
-      
+
       <div className="space-y-2">
         <label htmlFor="description" className="text-sm font-medium">
           Description complète
@@ -224,40 +228,28 @@ export function LanguageForm({ language, isNew = false }: LanguageFormProps) {
           rows={6}
         />
       </div>
-      
+
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <label htmlFor="type" className="text-sm font-medium">
             Type de langage
           </label>
-          <Input
-            id="type"
-            name="type"
-            value={formData.type || ""}
-            onChange={handleChange}
-          />
+          <Input id="type" name="type" value={formData.type || ""} onChange={handleChange} />
         </div>
-        
+
         <div className="space-y-2">
           <label htmlFor="used_for" className="text-sm font-medium">
             Utilisations principales
           </label>
-          <Input
-            id="used_for"
-            name="used_for"
-            value={formData.used_for || ""}
-            onChange={handleChange}
-          />
+          <Input id="used_for" name="used_for" value={formData.used_for || ""} onChange={handleChange} />
         </div>
       </div>
-      
+
       <div className="flex items-center space-x-2">
         <Checkbox
           id="is_open_source"
           checked={formData.is_open_source || false}
-          onCheckedChange={(checked) =>
-            handleCheckboxChange("is_open_source", checked as boolean)
-          }
+          onCheckedChange={(checked) => handleCheckboxChange("is_open_source", checked as boolean)}
         />
         <label
           htmlFor="is_open_source"
@@ -266,15 +258,17 @@ export function LanguageForm({ language, isNew = false }: LanguageFormProps) {
           Open Source
         </label>
       </div>
-      
+
       <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             {isNew ? "Création..." : "Mise à jour..."}
           </>
+        ) : isNew ? (
+          "Créer le langage"
         ) : (
-          isNew ? "Créer le langage" : "Mettre à jour le langage"
+          "Mettre à jour le langage"
         )}
       </Button>
     </form>

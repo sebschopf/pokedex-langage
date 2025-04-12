@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createClientSupabaseClient } from "@/lib/client/supabase"
+import { withTokenRefresh } from "@/lib/client/auth-helpers"
 import AvatarUpload from "@/components/avatar-upload"
 import { UserRoleBadge } from "@/components/user-role-badge"
-import type { Database } from "@/lib/database-types"
 import type { UserWithDetails } from "@/types/dto/user-management"
-import type { UserRoleType } from "@/types/database/user-role"
+import type { UserRoleTypeDB } from "@/lib/client/permissions"
 
 interface UserManagementProps {
   users: UserWithDetails[]
@@ -23,57 +23,67 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
   const [isUpdating, setIsUpdating] = useState<Record<string, boolean>>({})
   const [selectedUser, setSelectedUser] = useState<UserWithDetails | null>(null)
   const { toast } = useToast()
-  const supabase = createClientComponentClient<Database>()
+  const supabase = createClientSupabaseClient()
 
   // Filtrer les utilisateurs en fonction du terme de recherche
   const filteredUsers = users.filter(
     (user) =>
       user.auth.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.role.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user.profile.full_name && user.profile.full_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (user.profile.fullName && user.profile.fullName.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (user.profile.username && user.profile.username.toLowerCase().includes(searchTerm.toLowerCase())),
   )
 
   // Mettre à jour le rôle d'un utilisateur
-  const updateUserRole = async (userId: string, newRole: UserRoleType) => {
+  const updateUserRole = async (userId: string, newRole: UserRoleTypeDB) => {
     setIsUpdating({ ...isUpdating, [userId]: true })
 
     try {
-      const { error } = await supabase
-        .from("user_roles")
-        .update({
-          role: newRole,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", userId)
-
-      if (error) throw error
-
-      toast({
-        title: "Rôle mis à jour avec succès",
-        description: `Le rôle de l'utilisateur a été mis à jour.`,
-      })
-
-      // Mettre à jour l'état local
-      setUsers(
-        users.map((user) =>
-          user.id === userId
-            ? { ...user, role: { ...user.role, role: newRole, updated_at: new Date().toISOString() } }
-            : user,
-        ),
-      )
-
-      // Mettre à jour l'utilisateur sélectionné si nécessaire
-      if (selectedUser && selectedUser.id === userId) {
-        setSelectedUser({
-          ...selectedUser,
-          role: {
-            ...selectedUser.role,
+      // Utiliser withTokenRefresh pour gérer automatiquement le rafraîchissement du token
+      await withTokenRefresh(async () => {
+        const { error } = await supabase
+          .from("user_roles")
+          .update({
             role: newRole,
             updated_at: new Date().toISOString(),
-          },
+          })
+          .eq("id", userId)
+
+        if (error) throw error
+
+        toast({
+          title: "Rôle mis à jour avec succès",
+          description: `Le rôle de l'utilisateur a été mis à jour.`,
         })
-      }
+
+        // Mettre à jour l'état local
+        setUsers(
+          users.map((user) =>
+            user.id === userId
+              ? {
+                  ...user,
+                  role: {
+                    ...user.role,
+                    role: newRole as UserRoleTypeDB,
+                    updatedAt: new Date().toISOString(),
+                  },
+                }
+              : user,
+          ),
+        )
+
+        // Mettre à jour l'utilisateur sélectionné si nécessaire
+        if (selectedUser && selectedUser.id === userId) {
+          setSelectedUser({
+            ...selectedUser,
+            role: {
+              ...selectedUser.role,
+              role: newRole as UserRoleTypeDB,
+              updatedAt: new Date().toISOString(),
+            },
+          })
+        }
+      })
     } catch (error: any) {
       console.error("Erreur lors de la mise à jour du rôle:", error)
       toast({
@@ -160,11 +170,11 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
                           <td className="py-3 px-4">
                             <div className="flex items-center">
                               <div className="flex-shrink-0 mr-3">
-                                <AvatarUpload userId={user.id} avatarUrl={user.profile.avatar_url || null} size="sm" />
+                                <AvatarUpload userId={user.id} avatarUrl={user.profile.avatarUrl || null} size="sm" />
                               </div>
                               <div>
-                                {(user.profile.full_name || user.profile.username) && (
-                                  <p className="font-medium">{user.profile.full_name || user.profile.username}</p>
+                                {(user.profile.fullName || user.profile.username) && (
+                                  <p className="font-medium">{user.profile.fullName || user.profile.username}</p>
                                 )}
                               </div>
                             </div>
@@ -173,11 +183,11 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
                           <td className="py-3 px-4">
                             <UserRoleBadge role={user.role.role} />
                           </td>
-                          <td className="py-3 px-4">{formatDate(user.auth.created_at)}</td>
+                          <td className="py-3 px-4">{formatDate(user.auth.createdAt)}</td>
                           <td className="py-3 px-4 text-right">
                             <Select
                               value={user.role.role}
-                              onValueChange={(value) => updateUserRole(user.id, value as UserRoleType)}
+                              onValueChange={(value) => updateUserRole(user.id, value as UserRoleTypeDB)}
                               disabled={isUpdating[user.id]}
                             >
                               <SelectTrigger className="w-32">
@@ -216,11 +226,7 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex justify-center">
-                  <AvatarUpload
-                    userId={selectedUser.id}
-                    avatarUrl={selectedUser.profile.avatar_url || null}
-                    size="lg"
-                  />
+                  <AvatarUpload userId={selectedUser.id} avatarUrl={selectedUser.profile.avatarUrl || null} size="lg" />
                 </div>
 
                 <div className="space-y-4">
@@ -236,7 +242,7 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
 
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">Nom complet</h3>
-                    <p className="font-medium">{selectedUser.profile.full_name || "Non défini"}</p>
+                    <p className="font-medium">{selectedUser.profile.fullName || "Non défini"}</p>
                   </div>
 
                   <div>
@@ -266,13 +272,13 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
 
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">Date d'inscription</h3>
-                    <p className="font-medium">{formatDate(selectedUser.auth.created_at)}</p>
+                    <p className="font-medium">{formatDate(selectedUser.auth.createdAt)}</p>
                   </div>
 
-                  {selectedUser.auth.last_sign_in_at && (
+                  {selectedUser.auth.lastSignInAt && (
                     <div>
                       <h3 className="text-sm font-medium text-muted-foreground mb-1">Dernière connexion</h3>
-                      <p className="font-medium">{formatDate(selectedUser.auth.last_sign_in_at)}</p>
+                      <p className="font-medium">{formatDate(selectedUser.auth.lastSignInAt)}</p>
                     </div>
                   )}
 
@@ -280,7 +286,7 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">Rôle</h3>
                     <Select
                       defaultValue={selectedUser.role.role}
-                      onValueChange={(value) => updateUserRole(selectedUser.id, value as UserRoleType)}
+                      onValueChange={(value) => updateUserRole(selectedUser.id, value as UserRoleTypeDB)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionner un rôle" />

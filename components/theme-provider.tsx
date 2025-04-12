@@ -1,11 +1,35 @@
-'use client'
+"use client"
 
-import * as React from 'react'
-import {
-  ThemeProvider as NextThemesProvider,
-  type ThemeProviderProps,
-} from 'next-themes'
+import { createContext, useContext, useEffect, useState } from "react"
+import { ThemeProvider as NextThemesProvider } from "next-themes"
+import type { ThemeProviderProps } from "next-themes"
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
-  return <NextThemesProvider {...props}>{children}</NextThemesProvider>
+  const [mounted, setMounted] = useState(false)
+
+  // Éviter les problèmes d'hydratation en ne rendant le contenu qu'après le montage côté client
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  return (
+    <NextThemesProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange {...props}>
+      {mounted ? children : <div style={{ visibility: "hidden" }}>{children}</div>}
+    </NextThemesProvider>
+  )
 }
+
+// Contexte pour exposer et gérer le thème dans toute l'application
+type ThemeContextType = {
+  theme: string | undefined
+  setTheme: (theme: string) => void
+  isDarkTheme: boolean
+}
+
+const ThemeContext = createContext<ThemeContextType>({
+  theme: undefined,
+  setTheme: () => null,
+  isDarkTheme: false,
+})
+
+export const useTheme = () => useContext(ThemeContext)

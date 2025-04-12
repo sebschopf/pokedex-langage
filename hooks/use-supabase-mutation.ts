@@ -1,9 +1,9 @@
-//hooks/use-supabase-mutation.ts
 "use client"
 
 import { useState } from "react"
-import { createSupabaseClient } from "@/lib/supabase"
+import { createClientSupabaseClient } from "@/lib/client/supabase"
 import { useToast } from "./use-toast"
+import { withTokenRefresh } from "@/lib/client/auth-helpers"
 
 // Type générique pour les options de mutation
 export interface MutationOptions<T> {
@@ -51,23 +51,26 @@ export function useSupabaseMutation<T = any>() {
     setError(null)
 
     try {
-      const supabase = createSupabaseClient()
+      // Utiliser withTokenRefresh pour gérer automatiquement le rafraîchissement du token
+      return await withTokenRefresh(async () => {
+        const supabase = createClientSupabaseClient()
 
-      const { data: result, error } = await supabase.from(table).insert(data).select()
+        const { data: result, error } = await supabase.from(table).insert(data).select()
 
-      if (error) throw error
+        if (error) throw error
 
-      if (showToast && successMessage) {
-        toast({
-          title: "Succès",
-          description: successMessage,
-          variant: "default",
-        })
-      }
+        if (showToast && successMessage) {
+          toast({
+            title: "Succès",
+            description: successMessage,
+            variant: "default",
+          })
+        }
 
-      if (onSuccess) onSuccess(result as unknown as T)
+        if (onSuccess) onSuccess(result as unknown as T)
 
-      return result
+        return result
+      })
     } catch (err) {
       const error = err as Error
       setError(error)
@@ -103,30 +106,33 @@ export function useSupabaseMutation<T = any>() {
     setError(null)
 
     try {
-      const supabase = createSupabaseClient()
+      // Utiliser withTokenRefresh pour gérer automatiquement le rafraîchissement du token
+      return await withTokenRefresh(async () => {
+        const supabase = createClientSupabaseClient()
 
-      let query = supabase.from(table).update(data)
+        let query = supabase.from(table).update(data)
 
-      // Appliquer les conditions de correspondance
-      Object.entries(match).forEach(([key, value]) => {
-        query = query.eq(key, value)
-      })
-
-      const { data: result, error } = await query.select()
-
-      if (error) throw error
-
-      if (showToast && successMessage) {
-        toast({
-          title: "Succès",
-          description: successMessage,
-          variant: "default",
+        // Appliquer les conditions de correspondance
+        Object.entries(match).forEach(([key, value]) => {
+          query = query.eq(key, value)
         })
-      }
 
-      if (onSuccess) onSuccess(result as unknown as T)
+        const { data: result, error } = await query.select()
 
-      return result
+        if (error) throw error
+
+        if (showToast && successMessage) {
+          toast({
+            title: "Succès",
+            description: successMessage,
+            variant: "default",
+          })
+        }
+
+        if (onSuccess) onSuccess(result as unknown as T)
+
+        return result
+      })
     } catch (err) {
       const error = err as Error
       setError(error)
@@ -161,30 +167,33 @@ export function useSupabaseMutation<T = any>() {
     setError(null)
 
     try {
-      const supabase = createSupabaseClient()
+      // Utiliser withTokenRefresh pour gérer automatiquement le rafraîchissement du token
+      return await withTokenRefresh(async () => {
+        const supabase = createClientSupabaseClient()
 
-      let query = supabase.from(table).delete()
+        let query = supabase.from(table).delete()
 
-      // Appliquer les conditions de correspondance
-      Object.entries(match).forEach(([key, value]) => {
-        query = query.eq(key, value)
-      })
-
-      const { data: result, error } = await query.select()
-
-      if (error) throw error
-
-      if (showToast && successMessage) {
-        toast({
-          title: "Succès",
-          description: successMessage,
-          variant: "default",
+        // Appliquer les conditions de correspondance
+        Object.entries(match).forEach(([key, value]) => {
+          query = query.eq(key, value)
         })
-      }
 
-      if (onSuccess) onSuccess(result as unknown as T)
+        const { data: result, error } = await query.select()
 
-      return result
+        if (error) throw error
+
+        if (showToast && successMessage) {
+          toast({
+            title: "Succès",
+            description: successMessage,
+            variant: "default",
+          })
+        }
+
+        if (onSuccess) onSuccess(result as unknown as T)
+
+        return result
+      })
     } catch (err) {
       const error = err as Error
       setError(error)
@@ -213,4 +222,3 @@ export function useSupabaseMutation<T = any>() {
     remove,
   }
 }
-

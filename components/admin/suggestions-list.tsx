@@ -14,7 +14,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
-import { createSupabaseClient } from "@/lib/supabase"
+import { createClientSupabaseClient } from "@/lib/client/supabase"
+import { withTokenRefresh } from "@/lib/client/auth-helpers"
 import { useSupabaseMutation } from "@/hooks/use-supabase-mutation"
 
 interface Suggestion {
@@ -43,7 +44,7 @@ export function SuggestionsList({ suggestions, userRole }: SuggestionsListProps)
   const [selectedSuggestion, setSelectedSuggestion] = useState<Suggestion | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const { toast } = useToast()
-  const supabase = createSupabaseClient()
+  const supabase = createClientSupabaseClient()
   const { insert, update } = useSupabaseMutation()
 
   // Filtrer les suggestions en fonction de l'onglet actif
@@ -62,50 +63,52 @@ export function SuggestionsList({ suggestions, userRole }: SuggestionsListProps)
     setIsProcessing({ ...isProcessing, [suggestion.id]: true })
 
     try {
-      if (suggestion.field === "new_language" && !suggestion.language_id) {
-        // C'est une suggestion de nouveau langage
-        if (suggestion.suggestion) {
-          const languageData = JSON.parse(suggestion.suggestion)
+      await withTokenRefresh(async () => {
+        if (suggestion.field === "new_language" && !suggestion.language_id) {
+          // C'est une suggestion de nouveau langage
+          if (suggestion.suggestion) {
+            const languageData = JSON.parse(suggestion.suggestion)
 
-          // Créer le nouveau langage
-          await insert({
+            // Créer le nouveau langage
+            await insert({
+              table: "languages",
+              data: {
+                name: languageData.name,
+                slug: languageData.name.toLowerCase().replace(/\s+/g, "-"),
+                year_created: languageData.year_created,
+                creator: languageData.creator,
+                short_description: languageData.short_description,
+                description: languageData.description,
+                type: languageData.type,
+                used_for: languageData.used_for,
+                is_open_source: languageData.is_open_source,
+              },
+              errorMessage: "Erreur lors de la création du nouveau langage",
+              showToast: false,
+            })
+          }
+        } else if (suggestion.language_id) {
+          // C'est une correction pour un langage existant
+          await update({
             table: "languages",
-            data: {
-              name: languageData.name,
-              slug: languageData.name.toLowerCase().replace(/\s+/g, "-"),
-              year_created: languageData.year_created,
-              creator: languageData.creator,
-              short_description: languageData.short_description,
-              description: languageData.description,
-              type: languageData.type,
-              used_for: languageData.used_for,
-              is_open_source: languageData.is_open_source,
-            },
-            errorMessage: "Erreur lors de la création du nouveau langage",
-            showToast: false
+            data: { [suggestion.field]: suggestion.correction_text },
+            match: { id: suggestion.language_id },
+            errorMessage: "Erreur lors de la mise à jour du langage",
+            showToast: false,
           })
         }
-      } else if (suggestion.language_id) {
-        // C'est une correction pour un langage existant
-        await update({
-          table: "languages",
-          data: { [suggestion.field]: suggestion.correction_text },
-          match: { id: suggestion.language_id },
-          errorMessage: "Erreur lors de la mise à jour du langage",
-          showToast: false
-        })
-      }
 
-      // Mettre à jour le statut de la suggestion
-      await update({
-        table: "corrections",
-        data: { status: "approved" },
-        match: { id: suggestion.id },
-        successMessage: "Suggestion approuvée et modifications appliquées.",
-        errorMessage: "Un problème est survenu lors de l'approbation de la suggestion.",
-        onSuccess: () => {
-          setFilteredSuggestions(filteredSuggestions.filter((s) => s.id !== suggestion.id))
-        }
+        // Mettre à jour le statut de la suggestion
+        await update({
+          table: "corrections",
+          data: { status: "approved" },
+          match: { id: suggestion.id },
+          successMessage: "Suggestion approuvée et modifications appliquées.",
+          errorMessage: "Un problème est survenu lors de l'approbation de la suggestion.",
+          onSuccess: () => {
+            setFilteredSuggestions(filteredSuggestions.filter((s) => s.id !== suggestion.id))
+          },
+        })
       })
     } catch (error) {
       console.error("Erreur lors de l'approbation de la suggestion:", error)
@@ -119,15 +122,17 @@ export function SuggestionsList({ suggestions, userRole }: SuggestionsListProps)
     setIsProcessing({ ...isProcessing, [suggestion.id]: true })
 
     try {
-      await update({
-        table: "corrections",
-        data: { status: "rejected" },
-        match: { id: suggestion.id },
-        successMessage: "Suggestion rejetée.",
-        errorMessage: "Un problème est survenu lors du rejet de la suggestion.",
-        onSuccess: () => {
-          setFilteredSuggestions(filteredSuggestions.filter(s => s.id !== suggestion.id))
-        }
+      await withTokenRefresh(async () => {
+        await update({
+          table: "corrections",
+          data: { status: "rejected" },
+          match: { id: suggestion.id },
+          successMessage: "Suggestion rejetée.",
+          errorMessage: "Un problème est survenu lors du rejet de la suggestion.",
+          onSuccess: () => {
+            setFilteredSuggestions(filteredSuggestions.filter((s) => s.id !== suggestion.id))
+          },
+        })
       })
     } catch (error) {
       console.error("Erreur lors du rejet de la suggestion:", error)

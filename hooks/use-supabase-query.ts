@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { createSupabaseClient } from "@/lib/supabase"
+import { createClientSupabaseClient } from "@/lib/client/supabase"
 import { useToast } from "./use-toast"
 import { useIsMobile } from "./use-mobile"
 
@@ -48,7 +48,7 @@ export function useSupabaseQuery<T = any>({
     setError(null)
 
     try {
-      const supabase = createSupabaseClient()
+      const supabase = createClientSupabaseClient()
 
       let query = supabase.from(table).select(columns)
 
@@ -121,4 +121,3 @@ export function useSupabaseQuery<T = any>({
     refetch: fetchData,
   }
 }
-

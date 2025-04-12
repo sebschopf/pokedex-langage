@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { TodoItem } from "@/components/todo-item"
 import { TodoFilters } from "@/components/todo-filters"
-import type { Todo, TodoCategory, TodoStatus } from "@/types"
+import type { Todo, TodoCategory, TodoStatus } from "@/types/models"
 
 interface TodoListProps {
   initialTodos: Todo[]
@@ -53,17 +53,17 @@ export function TodoList({ initialTodos, categories, statuses }: TodoListProps) 
 
     // Filtrer par catégorie
     if (filters.categoryId) {
-      filtered = filtered.filter((todo) => todo.category_id === filters.categoryId)
+      filtered = filtered.filter((todo) => todo.categoryId === filters.categoryId)
     }
 
     // Filtrer par statut
     if (filters.statusId) {
-      filtered = filtered.filter((todo) => todo.status_id === filters.statusId)
+      filtered = filtered.filter((todo) => todo.statusId === filters.statusId)
     }
 
     // Filtrer les tâches terminées
     if (!filters.showCompleted) {
-      filtered = filtered.filter((todo) => !todo.is_completed)
+      filtered = filtered.filter((todo) => !todo.isCompleted)
     }
 
     setFilteredTodos(filtered)

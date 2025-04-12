@@ -1,7 +1,6 @@
 import { createServerSupabaseClient } from "../supabase/client"
-import { dbToLanguageProposal } from "../mapping/language-proposal-mapping"
+import { dbToLanguageProposal, languageProposalToDb } from "../mapping/language-proposal-mapping"
 import type { LanguageProposal } from "@/types/models"
-import { languageProposalToDb } from "../mapping/language-proposal-mapping"
 
 /**
  * Récupère toutes les propositions de langages

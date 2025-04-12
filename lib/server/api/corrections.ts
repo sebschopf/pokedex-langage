@@ -1,7 +1,6 @@
 import { createServerSupabaseClient } from "../supabase/client"
-import { dbToCorrection } from "../mapping/correction-mapping"
+import { dbToCorrection, correctionToDb} from "../mapping/correction-mapping"
 import type { Correction } from "@/types/models"
-import { correctionToDb } from "../mapping/correction-mapping"
 
 /**
  * Récupère toutes les corrections

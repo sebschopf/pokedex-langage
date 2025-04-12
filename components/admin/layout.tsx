@@ -16,7 +16,8 @@ import {
   Database,
   ImageIcon,
 } from "lucide-react"
-import { createSupabaseClient } from "@/lib/supabase"
+import { createClientSupabaseClient } from "@/lib/client/supabase"
+import { withTokenRefresh } from "@/lib/client/auth-helpers"
 import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useState, useEffect } from "react"
@@ -37,21 +38,27 @@ interface AdminLayoutProps {
 export function AdminLayout({ children, userRole }: AdminLayoutProps) {
   const pathname = usePathname()
   const router = useRouter()
-  const supabase = createSupabaseClient()
+  const supabase = createClientSupabaseClient()
   const [userProfile, setUserProfile] = useState<{ avatar_url?: string; email?: string } | null>(null)
 
   useEffect(() => {
     async function loadUserProfile() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (user) {
-        const { data: profile } = await supabase.from("profiles").select("avatar_url").eq("id", user.id).single()
+      try {
+        await withTokenRefresh(async () => {
+          const {
+            data: { user },
+          } = await supabase.auth.getUser()
+          if (user) {
+            const { data: profile } = await supabase.from("profiles").select("avatar_url").eq("id", user.id).single()
 
-        setUserProfile({
-          avatar_url: profile?.avatar_url || undefined,
-          email: user.email,
+            setUserProfile({
+              avatar_url: profile?.avatar_url || undefined,
+              email: user.email,
+            })
+          }
         })
+      } catch (error) {
+        console.error("Erreur lors du chargement du profil:", error)
       }
     }
 
@@ -59,8 +66,12 @@ export function AdminLayout({ children, userRole }: AdminLayoutProps) {
   }, [])
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push("/")
+    try {
+      await supabase.auth.signOut()
+      router.push("/")
+    } catch (error) {
+      console.error("Erreur lors de la déconnexion:", error)
+    }
   }
 
   const navItems = [
@@ -167,7 +178,7 @@ export function AdminLayout({ children, userRole }: AdminLayoutProps) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={userProfile?.avatar_url} alt="Avatar" />
+                    <AvatarImage src={userProfile?.avatar_url || "/placeholder.svg"} alt="Avatar" />
                     <AvatarFallback>{userProfile?.email?.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
                 </Button>

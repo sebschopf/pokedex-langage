@@ -1,5 +1,6 @@
-import type { DbLanguageProposal } from "@/types/database"
-import type { LanguageProposal } from "@/types/models"
+import type { DbLanguageProposal } from "@/types/database/language-proposal"
+import type { LanguageProposal } from "@/types/models/language-proposal"
+import { toNumber, toString } from "@/utils/conversion/type-conversion"
 
 /**
  * Convertit un objet DbLanguageProposal en LanguageProposal
@@ -8,19 +9,19 @@ import type { LanguageProposal } from "@/types/models"
  */
 export function dbToLanguageProposal(dbProposal: DbLanguageProposal): LanguageProposal {
   return {
-    id: dbProposal.id,
+    id: toNumber(dbProposal.id),
+    name: toString(dbProposal.name),
+    description: toString(dbProposal.description),
     createdAt: dbProposal.created_at,
+    updatedAt: dbProposal.updated_at,
+    status: toString(dbProposal.status),
+    userId: dbProposal.user_id,
     createdYear: dbProposal.created_year,
-    creator: dbProposal.creator,
-    description: dbProposal.description,
-    name: dbProposal.name,
+    creator : dbProposal.creator,
     popularFrameworks: dbProposal.popular_frameworks,
-    status: dbProposal.status,
     strengths: dbProposal.strengths,
     type: dbProposal.type,
-    updatedAt: dbProposal.updated_at,
     usedFor: dbProposal.used_for,
-    userId: dbProposal.user_id,
   }
 }
 
@@ -33,18 +34,19 @@ export function languageProposalToDb(proposal: Partial<LanguageProposal>): Parti
   const dbProposal: Partial<DbLanguageProposal> = {}
 
   if (proposal.id !== undefined) dbProposal.id = proposal.id
-  if (proposal.createdAt !== undefined) dbProposal.created_at = proposal.createdAt
-  if (proposal.createdYear !== undefined) dbProposal.created_year = proposal.createdYear
-  if (proposal.creator !== undefined) dbProposal.creator = proposal.creator
-  if (proposal.description !== undefined) dbProposal.description = proposal.description
   if (proposal.name !== undefined) dbProposal.name = proposal.name
-  if (proposal.popularFrameworks !== undefined) dbProposal.popular_frameworks = proposal.popularFrameworks
+  if (proposal.description !== undefined) dbProposal.description = proposal.description
+  if (proposal.createdAt !== undefined) dbProposal.created_at = proposal.createdAt
+  if (proposal.updatedAt !== undefined) dbProposal.updated_at = proposal.updatedAt
   if (proposal.status !== undefined) dbProposal.status = proposal.status
+  if (proposal.userId !== undefined) dbProposal.user_id = proposal.userId
+  if (proposal.createdYear !==undefined) dbProposal.created_year = proposal.createdYear
+  if (proposal.creator !== undefined) dbProposal.creator = proposal.creator
+  if (proposal.popularFrameworks !== undefined) dbProposal.popular_frameworks = proposal.popularFrameworks
   if (proposal.strengths !== undefined) dbProposal.strengths = proposal.strengths
   if (proposal.type !== undefined) dbProposal.type = proposal.type
-  if (proposal.updatedAt !== undefined) dbProposal.updated_at = proposal.updatedAt
   if (proposal.usedFor !== undefined) dbProposal.used_for = proposal.usedFor
-  if (proposal.userId !== undefined) dbProposal.user_id = proposal.userId
 
+  
   return dbProposal
 }

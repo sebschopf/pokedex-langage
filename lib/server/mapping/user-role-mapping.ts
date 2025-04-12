@@ -1,5 +1,5 @@
-import type { DbUserRole } from "@/types/database"
-import type { UserRole } from "@/types/models"
+import type { DbUserRole } from "@/types/database/user-role"
+import type { UserRole } from "@/types/models/user-role"
 
 /**
  * Convertit un objet DbUserRole en UserRole
@@ -9,6 +9,7 @@ import type { UserRole } from "@/types/models"
 export function dbToUserRole(dbUserRole: DbUserRole): UserRole {
   return {
     id: dbUserRole.id,
+    userId: dbUserRole.user_id,
     role: dbUserRole.role,
     createdAt: dbUserRole.created_at,
     updatedAt: dbUserRole.updated_at,
@@ -24,6 +25,7 @@ export function userRoleToDb(userRole: Partial<UserRole>): Partial<DbUserRole> {
   const dbUserRole: Partial<DbUserRole> = {}
 
   if (userRole.id !== undefined) dbUserRole.id = userRole.id
+  if (userRole.userId !== undefined) dbUserRole.user_id = userRole.userId
   if (userRole.role !== undefined) dbUserRole.role = userRole.role
   if (userRole.createdAt !== undefined) dbUserRole.created_at = userRole.createdAt
   if (userRole.updatedAt !== undefined) dbUserRole.updated_at = userRole.updatedAt

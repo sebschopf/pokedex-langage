@@ -20,11 +20,16 @@ export async function middleware(req: NextRequest) {
   const isProtectedRoute = isAdminRoute || isProfileRoute
   const isLoginRoute = req.nextUrl.pathname === "/login"
   const isDebugRoute = req.nextUrl.pathname.startsWith("/debug")
+  // Ignorer les routes API dans l'App Router
+  const isApiRoute = req.nextUrl.pathname.startsWith("/app/api")
+
+  // Ignorer le traitement pour les routes API
+  if (isApiRoute) {
+    return res
+  }
 
   // Si l'utilisateur n'est pas connecté et essaie d'accéder à une route protégée
   if (!session && isProtectedRoute) {
-    console.log("Middleware: Redirection vers login - Utilisateur non connecté")
-
     // Stocker l'URL d'origine pour la redirection après connexion
     const redirectUrl = new URL("/login", req.url)
     redirectUrl.searchParams.set("redirectedFrom", req.nextUrl.pathname)
@@ -44,8 +49,6 @@ export async function middleware(req: NextRequest) {
   // Si l'utilisateur est connecté et essaie d'accéder à /admin
   if (session && isAdminRoute) {
     try {
-      console.log("Middleware: Vérification des droits admin pour", session.user.id)
-
       // Vérifier si l'utilisateur a le rôle admin ou validator
       const { data: userRoleData, error } = await supabase
         .from("user_roles")
@@ -53,28 +56,20 @@ export async function middleware(req: NextRequest) {
         .eq("id", session.user.id)
         .single()
 
-      console.log("Middleware: Résultat de la vérification des rôles:", { userRoleData, error })
-
       if (error) {
         console.error("Middleware: Erreur lors de la vérification des rôles:", error)
-        // Ne pas rediriger en cas d'erreur de requête, permettre l'accès
-        // pour éviter les faux positifs
-        return res
-      }
-
-      if (!userRoleData || (userRoleData.role !== "admin" && userRoleData.role !== "validator")) {
-        console.log("Middleware: Accès refusé - Rôle insuffisant:", userRoleData?.role)
-
-        // Rediriger vers la page d'accueil si l'utilisateur n'a pas les droits
+        // Rediriger vers la page d'accueil en cas d'erreur pour plus de sécurité
         return NextResponse.redirect(new URL("/", req.url))
       }
 
-      console.log("Middleware: Accès autorisé pour", userRoleData.role)
+      if (!userRoleData || (userRoleData.role !== "admin" && userRoleData.role !== "validator")) {
+        // Rediriger vers la page d'accueil si l'utilisateur n'a pas les droits
+        return NextResponse.redirect(new URL("/", req.url))
+      }
     } catch (error) {
       console.error("Middleware: Erreur lors de la vérification des rôles:", error)
-
-      // En cas d'erreur, permettre l'accès pour éviter les faux positifs
-      return res
+      // Rediriger vers la page d'accueil en cas d'erreur pour plus de sécurité
+      return NextResponse.redirect(new URL("/", req.url))
     }
   }
 
@@ -86,7 +81,15 @@ export async function middleware(req: NextRequest) {
   return res
 }
 
-// Limiter le middleware aux routes spécifiques
+// Mettre à jour le matcher pour inclure les nouvelles routes API
 export const config = {
-  matcher: ["/admin/:path*", "/profile", "/dashboard", "/login", "/debug/:path*"],
+  matcher: [
+    "/admin/:path*", 
+    "/profile", 
+    "/dashboard", 
+    "/login", 
+    "/debug/:path*",
+    // Exclure les routes API de l'App Router
+    "/((?!app/api/).)*"
+  ],
 }

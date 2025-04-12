@@ -3,11 +3,11 @@
 import type React from "react"
 
 import { useState, useRef } from "react"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createClientSupabaseClient } from "@/lib/client/supabase"
 import { Upload, X, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { toast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 
 interface FileUploadProps {
   bucket: string
@@ -30,7 +30,8 @@ export default function FileUpload({
   const [progress, setProgress] = useState(0)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const supabase = createClientComponentClient()
+  const supabase = createClientSupabaseClient()
+  const { toast } = useToast()
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) {
@@ -67,13 +68,6 @@ export default function FileUpload({
       const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`
       const filePath = path ? `${path}/${fileName}` : fileName
 
-      console.log("Début du téléchargement", {
-        bucket,
-        filePath,
-        fileSize: selectedFile.size,
-        fileType: selectedFile.type,
-      })
-
       // Déterminer le type MIME
       let contentType = selectedFile.type
       if (!contentType || contentType === "application/octet-stream") {
@@ -91,8 +85,6 @@ export default function FileUpload({
         contentType: contentType,
       })
 
-      console.log("Résultat du téléchargement", { data, error })
-
       if (error) throw error
 
       // Simuler la progression
@@ -105,8 +97,6 @@ export default function FileUpload({
       if (!publicUrl) {
         throw new Error("Impossible d'obtenir l'URL publique du fichier")
       }
-
-      console.log("URL publique obtenue", publicUrl)
 
       toast({
         title: "Téléchargement réussi",
@@ -121,7 +111,6 @@ export default function FileUpload({
         onUploadComplete(publicUrl)
       }
     } catch (error: any) {
-      console.error("Erreur lors du téléchargement:", error)
       toast({
         variant: "destructive",
         title: "Erreur de téléchargement",
@@ -201,4 +190,3 @@ export default function FileUpload({
     </div>
   )
 }
-

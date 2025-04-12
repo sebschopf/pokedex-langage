@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { Trash2, Upload, RefreshCw, FolderOpen, ArrowUp } from 'lucide-react'
+import { Trash2, Upload, RefreshCw, FolderOpen, ArrowUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -64,7 +64,7 @@ export default function StorageManager({
             name: file.name,
             url: data.publicUrl,
           }
-        })
+        }),
       )
 
       setFiles([
@@ -162,11 +162,7 @@ export default function StorageManager({
         </div>
         <div className="flex space-x-2">
           {allowUpload && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsUploading(!isUploading)}
-            >
+            <Button variant="outline" size="sm" onClick={() => setIsUploading(!isUploading)}>
               <Upload className="h-4 w-4 mr-1" />
               Télécharger
             </Button>
@@ -180,7 +176,10 @@ export default function StorageManager({
 
       {currentPath && (
         <div className="bg-muted p-2 rounded-md text-sm">
-          Chemin actuel: <span className="font-mono">{bucket}/{currentPath}</span>
+          Chemin actuel:{" "}
+          <span className="font-mono">
+            {bucket}/{currentPath}
+          </span>
         </div>
       )}
 
@@ -197,11 +196,7 @@ export default function StorageManager({
         </Card>
       )}
 
-      {error && (
-        <div className="bg-red-100 border-2 border-red-400 text-red-700 p-2 rounded-md">
-          {error}
-        </div>
-      )}
+      {error && <div className="bg-red-100 border-2 border-red-400 text-red-700 p-2 rounded-md">{error}</div>}
 
       {isLoading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -215,9 +210,7 @@ export default function StorageManager({
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {files.length === 0 ? (
-            <p className="col-span-full text-center text-gray-500 py-8">
-              Aucun fichier trouvé
-            </p>
+            <p className="col-span-full text-center text-gray-500 py-8">Aucun fichier trouvé</p>
           ) : (
             files.map((file, index) => (
               <div

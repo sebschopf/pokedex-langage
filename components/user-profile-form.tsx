@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-import type { UserRoleType } from "@/types/database/user-role"
 
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,19 +8,22 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { createSupabaseClient } from "@/lib/supabase"
+import { createClientSupabaseClient } from "@/lib/client/supabase"
 import AvatarUpload from "@/components/avatar-upload"
 import { UserRoleBadge } from "@/components/user-role-badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import StorageManager from "@/components/storage-manager"
 
+// Définir le type UserRoleType
+type UserRoleType = "admin" | "validator" | "verified" | "registered"
+
 interface Profile {
   id: string
-  username?: string
-  full_name?: string
-  bio?: string
-  website?: string
-  avatar_url?: string
+  username?: string | null
+  fullName?: string | null
+  bio?: string | null
+  website?: string | null
+  avatarUrl?: string | null
   [key: string]: any
 }
 
@@ -36,7 +38,7 @@ export function UserProfileForm({ profile, userEmail, userRole }: UserProfileFor
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeTab, setActiveTab] = useState("profile")
   const { toast } = useToast()
-  const supabase = createSupabaseClient()
+  const supabase = createClientSupabaseClient()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -44,7 +46,7 @@ export function UserProfileForm({ profile, userEmail, userRole }: UserProfileFor
   }
 
   const handleAvatarChange = (url: string) => {
-    setFormData((prev) => ({ ...prev, avatar_url: url }))
+    setFormData((prev) => ({ ...prev, avatarUrl: url }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,10 +57,10 @@ export function UserProfileForm({ profile, userEmail, userRole }: UserProfileFor
       const { error } = await supabase.from("profiles").upsert({
         id: profile.id,
         username: formData.username,
-        full_name: formData.full_name,
+        full_name: formData.fullName,
         bio: formData.bio,
         website: formData.website,
-        avatar_url: formData.avatar_url,
+        avatar_url: formData.avatarUrl,
         updated_at: new Date().toISOString(),
       })
 
@@ -97,7 +99,7 @@ export function UserProfileForm({ profile, userEmail, userRole }: UserProfileFor
               <div className="flex items-center space-x-4">
                 <AvatarUpload
                   userId={profile.id}
-                  avatarUrl={formData.avatar_url || null}
+                  avatarUrl={formData.avatarUrl || null}
                   onAvatarChange={handleAvatarChange}
                   size="lg"
                 />
@@ -124,13 +126,13 @@ export function UserProfileForm({ profile, userEmail, userRole }: UserProfileFor
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="full_name" className="text-sm font-medium">
+                  <label htmlFor="fullName" className="text-sm font-medium">
                     Nom complet
                   </label>
                   <Input
-                    id="full_name"
-                    name="full_name"
-                    value={formData.full_name || ""}
+                    id="fullName"
+                    name="fullName"
+                    value={formData.fullName || ""}
                     onChange={handleChange}
                     placeholder="Votre nom complet"
                   />
@@ -185,7 +187,7 @@ export function UserProfileForm({ profile, userEmail, userRole }: UserProfileFor
               <div className="flex items-center space-x-4">
                 <AvatarUpload
                   userId={profile.id}
-                  avatarUrl={formData.avatar_url || null}
+                  avatarUrl={formData.avatarUrl || null}
                   onAvatarChange={handleAvatarChange}
                   size="xl"
                 />

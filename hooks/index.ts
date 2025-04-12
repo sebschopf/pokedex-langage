@@ -1,4 +1,3 @@
-//hooks/index.ts
 // Export tous les hooks personnalisés
 export { useSupabaseSubscription } from "./use-supabase-subscription"
 export { useSupabaseMutation } from "./use-supabase-mutation"
@@ -20,4 +19,3 @@ export type {
   // Types pour useSupabaseQuery
   QueryOptions,
 } from "./use-supabase-query"
-

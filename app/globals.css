@@ -1,152 +1,81 @@
+/* tailwindcss */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-rgb: 255, 255, 255;
+  --primary-yellow: #f7df1e;
+  --primary-yellow-dark: #e6d030; /* Version légèrement ajustée pour le mode sombre */
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 222.2 84% 4.9%;
+  --radius: 0.5rem;
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
+.dark {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 210 40% 98%;
+  --primary-foreground: 222.2 47.4% 11.2%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 212.7 26.8% 83.9%;
 }
 
-.perspective-1000 {
-  perspective: 1000px;
+/* Classes pour le jaune signature */
+.bg-brand-yellow {
+  background-color: var(--primary-yellow);
 }
 
-.transform-style-3d {
-  transform-style: preserve-3d;
+.dark .bg-brand-yellow {
+  background-color: var(--primary-yellow-dark);
 }
 
-.backface-hidden {
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+.text-brand-yellow {
+  color: var(--primary-yellow);
 }
 
-.rotate-y-180 {
-  transform: rotateY(180deg);
+.dark .text-brand-yellow {
+  color: var(--primary-yellow-dark);
 }
 
-/* Assurons-nous que le contenu arrière est bien visible et ne se superpose pas */
-.rotate-y-180 > div {
-  z-index: 1;
+.border-brand-yellow {
+  border-color: var(--primary-yellow);
 }
 
-/* Correction pour le défilement dans les cartes */
-.overflow-y-auto {
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch;
+.dark .border-brand-yellow {
+  border-color: var(--primary-yellow-dark);
 }
 
-/* Assurer que le contenu est visible dans la carte */
-.overflow-y-auto::-webkit-scrollbar {
-  width: 8px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-}
-
-@layer base {
-  html {
-    font-display: swap;
-  }
-}
-
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-}
-
+/* Styles globaux */
 @layer base {
   * {
     @apply border-border;
@@ -154,69 +83,90 @@ body {
   body {
     @apply bg-background text-foreground;
   }
-
-  /* Style de focus néo-brutaliste global */
-  *:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 0, 0, 1);
-    transform: translateY(-1px) translateX(1px);
-    transition: transform 0.2s ease;
-  }
-
-  /* Assurer que les éléments interactifs ont une transition fluide */
-  button,
-  a,
-  select,
-  input,
-  textarea {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
 }
 
-/* Styles d'accessibilité */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
-}
-
-/* Amélioration du focus pour l'accessibilité */
-:focus-visible {
-  outline: 3px solid black;
-  outline-offset: 2px;
-  transform: translateY(-2px) translateX(2px);
-  transition: transform 0.2s ease;
-}
-
-/* Assurer un contraste suffisant pour le texte */
-.text-contrast-high {
-  color: #000000;
-}
-
-.bg-contrast-high {
-  background-color: #ffffff;
-}
-
-/* Styles optimisés pour le LCP */
-.lcp-title {
-  content-visibility: auto;
-  contain-intrinsic-size: 1px 5rem;
-  will-change: auto;
-}
-
-/* Global focus styles for better keyboard navigation */
-:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.8);
+/* Easter Egg CSS - Activé avec la classe .css-magic */
+.css-magic {
   position: relative;
-  z-index: 1;
-  transform: translateY(-1px);
-  transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+  overflow: hidden;
 }
 
+.css-magic::before {
+  content: "{ }";
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: monospace;
+  font-size: 1.5rem;
+  color: var(--primary-yellow);
+  opacity: 0;
+  transition: all 0.5s ease;
+}
+
+.css-magic:hover::before {
+  top: 10%;
+  opacity: 1;
+  animation: float 2s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-10px);
+  }
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Easter Egg secret - Konami Code activation */
+body:has(.konami-activated) *:not(.konami-element) {
+  animation: cssWizardry 0.5s ease-in-out;
+}
+
+@keyframes cssWizardry {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(5px);
+  }
+  50% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* CSS is Awesome box - Un clin d'œil ;)*/
+.css-is-awesome {
+  width: 120px;
+  padding: 5px;
+  margin: 0 auto;
+  font-family: monospace;
+  text-align: center;
+  border: 2px solid #000;
+  display: none;
+}
+
+.css-is-awesome span {
+  white-space: nowrap;
+  font-weight: bold;
+}
+
+/* Activer l'easter egg avec Ctrl+Alt+C */
+body.debug-css .css-is-awesome {
+  display: block;
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  z-index: 9999;
+  background: white;
+}

@@ -1,23 +1,25 @@
 "use client"
 
-import { ChevronDown } from "lucide-react"
-import type { HTMLAttributes } from "react"
+import type React from "react"
+import { ChevronDown, ChevronUp } from "lucide-react"
 
-interface ToggleExpandButtonProps extends HTMLAttributes<HTMLButtonElement> {
+interface ToggleExpandButtonProps {
   isExpanded: boolean
   onClick: () => void
+  className?: string
 }
 
-export default function ToggleExpandButton({ isExpanded, onClick, className, ...props }: ToggleExpandButtonProps) {
+const ToggleExpandButton: React.FC<ToggleExpandButtonProps> = ({ isExpanded, onClick, className = "" }) => {
   return (
     <button
       onClick={onClick}
-      className={`absolute right-0 bottom-0 w-6 h-6 flex items-center justify-center bg-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-none transition-all rounded-none ${className}`}
+      className={`absolute right-0 top-0 p-1 bg-white border-2 border-black hover:bg-gray-100 transition-colors ${className}`}
+      aria-label={isExpanded ? "Réduire le texte" : "Voir plus de texte"}
       aria-expanded={isExpanded}
-      aria-label={isExpanded ? "Réduire la description" : "Voir la description complète"}
-      {...props}
     >
-      <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`} />
+      {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
     </button>
   )
 }
+
+export default ToggleExpandButton

@@ -15,17 +15,16 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { todosApi } from "@/lib/supabase-client"
-import type { Todo, TodoCategory, TodoStatus } from "@/types"
+import type { Todo, TodoCategory, TodoStatus } from "@/types/models"
 import { cn } from "@/lib/utils"
 
 // Schéma de validation pour le formulaire
 const todoFormSchema = z.object({
   title: z.string().min(1, "Le titre est requis"),
   description: z.string().optional(),
-  status_id: z.number().int().positive(),
-  category_id: z.number().int().positive(),
-  due_date: z.date().optional().nullable(),
+  statusId: z.number().int().positive(),
+  categoryId: z.number().int().positive(),
+  dueDate: z.date().optional().nullable(),
 })
 
 type TodoFormSchema = z.infer<typeof todoFormSchema>
@@ -34,9 +33,10 @@ interface TodoFormProps {
   todo?: Todo
   categories: TodoCategory[]
   statuses: TodoStatus[]
+  onSubmit: (data: Partial<Todo>) => Promise<void>
 }
 
-export function TodoForm({ todo, categories, statuses }: TodoFormProps) {
+export function TodoForm({ todo, categories, statuses, onSubmit }: TodoFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -46,34 +46,29 @@ export function TodoForm({ todo, categories, statuses }: TodoFormProps) {
     defaultValues: {
       title: todo?.title || "",
       description: todo?.description || "",
-      status_id: todo?.status_id || 1,
-      category_id: todo?.category_id || 1,
-      due_date: todo?.due_date ? new Date(todo.due_date) : null,
+      statusId: todo?.statusId || 1,
+      categoryId: todo?.categoryId || 1,
+      dueDate: todo?.dueDate ? new Date(todo.dueDate) : null,
     },
   })
 
   // Gérer la soumission du formulaire
-  const onSubmit = async (data: TodoFormSchema) => {
+  const handleSubmit = async (data: TodoFormSchema) => {
     try {
       setIsLoading(true)
 
       // Convertir la date en format ISO
       const formattedData = {
         ...data,
-        due_date: data.due_date ? data.due_date.toISOString() : null,
+        dueDate: data.dueDate ? data.dueDate.toISOString() : null,
       }
 
-      if (todo) {
-        // Mettre à jour une tâche existante
-        await todosApi.updateTodo(todo.id, formattedData)
-      } else {
-        // Créer une nouvelle tâche
-        await todosApi.createTodo({
-          ...formattedData,
-          description: formattedData.description || null, // Convertir undefined en null
-          is_completed: false,
-        })
-      }
+      await onSubmit({
+        ...formattedData,
+        id: todo?.id,
+        description: formattedData.description || null, // Convertir undefined en null
+        isCompleted: todo?.isCompleted || false,
+      })
 
       // Rediriger vers la liste des tâches
       router.push("/todos")
@@ -87,7 +82,7 @@ export function TodoForm({ todo, categories, statuses }: TodoFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="title"
@@ -119,7 +114,7 @@ export function TodoForm({ todo, categories, statuses }: TodoFormProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={form.control}
-            name="category_id"
+            name="categoryId"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Catégorie</FormLabel>
@@ -150,7 +145,7 @@ export function TodoForm({ todo, categories, statuses }: TodoFormProps) {
 
           <FormField
             control={form.control}
-            name="status_id"
+            name="statusId"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Statut</FormLabel>
@@ -179,7 +174,7 @@ export function TodoForm({ todo, categories, statuses }: TodoFormProps) {
 
         <FormField
           control={form.control}
-          name="due_date"
+          name="dueDate"
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Date d'échéance</FormLabel>

@@ -17,12 +17,12 @@ export function dbToLibrary(dbLibrary: DbLibrary): Library {
     features: dbLibrary.features, // Déjà null, pas besoin de conversion
     githubUrl: dbLibrary.github_url, // Déjà null, pas besoin de conversion
     isOpenSource: dbLibrary.is_open_source, // Déjà null, pas besoin de conversion
-    languageId: toNumber(dbLibrary.language_id),
+    languageId: dbLibrary.language_id !== null ? toNumber(dbLibrary.language_id) : null,
     logoPath: dbLibrary.logo_path, // Déjà null, pas besoin de conversion
     name: toString(dbLibrary.name),
     officialWebsite: dbLibrary.official_website, // Déjà null, pas besoin de conversion
-    popularity: toNumber(dbLibrary.popularity),
-    subtype: dbLibrary.sub_type, // Déjà null, pas besoin de conversion
+    popularity: dbLibrary.popularity !== null ? toNumber(dbLibrary.popularity) : null,
+    subtype: dbLibrary.sub_type, // Conversion de sub_type à subtype
     technologyType: dbLibrary.technology_type, // Déjà null, pas besoin de conversion
     uniqueSellingPoint: dbLibrary.unique_selling_point, // Déjà null, pas besoin de conversion
     updatedAt: dbLibrary.updated_at, // Déjà null, pas besoin de conversion

@@ -1,27 +1,16 @@
-export default function LanguageCardSkeleton() {
+// Utilisation d'une exportation nommée (named export)
+export const LanguageCardSkeleton = () => {
   return (
-    <div className="min-h-[420px] h-[420px] border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-      <div className="p-6 pb-8 flex flex-col h-full justify-between">
-        <div className="mb-4">
-          <div className="flex justify-between items-start">
-            <div className="inline-block w-24 h-8 bg-gray-300 animate-pulse"></div>
-            <div className="w-24 h-8 bg-gray-300 animate-pulse"></div>
-          </div>
-          <div className="h-10 w-3/4 bg-gray-300 mt-2 animate-pulse"></div>
-        </div>
-
-        <div className="flex justify-center items-center my-4 flex-1">
-          <div className="w-32 h-32 bg-gray-300 animate-pulse"></div>
-        </div>
-
-        <div className="h-16 bg-gray-300 mb-3 animate-pulse"></div>
-
-        <div className="mt-auto">
-          <div className="mb-2 h-6 w-40 bg-gray-300 animate-pulse"></div>
-          <div className="w-full bg-gray-300 h-6 animate-pulse"></div>
+    <div className="animate-pulse rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="p-4">
+        <div className="h-4 w-3/4 bg-gray-300 rounded dark:bg-gray-600"></div>
+        <div className="mt-2 h-3 w-1/2 bg-gray-300 rounded dark:bg-gray-600"></div>
+        <div className="mt-4 flex space-x-2">
+          <div className="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+          <div className="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+          <div className="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600"></div>
         </div>
       </div>
     </div>
   )
 }
-

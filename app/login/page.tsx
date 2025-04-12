@@ -1,12 +1,14 @@
 "use client"
 
 import type React from "react"
+import type { UserRoleType } from "@/lib/client/permissions"
 
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { Loader2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
+import { createClientSupabaseClient } from "@/lib/client/supabase"
+import { withTokenRefresh } from "@/lib/client/auth-helpers"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -16,7 +18,7 @@ export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
-  const supabase = createClientComponentClient()
+  const supabase = createClientSupabaseClient()
 
   // Ajouter un log pour voir si la page est rechargée en boucle
   useEffect(() => {
@@ -40,36 +42,40 @@ export default function LoginPage() {
 
       console.log("Connexion réussie")
 
-      // Vérifier le rôle de l'utilisateur pour rediriger vers le bon dashboard
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+      // Utiliser withTokenRefresh pour gérer automatiquement le rafraîchissement du token
+      await withTokenRefresh(async () => {
+        // Vérifier le rôle de l'utilisateur pour rediriger vers le bon dashboard
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
 
-      if (session) {
-        const { data: userRole } = await supabase.from("user_roles").select("role").eq("id", session.user.id).single()
-        console.log("Rôle de l'utilisateur:", userRole?.role)
+        if (session) {
+          const { data: userRole } = await supabase.from("user_roles").select("role").eq("id", session.user.id).single()
+          const role = userRole?.role as UserRoleType | undefined
+          console.log("Rôle de l'utilisateur:", role)
 
-        // Récupérer l'URL de redirection depuis les paramètres d'URL
-        const redirectedFrom = searchParams.get("redirectedFrom")
+          // Récupérer l'URL de redirection depuis les paramètres d'URL
+          const redirectedFrom = searchParams.get("redirectedFrom")
 
-        if (redirectedFrom) {
-          // Si l'utilisateur a été redirigé depuis une page protégée, le renvoyer à cette page
-          console.log("Redirection vers:", redirectedFrom)
-          router.push(redirectedFrom)
-        } else if (userRole && (userRole.role === "admin" || userRole.role === "validator")) {
-          // Si c'est un admin ou validator, rediriger vers le dashboard admin
-          console.log("Redirection vers /admin/dashboard")
-          router.push("/admin/dashboard")
+          if (redirectedFrom) {
+            // Si l'utilisateur a été redirigé depuis une page protégée, le renvoyer à cette page
+            console.log("Redirection vers:", redirectedFrom)
+            router.push(redirectedFrom)
+          } else if (role === "admin" || role === "validator") {
+            // Si c'est un admin ou validator, rediriger vers le dashboard admin
+            console.log("Redirection vers /admin/dashboard")
+            router.push("/admin/dashboard")
+          } else {
+            // Pour les utilisateurs normaux, rediriger vers la page principale
+            console.log("Redirection vers /")
+            router.push("/")
+          }
         } else {
-          // Pour les utilisateurs normaux, rediriger vers la page principale
-          console.log("Redirection vers /")
+          // Si pas de session (cas improbable après connexion réussie), rediriger vers la page principale
+          console.log("Pas de session, redirection vers /")
           router.push("/")
         }
-      } else {
-        // Si pas de session (cas improbable après connexion réussie), rediriger vers la page principale
-        console.log("Pas de session, redirection vers /")
-        router.push("/")
-      }
+      })
     } catch (error: any) {
       console.error("Erreur de connexion:", error.message)
       toast({

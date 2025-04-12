@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { createSupabaseClient } from "@/lib/supabase"
+import { createClientSupabaseClient } from "@/lib/client/supabase"
 import type { RealtimeChannel } from "@supabase/supabase-js"
 
 // Hook pour s'abonner aux changements en temps réel de Supabase
@@ -14,7 +14,7 @@ export function useSupabaseSubscription<T = any>(
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
-    const supabase = createSupabaseClient()
+    const supabase = createClientSupabaseClient()
 
     // Créer un canal pour les changements en temps réel
     const subscription = supabase.channel(`public:${table}`)
@@ -69,4 +69,3 @@ export function useSupabaseSubscription<T = any>(
 
   return { channel, error }
 }
-

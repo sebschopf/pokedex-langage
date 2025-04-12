@@ -16,7 +16,7 @@ import {
   SheetTrigger,
   SheetFooter,
 } from "@/components/ui/sheet"
-import type { TodoCategory, TodoStatus } from "@/types"
+import type { TodoCategory, TodoStatus } from "@/types/models"
 
 interface TodoFiltersProps {
   categories: TodoCategory[]

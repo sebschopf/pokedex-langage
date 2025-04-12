@@ -3,9 +3,11 @@
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import type { UserRoleType } from "@/types/database/user-role"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ChevronDown } from "lucide-react"
+
+// Définir le type UserRoleType
+type UserRoleType = "admin" | "validator" | "verified" | "registered"
 
 interface UserRoleBadgeProps {
   role: UserRoleType
@@ -74,4 +76,3 @@ export function UserRoleBadge({ role: initialRole, className, editable = false, 
     </DropdownMenu>
   )
 }
-

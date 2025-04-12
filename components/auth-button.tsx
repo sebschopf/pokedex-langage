@@ -1,20 +1,21 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useRouter } from "next/navigation"
 import { Loader2, LogOut, User, LayoutDashboard } from "lucide-react"
 import Link from "next/link"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { createClientSupabaseClient } from "@/lib/client/supabase"
+import type { UserRoleType } from "@/lib/client/permissions"
 
 export function AuthButton() {
   const [user, setUser] = useState<any>(null)
-  const [userRole, setUserRole] = useState<string | null>(null)
+  const [userRole, setUserRole] = useState<UserRoleType | null>(null)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   // Utiliser le singleton pour éviter de créer plusieurs instances
-  const supabase = createClientComponentClient()
+  const supabase = createClientSupabaseClient()
 
   useEffect(() => {
     const getUser = async () => {
@@ -35,7 +36,7 @@ export function AuthButton() {
             .single()
 
           if (userRoleData) {
-            setUserRole(userRoleData.role)
+            setUserRole(userRoleData.role as UserRoleType)
           }
 
           // Récupérer l'avatar de l'utilisateur

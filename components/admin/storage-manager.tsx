@@ -1,13 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { createSupabaseClient } from "@/lib/supabase"
+import { createClientSupabaseClient } from "@/lib/client/supabase"
+import { withTokenRefresh } from "@/lib/client/auth-helpers"
 import { Trash2, Upload, RefreshCw, FolderOpen, Plus } from "lucide-react"
 import FileUpload from "../file-upload"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { toast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 
 interface StorageItem {
   name: string
@@ -38,48 +39,51 @@ export default function StorageManager({
   const [showUploadForm, setShowUploadForm] = useState(false)
   const [showCreateFolderDialog, setShowCreateFolderDialog] = useState(false)
   const [newFolderName, setNewFolderName] = useState("")
+  const { toast } = useToast()
 
   const loadFiles = async () => {
     setIsLoading(true)
     setError(null)
 
     try {
-      const supabase = createSupabaseClient()
+      await withTokenRefresh(async () => {
+        const supabase = createClientSupabaseClient()
 
-      const { data, error } = await supabase.storage.from(bucket).list(currentPath, {
-        sortBy: { column: "name", order: "asc" },
+        const { data, error } = await supabase.storage.from(bucket).list(currentPath, {
+          sortBy: { column: "name", order: "asc" },
+        })
+
+        if (error) throw error
+
+        // Filtrer les dossiers et les fichiers
+        const folders = data?.filter((item) => item.id === null) || []
+        const fileItems = data?.filter((item) => item.id !== null) || []
+
+        // Obtenir les URLs publiques pour les fichiers
+        const filesWithUrls = await Promise.all(
+          fileItems.map(async (file) => {
+            const { data } = supabase.storage
+              .from(bucket)
+              .getPublicUrl(`${currentPath ? `${currentPath}/` : ""}${file.name}`)
+
+            return {
+              name: file.name,
+              url: data.publicUrl,
+            }
+          }),
+        )
+
+        setFiles([
+          // Ajouter les dossiers d'abord
+          ...folders.map((folder) => ({
+            name: folder.name,
+            url: "",
+            isFolder: true,
+          })),
+          // Puis les fichiers
+          ...filesWithUrls,
+        ])
       })
-
-      if (error) throw error
-
-      // Filtrer les dossiers et les fichiers
-      const folders = data?.filter((item) => item.id === null) || []
-      const fileItems = data?.filter((item) => item.id !== null) || []
-
-      // Obtenir les URLs publiques pour les fichiers
-      const filesWithUrls = await Promise.all(
-        fileItems.map(async (file) => {
-          const { data } = supabase.storage
-            .from(bucket)
-            .getPublicUrl(`${currentPath ? `${currentPath}/` : ""}${file.name}`)
-
-          return {
-            name: file.name,
-            url: data.publicUrl,
-          }
-        }),
-      )
-
-      setFiles([
-        // Ajouter les dossiers d'abord
-        ...folders.map((folder) => ({
-          name: folder.name,
-          url: "",
-          isFolder: true,
-        })),
-        // Puis les fichiers
-        ...filesWithUrls,
-      ])
     } catch (err) {
       console.error("Erreur lors du chargement des fichiers:", err)
       setError("Erreur lors du chargement des fichiers")
@@ -110,21 +114,23 @@ export default function StorageManager({
     }
 
     try {
-      const supabase = createSupabaseClient()
+      await withTokenRefresh(async () => {
+        const supabase = createClientSupabaseClient()
 
-      const { error } = await supabase.storage
-        .from(bucket)
-        .remove([`${currentPath ? `${currentPath}/` : ""}${fileName}`])
+        const { error } = await supabase.storage
+          .from(bucket)
+          .remove([`${currentPath ? `${currentPath}/` : ""}${fileName}`])
 
-      if (error) throw error
+        if (error) throw error
 
-      toast({
-        title: "Fichier supprimé",
-        description: `${fileName} a été supprimé avec succès.`,
+        toast({
+          title: "Fichier supprimé",
+          description: `${fileName} a été supprimé avec succès.`,
+        })
+
+        // Recharger les fichiers après suppression
+        loadFiles()
       })
-
-      // Recharger les fichiers après suppression
-      loadFiles()
     } catch (err) {
       console.error("Erreur lors de la suppression du fichier:", err)
       setError("Erreur lors de la suppression du fichier")
@@ -169,24 +175,26 @@ export default function StorageManager({
     }
 
     try {
-      const supabase = createSupabaseClient()
-      const folderPath = currentPath ? `${currentPath}/${newFolderName}/.gitkeep` : `${newFolderName}/.gitkeep`
+      await withTokenRefresh(async () => {
+        const supabase = createClientSupabaseClient()
+        const folderPath = currentPath ? `${currentPath}/${newFolderName}/.gitkeep` : `${newFolderName}/.gitkeep`
 
-      // Créer un fichier vide pour simuler un dossier
-      const { error } = await supabase.storage.from(bucket).upload(folderPath, new Blob([""]), {
-        contentType: "text/plain",
+        // Créer un fichier vide pour simuler un dossier
+        const { error } = await supabase.storage.from(bucket).upload(folderPath, new Blob([""]), {
+          contentType: "text/plain",
+        })
+
+        if (error) throw error
+
+        toast({
+          title: "Dossier créé",
+          description: `Le dossier ${newFolderName} a été créé avec succès.`,
+        })
+
+        setNewFolderName("")
+        setShowCreateFolderDialog(false)
+        loadFiles()
       })
-
-      if (error) throw error
-
-      toast({
-        title: "Dossier créé",
-        description: `Le dossier ${newFolderName} a été créé avec succès.`,
-      })
-
-      setNewFolderName("")
-      setShowCreateFolderDialog(false)
-      loadFiles()
     } catch (err) {
       console.error("Erreur lors de la création du dossier:", err)
       toast({
@@ -354,4 +362,3 @@ export default function StorageManager({
     </div>
   )
 }
-

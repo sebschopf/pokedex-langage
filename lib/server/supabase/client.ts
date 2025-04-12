@@ -1,39 +1,53 @@
 import { createClient } from "@supabase/supabase-js"
 import { cookies } from "next/headers"
 import type { Database } from "@/types/supabase"
-
-// Singleton pour le client Supabase côté serveur
-let serverSupabaseClient: ReturnType<typeof createClient<Database>> | null = null
+import { cache } from "react"
 
 /**
  * Crée ou récupère une instance du client Supabase pour le serveur
+ * Utilise React cache pour garantir une seule instance par requête
  * @returns Client Supabase
  */
-export function createServerSupabaseClient() {
-  if (serverSupabaseClient) return serverSupabaseClient
+export const createServerSupabaseClient = cache(() => {
+  const timestamp = new Date().toISOString()
+  console.log(`[${timestamp}] Création du client Supabase serveur...`)
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!supabaseUrl || !supabaseKey) {
-    console.error("Variables d'environnement Supabase manquantes")
-    throw new Error("Variables d'environnement Supabase manquantes")
+    const missingVars = []
+    if (!supabaseUrl) missingVars.push("NEXT_PUBLIC_SUPABASE_URL")
+    if (!supabaseKey) missingVars.push("SUPABASE_SERVICE_ROLE_KEY")
+
+    const errorMsg = `Variables d'environnement Supabase manquantes: ${missingVars.join(", ")}`
+    console.error(`[${timestamp}] ${errorMsg}`)
+    throw new Error(errorMsg)
   }
 
-  serverSupabaseClient = createClient<Database>(supabaseUrl, supabaseKey, {
-    auth: {
-      persistSession: false,
-    },
-  })
+  console.log(`[${timestamp}] Variables d'environnement Supabase vérifiées, création du client...`)
 
-  return serverSupabaseClient
-}
+  try {
+    const client = createClient<Database>(supabaseUrl, supabaseKey, {
+      auth: {
+        persistSession: false,
+      },
+    })
+
+    console.log(`[${timestamp}] Client Supabase créé avec succès`)
+    return client
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Erreur inconnue"
+    console.error(`[${timestamp}] Erreur lors de la création du client Supabase:`, errorMessage)
+    throw error
+  }
+})
 
 /**
  * Crée un client Supabase pour les composants serveur avec cookies
  * @returns Client Supabase
  */
-export function createServerComponentSupabaseClient() {
+export const createServerComponentSupabaseClient = cache(() => {
   const cookieStore = cookies()
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -53,13 +67,13 @@ export function createServerComponentSupabaseClient() {
       },
     },
   })
-}
+})
 
 /**
  * Crée un client Supabase avec les droits d'administrateur
  * @returns Client Supabase avec droits admin
  */
-export function createAdminSupabaseClient() {
+export const createAdminSupabaseClient = cache(() => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
@@ -72,4 +86,4 @@ export function createAdminSupabaseClient() {
       persistSession: false,
     },
   })
-}
+})

@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { ExternalLink, Github, BookOpen } from "lucide-react"
+import { ExternalLink, Github, BookOpen, AlertCircle } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
 import ToggleExpandButton from "./ui/toggle-expand-button"
 
@@ -9,9 +9,11 @@ interface FrameworkCardProps {
   name: string
   language: string
   frameworksData: { [key: string]: any }
+  index?: number
+  onCorrection?: (frameworkName: string, e: React.MouseEvent) => void
 }
 
-const FrameworkCard: React.FC<FrameworkCardProps> = ({ name, language, frameworksData }) => {
+const FrameworkCard: React.FC<FrameworkCardProps> = ({ name, language, frameworksData, index = 0, onCorrection }) => {
   // État pour suivre si la description est étendue ou non
   const [isExpanded, setIsExpanded] = useState(false)
   // Référence pour détecter si le contenu est tronqué
@@ -60,11 +62,45 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({ name, language, framework
     setIsExpanded(!isExpanded)
   }
 
+  // Déterminer si c'est un framework recommandé (pour les 2 premiers)
+  const isRecommended = index < 2
+
+  // Déterminer si c'est un framework adapté aux débutants (basé sur une propriété ou un index)
+  const isBeginnerFriendly = frameworkData.beginnerFriendly || index === 2
+
   return (
-    <div className="border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all h-full bg-white">
+    <div
+      className="border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all h-full bg-white"
+      id={`framework-${name.toLowerCase().replace(/\s+/g, "-")}`}
+    >
       {/* En-tête avec nom et description */}
       <div className="border-b-2 border-black p-4">
-        <h3 className="text-xl font-bold mb-2">{frameworkData.name}</h3>
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="text-xl font-bold">{frameworkData.name}</h3>
+
+          {onCorrection && (
+            <button
+              onClick={(e) => onCorrection(name, e)}
+              className="text-xs bg-white border-2 border-black px-1 py-0.5 hover:bg-yellow-300 transition-colors"
+              aria-label={`Suggérer une correction pour ${name}`}
+            >
+              <span className="font-bold">✎</span>
+            </button>
+          )}
+        </div>
+
+        {/* Badges pour les frameworks recommandés ou débutants */}
+        {(isRecommended || isBeginnerFriendly) && (
+          <div className="flex flex-wrap gap-2 mb-2">
+            {isRecommended && (
+              <span className="bg-red-600 text-white text-xs px-1 border-2 border-black">CHOIX RECOMMANDÉ</span>
+            )}
+            {isBeginnerFriendly && (
+              <span className="bg-green-600 text-white text-xs px-1 border-2 border-black">DÉBUTANT</span>
+            )}
+          </div>
+        )}
+
         <div className="relative h-[3.6rem]">
           {/* Hauteur augmentée pour garantir la visibilité des 2 lignes */}
           <div
@@ -100,6 +136,16 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({ name, language, framework
             <span className="inline-block bg-yellow-400 text-black text-sm font-bold px-3 py-1.5 border-2 border-black rounded-none">
               {frameworkData.subtype}
             </span>
+          </div>
+        )}
+
+        {/* Point fort unique */}
+        {frameworkData.uniqueSellingPoint && (
+          <div className="mb-4">
+            <div className="inline-block bg-black text-white text-sm font-bold px-3 py-1.5 mb-3 rounded-none">
+              POINT FORT UNIQUE
+            </div>
+            <p className="text-sm leading-relaxed">{frameworkData.uniqueSellingPoint}</p>
           </div>
         )}
 
@@ -167,6 +213,11 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({ name, language, framework
             >
               <BookOpen className="h-4 w-4 mr-2" /> Documentation
             </a>
+          )}
+          {!frameworkData.officialWebsite && !frameworkData.githubUrl && !frameworkData.documentation && (
+            <div className="inline-flex items-center text-sm bg-gray-100 text-gray-700 px-3 py-2 border-2 border-black">
+              <AlertCircle className="h-4 w-4 mr-2" /> Pas de liens disponibles
+            </div>
           )}
         </div>
       </div>

@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { createSupabaseClient } from "@/lib/supabase"
+import { createClientSupabaseClient } from "@/lib/client/supabase"
 import { useToast } from "@/hooks/use-toast"
 import { Upload, Trash2 } from "lucide-react"
 
@@ -19,7 +19,7 @@ interface AvatarUploadProps {
 export default function AvatarUpload({ userId, avatarUrl, onAvatarChange, size = "md" }: AvatarUploadProps) {
   const [avatarPath, setAvatarPath] = useState<string | null>(avatarUrl)
   const [uploading, setUploading] = useState(false)
-  const supabase = createSupabaseClient()
+  const supabase = createClientSupabaseClient()
   const { toast } = useToast()
 
   useEffect(() => {
@@ -51,19 +51,14 @@ export default function AvatarUpload({ userId, avatarUrl, onAvatarChange, size =
         throw new Error("Le fichier doit être une image (JPEG, PNG, GIF, WEBP).")
       }
 
-      console.log("Téléchargement du fichier:", filePath)
-
       // Télécharger le fichier dans le bucket avatars
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(filePath, file, { upsert: true })
 
       if (uploadError) {
-        console.error("Erreur lors du téléchargement:", uploadError)
         throw new Error(`Erreur lors du téléchargement: ${uploadError.message}`)
       }
-
-      console.log("Fichier téléchargé avec succès:", uploadData)
 
       // Obtenir l'URL publique
       const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath)
@@ -73,7 +68,6 @@ export default function AvatarUpload({ userId, avatarUrl, onAvatarChange, size =
       }
 
       const newAvatarUrl = urlData.publicUrl
-      console.log("URL publique obtenue:", newAvatarUrl)
 
       // Mettre à jour le profil utilisateur avec la nouvelle URL d'avatar
       const { error: updateError } = await supabase
@@ -82,7 +76,6 @@ export default function AvatarUpload({ userId, avatarUrl, onAvatarChange, size =
         .eq("id", userId)
 
       if (updateError) {
-        console.error("Erreur lors de la mise à jour du profil:", updateError)
         throw new Error(`Erreur lors de la mise à jour du profil: ${updateError.message}`)
       }
 
@@ -97,7 +90,6 @@ export default function AvatarUpload({ userId, avatarUrl, onAvatarChange, size =
         description: "Votre avatar a été mis à jour avec succès.",
       })
     } catch (error: any) {
-      console.error("Erreur complète:", error)
       toast({
         variant: "destructive",
         title: "Erreur",
@@ -116,7 +108,6 @@ export default function AvatarUpload({ userId, avatarUrl, onAvatarChange, size =
       const { error: updateError } = await supabase.from("profiles").update({ avatar_url: null }).eq("id", userId)
 
       if (updateError) {
-        console.error("Erreur lors de la suppression de l'avatar:", updateError)
         throw new Error(`Erreur lors de la suppression de l'avatar: ${updateError.message}`)
       }
 
@@ -131,7 +122,6 @@ export default function AvatarUpload({ userId, avatarUrl, onAvatarChange, size =
         description: "Votre avatar a été supprimé avec succès.",
       })
     } catch (error: any) {
-      console.error("Erreur complète:", error)
       toast({
         variant: "destructive",
         title: "Erreur",

@@ -1,72 +1,60 @@
 import { createClientSupabaseClient } from "./supabase"
 
-// Définir le type UserRoleType
-export type UserRoleType = "admin" | "validator" | "verified" | "registered" | "anonymous"
+// Type pour les rôles stockés en base de données (correspond exactement à l'enum PostgreSQL)
+export type UserRoleTypeDB = "admin" | "validator" | "verified" | "registered"
 
-// Check if the current user has a specific role or higher
-export async function hasRole(requiredRole: UserRoleType): Promise<boolean> {
-  const supabase = createClientSupabaseClient()
-
-  const { data, error } = await supabase.rpc("has_role", { required_role: requiredRole })
-
-  if (error) {
-    console.error("Error checking role:", error)
-    return false
-  }
-
-  return data || false
-}
+// Type étendu pour l'application qui inclut "anonymous" pour les utilisateurs non connectés
+export type UserRoleType = UserRoleTypeDB | "anonymous"
 
 // Get the current user's role
-export async function getUserRole(): Promise<UserRoleType | null> {
+export async function getUserRole(): Promise<UserRoleType> {
   const supabase = createClientSupabaseClient()
 
-  const { data, error } = await supabase.rpc("get_user_role")
-
-  if (error) {
-    console.error("Error getting user role:", error)
-    return null
-  }
-
-  return data as UserRoleType
-}
-
-// Vérifier si l'utilisateur est connecté
-export async function isAuthenticated(): Promise<boolean> {
-  const supabase = createClientSupabaseClient()
-
+  // Vérifier d'abord si l'utilisateur est connecté
   const {
     data: { session },
   } = await supabase.auth.getSession()
 
-  return !!session
+  // Si pas de session, l'utilisateur est anonyme
+  if (!session) {
+    return "anonymous"
+  }
+
+  // Sinon, récupérer le rôle depuis la base de données
+  const { data, error } = await supabase.rpc("get_user_role")
+
+  if (error) {
+    console.error("Error getting user role:", error)
+    // En cas d'erreur, considérer l'utilisateur comme anonyme
+    return "anonymous"
+  }
+
+  return data as UserRoleTypeDB
 }
 
-// Vérifier si l'utilisateur est un administrateur
-export async function isAdmin(): Promise<boolean> {
-  return hasRole("admin")
-}
+// Check if the current user has a specific role or higher
+export async function hasRole(requiredRole: UserRoleType): Promise<boolean> {
+  // Si le rôle requis est "anonymous", tout utilisateur (même non connecté) y a accès
+  if (requiredRole === "anonymous") {
+    return true
+  }
 
-// Vérifier si l'utilisateur est un validateur
-export async function isValidator(): Promise<boolean> {
-  return hasRole("validator")
-}
+  const userRole = await getUserRole()
 
-// Vérifier si l'utilisateur est un administrateur ou un validateur
-export async function isAdminOrValidator(): Promise<boolean> {
-  const role = await getUserRole()
-  return role === "admin" || role === "validator"
-}
+  // Si l'utilisateur est anonyme, il n'a accès à aucun rôle autre que "anonymous"
+  if (userRole === "anonymous") {
+    return false
+  }
 
-// Obtenir le niveau de rôle numérique (utile pour les comparaisons)
-export function getRoleLevel(role: UserRoleType | null): number {
-  const roleHierarchy: Record<UserRoleType, number> = {
+  // Sinon, vérifier le niveau de rôle
+  const roleHierarchy: Record<UserRoleTypeDB, number> = {
     admin: 4,
     validator: 3,
     verified: 2,
     registered: 1,
-    anonymous: 0,
   }
 
-  return role ? roleHierarchy[role] : 0
+  return roleHierarchy[userRole] >= roleHierarchy[requiredRole as UserRoleTypeDB]
 }
+
+// Autres fonctions...

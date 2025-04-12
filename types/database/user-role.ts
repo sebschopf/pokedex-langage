@@ -1,12 +1,9 @@
-/**
- * Type représentant un rôle utilisateur tel que stocké dans la base de données
- * Correspond exactement à la structure de la table 'user_roles' dans Supabase
- */
-export type DbUserRole = {
-  created_at: string | null
+import type { UserRoleTypeDB } from "@/lib/client/permissions"
+
+export interface DbUserRole {
   id: string
-  role: UserRoleType
+  user_id: string
+  role: UserRoleTypeDB // Utiliser UserRoleTypeDB qui correspond à l'enum PostgreSQL
+  created_at: string
   updated_at: string | null
 }
-
-export type UserRoleType = "admin" | "validator" | "verified" | "registered" | "anonymous"

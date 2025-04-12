@@ -8,6 +8,12 @@ export default function FilterBar() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
+  // Récupérer les valeurs actuelles des paramètres
+  const currentType = searchParams.get("type") || "all"
+  const currentUsage = searchParams.get("usageMin") || "0"
+  const currentSort = searchParams.get("sort") || "name"
+  const currentOpenSource = searchParams.get("openSource") || "false"
+
   // Créer une fonction pour mettre à jour les paramètres de recherche
   const createQueryString = useCallback(
     (name: string, value: string) => {
@@ -53,7 +59,7 @@ export default function FilterBar() {
         </label>
         <select
           id="type-filter"
-          defaultValue={searchParams.get("type") || "all"}
+          value={currentType}
           onChange={(e) => handleTypeChange(e.target.value)}
           className="w-full p-2 border-4 border-black font-medium"
           aria-controls="language-results"
@@ -73,7 +79,7 @@ export default function FilterBar() {
         </label>
         <select
           id="usage-filter"
-          defaultValue={searchParams.get("usageMin") || "0"}
+          value={currentUsage}
           onChange={(e) => handleUsageChange(e.target.value)}
           className="w-full p-2 border-4 border-black font-medium"
           aria-controls="language-results"
@@ -91,7 +97,7 @@ export default function FilterBar() {
         </label>
         <select
           id="sort-filter"
-          defaultValue={searchParams.get("sort") || "name"}
+          value={currentSort}
           onChange={(e) => handleSortChange(e.target.value)}
           className="w-full p-2 border-4 border-black font-medium"
           aria-controls="language-results"
@@ -108,7 +114,7 @@ export default function FilterBar() {
         </label>
         <select
           id="opensource-filter"
-          defaultValue={searchParams.get("openSource") || "false"}
+          value={currentOpenSource}
           onChange={(e) => handleOpenSourceChange(e.target.value)}
           className="w-full p-2 border-4 border-black font-medium"
           aria-controls="language-results"
@@ -120,4 +126,3 @@ export default function FilterBar() {
     </div>
   )
 }
-

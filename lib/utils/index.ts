@@ -15,7 +15,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Utilitaires de formatage
-export { formatDate } from "./formatting/format-date"
-export { getImageName } from "./formatting/get-image-name"
-export { getTypeBadgeColor } from "./formatting/get-type-badge-color"
-export * from "./security/security-logger"
+export { formatDate } from "../../utils/formatting/format-date"
+export { getImageName } from "../../utils/formatting/get-image-name"
+export { getTypeBadgeColor } from "../../utils/theme/get-type-badge-color"
+export * from "../../utils/security/security-logger"

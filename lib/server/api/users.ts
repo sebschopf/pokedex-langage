@@ -1,7 +1,6 @@
 import { createServerSupabaseClient } from "../supabase/client"
-import { dbToProfile } from "../mapping/profile-mapping"
+import { dbToProfile, profileToDb} from "../mapping/profile-mapping"
 import type { Profile } from "@/types/models"
-import { profileToDb } from "../mapping/profile-mapping"
 
 /**
  * Récupère tous les profils utilisateurs

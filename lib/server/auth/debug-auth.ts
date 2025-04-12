@@ -24,8 +24,12 @@ export async function debugUserRole(userId: string) {
     const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId)
 
     if (userError) {
+      // Utiliser une approche sécurisée pour accéder au message d'erreur
+      const errorMessage =
+        userError && typeof userError === "object" && "message" in userError ? userError.message : String(userError)
+
       return {
-        error: `Erreur lors de la récupération de l'utilisateur: ${userError.message}`,
+        error: `Erreur lors de la récupération de l'utilisateur: ${errorMessage}`,
         roleData,
         userExists: false,
       }
@@ -44,9 +48,9 @@ export async function debugUserRole(userId: string) {
       profileData,
       userExists: !!userData,
       hasRole: !!roleData,
-      roleError: roleError ? roleError.message : null,
-      userError: userError ? userError.message : null,
-      profileError: profileError ? profileError.message : null,
+      roleError: roleError ? getErrorMessage(roleError) : null,
+      userError: userError ? getErrorMessage(userError) : null,
+      profileError: profileError ? getErrorMessage(profileError) : null,
     }
   } catch (error) {
     return {
@@ -55,4 +59,17 @@ export async function debugUserRole(userId: string) {
       userExists: false,
     }
   }
+}
+
+/**
+ * Fonction utilitaire pour extraire le message d'erreur de manière sécurisée
+ * @param error Objet d'erreur potentiel
+ * @returns Message d'erreur ou représentation en chaîne de l'erreur
+ */
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message
+  if (error && typeof error === "object" && "message" in error && typeof error.message === "string") {
+    return error.message
+  }
+  return String(error)
 }

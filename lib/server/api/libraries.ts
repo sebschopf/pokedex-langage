@@ -1,174 +1,86 @@
+import { cache } from "react"
 import { createServerSupabaseClient } from "../supabase/client"
-import { dbToLibrary } from "../mapping/library-mapping"
 import type { Library } from "@/types/models"
-import type { FrameworkFilterOptions } from "@/types/dto"
+import { dbToLibrary } from "../mapping/library-mapping"
+import type { DbLibrary } from "@/types/database/library"
 
-// Cache en mémoire avec expiration
-const frameworksCache = new Map<string, { data: Library[]; timestamp: number }>()
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes en millisecondes
-
-/**
- * Vide le cache des frameworks
- */
-export function clearFrameworksCache(): void {
-  frameworksCache.clear()
-}
+// Colonnes nécessaires pour les bibliothèques/frameworks
+const LIBRARY_COLUMNS =
+  "id, name, description, technology_type, used_for, features, official_website, unique_selling_point, best_for, version, documentation_url, github_url, sub_type, popularity, created_at, updated_at, is_open_source, language_id, logo_path"
 
 /**
- * Récupère les frameworks associés à un langage avec options de filtrage et mise en cache
- * @param languageId L'ID du langage
- * @param options Options de filtrage (optionnel)
- * @param skipCache Ignorer le cache et forcer une nouvelle requête (optionnel)
- * @returns Liste des frameworks/bibliothèques
+ * Récupère les données brutes des bibliothèques depuis Supabase
+ * @param libraryIds IDs des bibliothèques à récupérer
+ * @returns Données brutes des bibliothèques
  */
-export async function getFrameworksByLanguageId(
-  languageId: number,
-  options: FrameworkFilterOptions = {},
-  skipCache = false,
-): Promise<Library[]> {
-  try {
-    // Validation de l'ID du langage
-    if (!languageId) {
-      throw new Error("ID de langage non défini ou invalide")
-    }
+async function fetchLibrariesData(libraryIds: number[]): Promise<DbLibrary[]> {
+  const supabase = createServerSupabaseClient()
 
-    // Générer une clé de cache unique basée sur l'ID et les options
-    const cacheKey = `${languageId}-${JSON.stringify(options)}`
+  const { data: libraries, error: librariesError } = await supabase
+    .from("libraries")
+    .select(LIBRARY_COLUMNS)
+    .in("id", libraryIds)
+    .order("name")
 
-    // Vérifier le cache si skipCache est false
-    if (!skipCache) {
-      const cachedData = frameworksCache.get(cacheKey)
-      if (cachedData && Date.now() - cachedData.timestamp < CACHE_TTL) {
-        console.log(`Utilisation des données en cache pour le langage ${languageId}`)
-        return cachedData.data
-      }
-    }
-
-    const supabase = createServerSupabaseClient()
-    if (!supabase) {
-      throw new Error("Client Supabase non initialisé")
-    }
-
-    // Construire la requête de base
-    let query = supabase.from("libraries").select("*").eq("language_id", languageId)
-
-    // Appliquer les filtres si spécifiés
-    if (options.minPopularity !== undefined) {
-      query = query.gte("popularity", options.minPopularity)
-    }
-
-    if (options.type) {
-      query = query.eq("technology_type", options.type)
-    }
-
-    // Appliquer le tri
-    const sortField = options.sortBy || "popularity"
-    const sortDirection = options.sortOrder === "asc" ? true : false
-    query = query.order(sortField, { ascending: sortDirection })
-
-    // Appliquer la limite si spécifiée
-    if (options.limit) {
-      query = query.limit(options.limit)
-    }
-
-    // Exécuter la requête
-    const { data, error } = await query
-
-    if (error) {
-      throw new Error(`Erreur lors de la récupération des bibliothèques: ${error.message}`)
-    }
-
-    // Si des bibliothèques sont trouvées, les convertir et mettre en cache
-    if (data && data.length > 0) {
-      const libraries = data.map((item) => dbToLibrary(item))
-
-      // Mettre en cache les résultats
-      frameworksCache.set(cacheKey, {
-        data: libraries,
-        timestamp: Date.now(),
-      })
-
-      return libraries
-    }
-
-    // Si aucune bibliothèque n'est trouvée, essayer de récupérer depuis popular_frameworks
-    const { data: langData, error: langError } = await supabase
-      .from("languages")
-      .select("popular_frameworks, name")
-      .eq("id", languageId)
-      .single()
-
-    if (langError) {
-      throw new Error(`Erreur lors de la récupération du langage: ${langError.message}`)
-    }
-
-    // Si le langage a des frameworks populaires, les transformer en objets Library
-    if (langData?.popular_frameworks && Array.isArray(langData.popular_frameworks)) {
-      const languageName = langData.name || "ce langage"
-
-      const libraries = langData.popular_frameworks.map((name, index) => {
-        // Créer un objet au format DB pour utiliser la fonction de conversion
-        const dbLibrary = {
-          id: index,
-          name,
-          language_id: languageId,
-          description: `Framework populaire pour ${languageName}`,
-          official_website: `https://www.google.com/search?q=${name}+${languageName}+framework`,
-          features: ["Intégration avec " + languageName, "Facilité d'utilisation", "Documentation"],
-          unique_selling_point: `Extension spécialisée pour ${languageName}`,
-          best_for: `Projets ${languageName} nécessitant des fonctionnalités supplémentaires`,
-          used_for: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          github_url: null,
-          logo_path: null,
-          popularity: null,
-          is_open_source: null,
-          documentation_url: null,
-          version: null,
-          technology_type: null,
-          sub_type: null, // Utiliser sub_type au lieu de subtype
-        }
-
-        // Utiliser la fonction de conversion pour garantir la cohérence
-        return dbToLibrary(dbLibrary as any) // Utiliser 'as any' temporairement pour contourner l'erreur
-      })
-
-      // Appliquer le tri et la limite aux frameworks générés
-      let sortedLibraries = [...libraries]
-
-      if (options.sortBy === "name") {
-        sortedLibraries.sort((a, b) => {
-          return options.sortOrder === "asc" ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)
-        })
-      }
-
-      if (options.limit) {
-        sortedLibraries = sortedLibraries.slice(0, options.limit)
-      }
-
-      // Mettre en cache les résultats
-      frameworksCache.set(cacheKey, {
-        data: sortedLibraries,
-        timestamp: Date.now(),
-      })
-
-      return sortedLibraries
-    }
-
-    // Aucun framework trouvé
-    return []
-  } catch (error) {
-    // Gestion structurée des erreurs
-    const errorMessage =
-      error instanceof Error ? error.message : "Erreur inconnue lors de la récupération des frameworks"
-
-    console.error(`Erreur dans getFrameworksByLanguageId: ${errorMessage}`, error)
-
-    // On peut choisir de retourner un tableau vide ou de propager l'erreur
-    // Pour maintenir la compatibilité, on retourne un tableau vide
+  if (librariesError) {
+    console.error(`Erreur lors de la récupération des bibliothèques:`, librariesError)
     return []
   }
+
+  return libraries as DbLibrary[]
 }
 
-// Le reste du fichier reste inchangé...
+/**
+ * Récupère les IDs des bibliothèques associées à un langage
+ * @param languageId ID du langage
+ * @returns Liste des IDs de bibliothèques
+ */
+async function fetchLibraryIdsByLanguageId(languageId: number): Promise<number[]> {
+  const supabase = createServerSupabaseClient()
+
+  const { data: libraryLanguages, error: libraryLanguagesError } = await supabase
+    .from("library_languages")
+    .select("library_id")
+    .eq("language_id", languageId)
+
+  if (libraryLanguagesError) {
+    console.error(
+      `Erreur lors de la récupération des relations bibliothèque-langage pour le langage ${languageId}:`,
+      libraryLanguagesError,
+    )
+    return []
+  }
+
+  if (!libraryLanguages || libraryLanguages.length === 0) {
+    return []
+  }
+
+  return libraryLanguages.map((item) => item.library_id)
+}
+
+/**
+ * Récupère tous les frameworks associés à un langage
+ * @param languageId ID du langage
+ * @returns Liste des frameworks
+ */
+export const getFrameworksByLanguageId = cache(async (languageId: number): Promise<Library[]> => {
+  try {
+    // 1. Récupérer les IDs des bibliothèques
+    const libraryIds = await fetchLibraryIdsByLanguageId(languageId)
+
+    if (libraryIds.length === 0) {
+      return []
+    }
+
+    // 2. Récupérer les données des bibliothèques
+    const librariesData = await fetchLibrariesData(libraryIds)
+
+    // 3. Transformer les données en objets Library
+    return librariesData.map(dbToLibrary)
+  } catch (error) {
+    console.error(`Erreur lors de la récupération des frameworks pour le langage ${languageId}:`, error)
+    return []
+  }
+})
+
+// Autres fonctions du fichier libraries.ts...

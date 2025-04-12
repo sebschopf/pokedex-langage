@@ -2,13 +2,14 @@ import SearchBar from "@/components/search-bar"
 import FilterBar from "@/components/filter-bar"
 import { LanguageGrid } from "@/components/language-grid"
 import { AuthButton } from "@/components/auth-button"
-import { getLanguages } from "@/lib/data"
 import Link from "next/link"
-import { createServerSupabaseClient } from "@/lib/supabase-server"
+import { createServerSupabaseClient } from "@/lib/server/supabase/client"
+
+// Revalider la page toutes les heures
+export const revalidate = 3600
+
 export default async function Home() {
   try {
-    const languages = await getLanguages()
-
     // Vérifier si l'utilisateur est connecté
     const supabase = createServerSupabaseClient()
     const {
@@ -57,7 +58,7 @@ export default async function Home() {
           <FilterBar />
         </div>
 
-        <LanguageGrid languages={languages} />
+        <LanguageGrid />
       </div>
     )
   } catch (error) {

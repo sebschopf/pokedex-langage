@@ -2,13 +2,16 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createClientSupabaseClient } from "@/lib/client/supabase"
+import { withTokenRefresh } from "@/lib/client/auth-helpers"
 import { useToast } from "@/components/ui/use-toast"
 import { Loader2, LogOut, Save, Home } from "lucide-react"
+import type { UserRoleType } from "@/lib/client/permissions"
+import type { Profile } from "@/types/models"
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null)
-  const [userRole, setUserRole] = useState<string | null>(null)
+  const [userRole, setUserRole] = useState<UserRoleType | null>(null)
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(false)
   const [username, setUsername] = useState("")
@@ -16,64 +19,67 @@ export default function ProfilePage() {
   const [website, setWebsite] = useState("")
   const router = useRouter()
   const { toast } = useToast()
-  const supabase = createClientComponentClient()
+  const supabase = createClientSupabaseClient()
 
   useEffect(() => {
     const getProfile = async () => {
       try {
         setLoading(true)
 
-        const {
-          data: { session },
-        } = await supabase.auth.getSession()
+        // Utiliser withTokenRefresh pour gérer automatiquement le rafraîchissement du token
+        await withTokenRefresh(async () => {
+          const {
+            data: { session },
+          } = await supabase.auth.getSession()
 
-        if (!session) {
-          router.push("/login")
-          return
-        }
+          if (!session) {
+            router.push("/login")
+            return
+          }
 
-        const { user } = session
-        setUser(user)
+          const { user } = session
+          setUser(user)
 
-        // Récupérer le rôle de l'utilisateur - Ajout de logs pour déboguer
-        const { data: userRoleData, error: roleError } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("id", user.id)
-          .single()
-
-        console.log("User ID:", user.id)
-        console.log("User role data:", userRoleData)
-
-        if (roleError) {
-          console.error("Erreur lors de la récupération du rôle:", roleError)
-        }
-
-        if (userRoleData) {
-          setUserRole(userRoleData.role)
-          console.log("Rôle défini:", userRoleData.role)
-        }
-
-        // Récupérer le profil de l'utilisateur
-        try {
-          const { data, error: profileError } = await supabase
-            .from("profiles")
-            .select("username, bio, website")
+          // Récupérer le rôle de l'utilisateur - Ajout de logs pour déboguer
+          const { data: userRoleData, error: roleError } = await supabase
+            .from("user_roles")
+            .select("role")
             .eq("id", user.id)
             .single()
 
-          if (profileError) {
-            console.error("Erreur lors de la récupération du profil:", profileError)
+          console.log("User ID:", user.id)
+          console.log("User role data:", userRoleData)
+
+          if (roleError) {
+            console.error("Erreur lors de la récupération du rôle:", roleError)
           }
 
-          if (data) {
-            setUsername(data.username || "")
-            setBio(data.bio || "")
-            setWebsite(data.website || "")
+          if (userRoleData) {
+            setUserRole(userRoleData.role as UserRoleType)
+            console.log("Rôle défini:", userRoleData.role)
           }
-        } catch (error) {
-          console.log("Erreur lors de la récupération du profil:", error)
-        }
+
+          // Récupérer le profil de l'utilisateur
+          try {
+            const { data, error: profileError } = await supabase
+              .from("profiles")
+              .select("username, bio, website")
+              .eq("id", user.id)
+              .single()
+
+            if (profileError) {
+              console.error("Erreur lors de la récupération du profil:", profileError)
+            }
+
+            if (data) {
+              setUsername(data.username || "")
+              setBio(data.bio || "")
+              setWebsite(data.website || "")
+            }
+          } catch (error) {
+            console.log("Erreur lors de la récupération du profil:", error)
+          }
+        })
       } catch (error: any) {
         toast({
           title: "Erreur",
@@ -94,34 +100,49 @@ export default function ProfilePage() {
 
       if (!user) return
 
-      // Vérifier si la table profiles existe, sinon la créer
-      try {
-        const { error } = await supabase.from("profiles").upsert({
-          id: user.id,
-          username,
-          bio,
-          website,
-          updated_at: new Date().toISOString(),
-        })
+      // Utiliser withTokenRefresh pour gérer automatiquement le rafraîchissement du token
+      await withTokenRefresh(async () => {
+        // Vérifier si la table profiles existe, sinon la créer
+        try {
+          // Convertir les données au format attendu par la base de données
+          const profileData: Partial<Profile> = {
+            id: user.id,
+            username,
+            bio,
+            website,
+            updatedAt: new Date().toISOString(),
+          }
 
-        if (error) throw error
+          // Utiliser profileToDb pour convertir au format de la base de données si nécessaire
+          // const dbProfileData = profileToDb(profileData);
 
-        toast({
-          title: "Profil mis à jour",
-          description: "Votre profil a été mis à jour avec succès.",
-        })
-      } catch (error: any) {
-        // Si la table n'existe pas, suggérer de la créer
-        if (error.code === "PGRST116") {
-          toast({
-            title: "Table manquante",
-            description: "La table profiles n'existe pas. Contactez l'administrateur.",
-            variant: "destructive",
+          const { error } = await supabase.from("profiles").upsert({
+            id: user.id,
+            username,
+            bio,
+            website,
+            updated_at: new Date().toISOString(),
           })
-        } else {
-          throw error
+
+          if (error) throw error
+
+          toast({
+            title: "Profil mis à jour",
+            description: "Votre profil a été mis à jour avec succès.",
+          })
+        } catch (error: any) {
+          // Si la table n'existe pas, suggérer de la créer
+          if (error.code === "PGRST116") {
+            toast({
+              title: "Table manquante",
+              description: "La table profiles n'existe pas. Contactez l'administrateur.",
+              variant: "destructive",
+            })
+          } else {
+            throw error
+          }
         }
-      }
+      })
     } catch (error: any) {
       toast({
         title: "Erreur",

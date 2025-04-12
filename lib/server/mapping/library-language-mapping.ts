@@ -1,5 +1,6 @@
-import type { DbLibraryLanguage } from "@/types/database"
-import type { LibraryLanguage } from "@/types/models"
+import type { DbLibraryLanguage } from "@/types/database/library-language"
+import type { LibraryLanguage } from "@/types/models/library-language"
+import { toNumber, toString } from "@/utils/conversion/type-conversion"
 
 /**
  * Convertit un objet DbLibraryLanguage en LibraryLanguage
@@ -8,7 +9,7 @@ import type { LibraryLanguage } from "@/types/models"
  */
 export function dbToLibraryLanguage(dbLibraryLanguage: DbLibraryLanguage): LibraryLanguage {
   return {
-    id: dbLibraryLanguage.id,
+    id: toNumber(dbLibraryLanguage.id),
     createdAt: dbLibraryLanguage.created_at,
     languageId: dbLibraryLanguage.language_id,
     libraryId: dbLibraryLanguage.library_id,
@@ -24,11 +25,11 @@ export function dbToLibraryLanguage(dbLibraryLanguage: DbLibraryLanguage): Libra
 export function libraryLanguageToDb(libraryLanguage: Partial<LibraryLanguage>): Partial<DbLibraryLanguage> {
   const dbLibraryLanguage: Partial<DbLibraryLanguage> = {}
 
-  if (libraryLanguage.id !== undefined) dbLibraryLanguage.id = libraryLanguage.id
-  if (libraryLanguage.createdAt !== undefined) dbLibraryLanguage.created_at = libraryLanguage.createdAt
+  if (libraryLanguage.id !== undefined) dbLibraryLanguage.id = toString(libraryLanguage.id)
+  if (libraryLanguage.createdAt !== null) dbLibraryLanguage.created_at = libraryLanguage.createdAt
   if (libraryLanguage.languageId !== undefined) dbLibraryLanguage.language_id = libraryLanguage.languageId
   if (libraryLanguage.libraryId !== undefined) dbLibraryLanguage.library_id = libraryLanguage.libraryId
-  if (libraryLanguage.primaryLanguage !== undefined)
+  if (libraryLanguage.primaryLanguage !== null)
     dbLibraryLanguage.primary_language = libraryLanguage.primaryLanguage
 
   return dbLibraryLanguage
