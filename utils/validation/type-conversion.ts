@@ -1,4 +1,19 @@
 /**
+ * Ce fichier est déprécié. Utilisez le module utils/conversion/type-conversion.ts à la place.
+ * @deprecated
+ */
+
+// Réexporter depuis le nouveau module pour maintenir la compatibilité
+export * from "../conversion/type-conversion"
+
+// Avertissement de console en développement
+if (process.env.NODE_ENV === "development") {
+  console.warn(
+    "Avertissement: utils/validation/type-conversion.ts est déprécié. Utilisez utils/conversion/type-conversion.ts à la place.",
+  )
+}
+
+/**
  * Utilitaires pour la conversion de types
  */
 

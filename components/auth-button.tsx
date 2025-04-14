@@ -1,96 +1,21 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, LogOut, User, LayoutDashboard } from "lucide-react"
+import { Loader2, LogOut, User, LayoutDashboard } from 'lucide-react'
 import Link from "next/link"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { createClientSupabaseClient } from "@/lib/client/supabase"
-import type { UserRoleType } from "@/lib/client/permissions"
+import { useAuth } from "@/components/providers/auth-provider"
 
 export function AuthButton() {
-  const [user, setUser] = useState<any>(null)
-  const [userRole, setUserRole] = useState<UserRoleType | null>(null)
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { user, userRole, avatarUrl, isLoading, signOut } = useAuth()
   const router = useRouter()
-  // Utiliser le singleton pour éviter de créer plusieurs instances
-  const supabase = createClientSupabaseClient()
-
-  useEffect(() => {
-    const getUser = async () => {
-      try {
-        setLoading(true)
-        const {
-          data: { session },
-        } = await supabase.auth.getSession()
-
-        if (session?.user) {
-          setUser(session.user)
-
-          // Récupérer le rôle de l'utilisateur
-          const { data: userRoleData } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("id", session.user.id)
-            .single()
-
-          if (userRoleData) {
-            setUserRole(userRoleData.role as UserRoleType)
-          }
-
-          // Récupérer l'avatar de l'utilisateur
-          try {
-            const { data: profileData } = await supabase
-              .from("profiles")
-              .select("avatar_url")
-              .eq("id", session.user.id)
-              .single()
-
-            if (profileData?.avatar_url) {
-              setAvatarUrl(profileData.avatar_url)
-            }
-          } catch (error) {
-            console.log("Erreur lors de la récupération de l'avatar:", error)
-          }
-        } else {
-          // S'assurer que les états sont réinitialisés si aucune session n'est trouvée
-          setUser(null)
-          setUserRole(null)
-          setAvatarUrl(null)
-        }
-      } catch (error) {
-        console.log("Erreur lors de la récupération de l'utilisateur:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    getUser()
-
-    // Utiliser un seul écouteur d'événements pour éviter les doublons
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-        getUser()
-      } else if (event === "SIGNED_OUT") {
-        setUser(null)
-        setUserRole(null)
-        setAvatarUrl(null)
-      }
-    })
-
-    return () => {
-      authListener.subscription.unsubscribe()
-    }
-  }, [supabase, router])
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
+    await signOut()
     router.push("/")
-    router.refresh()
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="px-6 py-3 bg-gray-200 border-4 border-black text-black font-black text-lg uppercase shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center">
         <Loader2 className="h-5 w-5 animate-spin mr-2" />
@@ -105,7 +30,7 @@ export function AuthButton() {
         <DropdownMenuTrigger asChild>
           <button className="relative h-12 w-12 rounded-none border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-300 hover:-translate-y-1 transition-all hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
             {avatarUrl ? (
-              <img src={avatarUrl || "/placeholder.svg"} alt={user.email} className="h-full w-full object-cover" />
+              <img src={avatarUrl || "/placeholder.svg"} alt={user.email || ""} className="h-full w-full object-cover" />
             ) : (
               <div className="h-full w-full flex items-center justify-center bg-blue-300 font-black text-xl">
                 {user.email?.charAt(0).toUpperCase() || "U"}

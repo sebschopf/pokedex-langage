@@ -4,6 +4,8 @@ import { LanguageGrid } from "@/components/language-grid"
 import { AuthButton } from "@/components/auth-button"
 import Link from "next/link"
 import { createServerSupabaseClient } from "@/lib/server/supabase/client"
+import { Suspense } from "react"
+import Loading from "./loading"
 
 // Revalider la page toutes les heures
 export const revalidate = 3600
@@ -27,11 +29,11 @@ export default async function Home() {
 
     return (
       <div className="space-y-8">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <h1 className="text-5xl md:text-7xl font-black mb-4 text-black uppercase tracking-tighter lcp-title">
             Pokedex des langages
           </h1>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4 justify-center md:justify-end">
             <AuthButton />
 
             {/* N'afficher le lien vers le profil que si l'utilisateur est connecté */}
@@ -58,7 +60,9 @@ export default async function Home() {
           <FilterBar />
         </div>
 
-        <LanguageGrid />
+        <Suspense fallback={<Loading />}>
+          <LanguageGrid />
+        </Suspense>
       </div>
     )
   } catch (error) {

@@ -2,7 +2,7 @@ import { cache } from "react"
 import { createServerSupabaseClient } from "../supabase/client"
 import type { Language } from "@/types/models"
 import { dbToLanguage, languageToDb } from "../mapping/language-mapping"
-import { generateLanguageSlug } from "@/lib/utils/slug-generator"
+import { generateLanguageSlug } from "@/utils/slug"
 
 const LANGUAGE_COLUMNS =
   "id, created_at, creator, description, is_open_source, logo_path, name, popular_frameworks, short_description, slug, strengths, tools, type, updated_at, usage_rate, used_for, year_created"

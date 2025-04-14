@@ -1,80 +1,62 @@
-import { dbToUserRole } from "../lib/database-mapping"
-import type { UserRoleType } from "@/types/database/user-role" // Changé de UserRole à UserRoleType
-
-export interface UserWithRelations {
-  id: string
-  role: string
-  created_at?: string | null
-  updated_at?: string | null
-  auth_users:
-    | {
-        email: string
-        created_at: string
-        last_sign_in_at?: string | null
-      }
-    | {
-        email: string
-        created_at: string
-        last_sign_in_at?: string | null
-      }[]
-  profiles?:
-    | {
-        username?: string | null
-        avatar_url?: string | null
-        updated_at?: string | null
-      }
-    | {
-        username?: string | null
-        avatar_url?: string | null
-        updated_at?: string | null
-      }[]
-}
-
-export interface NormalizedUser {
-  id: string
-  role: UserRoleType // Changé de UserRole["role"] à UserRoleType
-  created_at?: string | null
-  updated_at?: string | null
-  auth_user: {
-    email: string
-    created_at: string
-    last_sign_in_at?: string | null
-  }
-  profile: {
-    username?: string | null
-    avatar_url?: string | null
-    updated_at?: string | null
-  }
+/**
+ * Vérifie si une erreur Supabase est une erreur de contrainte unique
+ * @param error Erreur Supabase
+ * @returns true si c'est une erreur de contrainte unique
+ */
+export function isUniqueConstraintError(error: any): boolean {
+  return error?.code === "23505"
 }
 
 /**
- * Normalise les données d'utilisateur retournées par Supabase
- * pour faciliter l'accès aux relations
+ * Vérifie si une erreur Supabase est une erreur de contrainte de clé étrangère
+ * @param error Erreur Supabase
+ * @returns true si c'est une erreur de contrainte de clé étrangère
  */
-export function normalizeUserData(userData: UserWithRelations): NormalizedUser {
-  // Convertir le rôle en utilisant la fonction existante
-  const userRole = dbToUserRole({
-    id: userData.id,
-    role: userData.role as UserRoleType, // Ajout d'une assertion de type
-    createdAt: userData.createdAt ?? "",
-    updatedAt: userData.updatedAt ?? "",
-  })
+export function isForeignKeyConstraintError(error: any): boolean {
+  return error?.code === "23503"
+}
 
-  // Normaliser les relations auth_users et profiles
-  const authUser = Array.isArray(userData.auth_users) ? userData.auth_users[0] || {} : userData.auth_users || {}
+/**
+ * Formate un message d'erreur Supabase pour l'affichage
+ * @param error Erreur Supabase
+ * @returns Message d'erreur formaté
+ */
+export function formatSupabaseErrorMessage(error: any): string {
+  if (!error) return "Une erreur inconnue est survenue"
 
-  const profile = userData.profiles
-    ? Array.isArray(userData.profiles)
-      ? userData.profiles[0] || {}
-      : userData.profiles || {}
-    : {}
-
-  return {
-    id: userRole.id,
-    role: userRole.role,
-    created_at: userRole.createdAt,
-    updated_at: userRole.updatedAt,
-    auth_user: authUser,
-    profile: profile,
+  if (isUniqueConstraintError(error)) {
+    return "Cette entrée existe déjà"
   }
+
+  if (isForeignKeyConstraintError(error)) {
+    return "Cette opération fait référence à une entrée qui n'existe pas"
+  }
+
+  return error.message || "Une erreur est survenue"
+}
+
+/**
+ * Gère une erreur Supabase et retourne une valeur par défaut
+ * @param error Erreur Supabase
+ * @param defaultValue Valeur par défaut à retourner
+ * @returns Valeur par défaut
+ */
+export function handleSupabaseError<T>(error: any, defaultValue: T): T {
+  if (error) {
+    console.error("Erreur Supabase:", formatSupabaseErrorMessage(error), error)
+  }
+  return defaultValue
+}
+
+/**
+ * Obtient l'URL publique d'un fichier stocké dans Supabase
+ * @param bucket Nom du bucket
+ * @param path Chemin du fichier
+ * @returns URL publique du fichier
+ */
+export function getPublicFileUrl(bucket: string, path: string): string {
+  const storageUrl = process.env.NEXT_PUBLIC_STORAGE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!storageUrl) return ""
+
+  return `${storageUrl}/storage/v1/object/public/${bucket}/${path}`
 }

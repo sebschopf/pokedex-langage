@@ -6,7 +6,6 @@ import { ChevronUp } from "lucide-react"
 export default function ScrollToTop() {
   const [isVisible, setIsVisible] = useState(false)
 
-  // Fonction pour vérifier si on doit afficher le bouton
   const toggleVisibility = () => {
     if (window.scrollY > 300) {
       setIsVisible(true)
@@ -15,7 +14,6 @@ export default function ScrollToTop() {
     }
   }
 
-  // Fonction pour remonter en haut de la page
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
@@ -24,10 +22,7 @@ export default function ScrollToTop() {
   }
 
   useEffect(() => {
-    // Ajouter l'écouteur d'événement au chargement
     window.addEventListener("scroll", toggleVisibility)
-
-    // Nettoyer l'écouteur d'événement au démontage
     return () => window.removeEventListener("scroll", toggleVisibility)
   }, [])
 

@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getFrameworksByLanguageId } from "@/lib/server/api/libraries"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const languageId = Number.parseInt(params.id, 10)
     if (isNaN(languageId)) {

@@ -29,11 +29,15 @@
 }
 
 .dark {
-  --background: 222.2 84% 4.9%;
+  /* Fond avec une teinte jaune foncée */
+  --background: 45 30% 45%; /* Jaune foncé pour le fond en mode sombre */
   --foreground: 210 40% 98%;
-  --card: 222.2 84% 4.9%;
+
+  /* Cartes légèrement plus foncées */
+  --card: 45 20% 20%; /* Jaune encore plus foncé pour les cartes */
   --card-foreground: 210 40% 98%;
-  --popover: 222.2 84% 4.9%;
+
+  --popover: 45 20% 20%;
   --popover-foreground: 210 40% 98%;
   --primary: 210 40% 98%;
   --primary-foreground: 222.2 47.4% 11.2%;
@@ -83,6 +87,24 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Styles spécifiques pour les cartes en mode sombre */
+.dark .border-4.border-black.bg-white {
+  @apply bg-[#2a2a20]; /* Fond légèrement jaunâtre foncé pour les cartes en mode sombre */
+  border-color: #3a3a30; /* Bordure légèrement plus claire que le fond */
+}
+
+/* Styles spécifiques pour les éléments avec fond blanc en mode sombre */
+.dark .bg-white {
+  @apply bg-[#2a2a20]; /* Fond légèrement jaunâtre foncé pour les éléments blancs en mode sombre */
+}
+
+/* Styles spécifiques pour les éléments avec fond gris clair en mode sombre */
+.dark .bg-gray-50,
+.dark .bg-gray-100,
+.dark .bg-gray-200 {
+  @apply bg-[#252520]; /* Fond encore plus foncé pour les éléments gris en mode sombre */
 }
 
 /* Easter Egg CSS - Activé avec la classe .css-magic */

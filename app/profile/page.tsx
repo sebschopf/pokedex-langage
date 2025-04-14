@@ -1,19 +1,23 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react" // Ajout de l'import useEffect manquant
 import { useRouter } from "next/navigation"
-import { createClientSupabaseClient } from "@/lib/client/supabase"
 import { withTokenRefresh } from "@/lib/client/auth-helpers"
 import { useToast } from "@/components/ui/use-toast"
-import { Loader2, LogOut, Save, Home } from "lucide-react"
-import type { UserRoleType } from "@/lib/client/permissions"
+import { Loader2, LogOutIcon as _LogOut, SaveIcon as _Save, HomeIcon as _Home } from 'lucide-react' 
+// TODO(#4): Utiliser ces icônes dans l'interface utilisateur ou les supprimer
+
+import { useAuth } from "@/components/providers/auth-provider"
+import { createClientSupabaseClient } from "@/lib/client/supabase"
 import type { Profile } from "@/types/models"
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<any>(null)
-  const [userRole, setUserRole] = useState<UserRoleType | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [updating, setUpdating] = useState(false)
+  // TODO(#4): Implémenter l'affichage et les fonctionnalités spécifiques au rôle utilisateur
+  const { user, _userRole, isLoading, signOut, refreshUserData } = useAuth()
+  
+  const [_updating, setUpdating] = useState(false)
+  // TODO(#4): Utiliser _updating pour désactiver les boutons pendant les mises à jour
+  
   const [username, setUsername] = useState("")
   const [bio, setBio] = useState("")
   const [website, setWebsite] = useState("")
@@ -21,78 +25,35 @@ export default function ProfilePage() {
   const { toast } = useToast()
   const supabase = createClientSupabaseClient()
 
+  // Charger les données du profil au montage du composant
   useEffect(() => {
-    const getProfile = async () => {
+    const loadProfileData = async () => {
+      if (!user) return
+      
       try {
-        setLoading(true)
-
-        // Utiliser withTokenRefresh pour gérer automatiquement le rafraîchissement du token
-        await withTokenRefresh(async () => {
-          const {
-            data: { session },
-          } = await supabase.auth.getSession()
-
-          if (!session) {
-            router.push("/login")
-            return
-          }
-
-          const { user } = session
-          setUser(user)
-
-          // Récupérer le rôle de l'utilisateur - Ajout de logs pour déboguer
-          const { data: userRoleData, error: roleError } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("id", user.id)
-            .single()
-
-          console.log("User ID:", user.id)
-          console.log("User role data:", userRoleData)
-
-          if (roleError) {
-            console.error("Erreur lors de la récupération du rôle:", roleError)
-          }
-
-          if (userRoleData) {
-            setUserRole(userRoleData.role as UserRoleType)
-            console.log("Rôle défini:", userRoleData.role)
-          }
-
-          // Récupérer le profil de l'utilisateur
-          try {
-            const { data, error: profileError } = await supabase
-              .from("profiles")
-              .select("username, bio, website")
-              .eq("id", user.id)
-              .single()
-
-            if (profileError) {
-              console.error("Erreur lors de la récupération du profil:", profileError)
-            }
-
-            if (data) {
-              setUsername(data.username || "")
-              setBio(data.bio || "")
-              setWebsite(data.website || "")
-            }
-          } catch (error) {
-            console.log("Erreur lors de la récupération du profil:", error)
-          }
-        })
-      } catch (error: any) {
-        toast({
-          title: "Erreur",
-          description: error.message,
-          variant: "destructive",
-        })
-      } finally {
-        setLoading(false)
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("username, bio, website")
+          .eq("id", user.id)
+          .single()
+          
+        if (error && error.code !== 'PGRST116') {
+          console.error("Erreur lors de la récupération du profil:", error)
+          return
+        }
+        
+        if (data) {
+          setUsername(data.username || "")
+          setBio(data.bio || "")
+          setWebsite(data.website || "")
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération du profil:", error)
       }
     }
-
-    getProfile()
-  }, [router, supabase, toast])
+    
+    loadProfileData()
+  }, [user, supabase])
 
   const updateProfile = async () => {
     try {
@@ -102,46 +63,32 @@ export default function ProfilePage() {
 
       // Utiliser withTokenRefresh pour gérer automatiquement le rafraîchissement du token
       await withTokenRefresh(async () => {
-        // Vérifier si la table profiles existe, sinon la créer
-        try {
-          // Convertir les données au format attendu par la base de données
-          const profileData: Partial<Profile> = {
-            id: user.id,
-            username,
-            bio,
-            website,
-            updatedAt: new Date().toISOString(),
-          }
-
-          // Utiliser profileToDb pour convertir au format de la base de données si nécessaire
-          // const dbProfileData = profileToDb(profileData);
-
-          const { error } = await supabase.from("profiles").upsert({
-            id: user.id,
-            username,
-            bio,
-            website,
-            updated_at: new Date().toISOString(),
-          })
-
-          if (error) throw error
-
-          toast({
-            title: "Profil mis à jour",
-            description: "Votre profil a été mis à jour avec succès.",
-          })
-        } catch (error: any) {
-          // Si la table n'existe pas, suggérer de la créer
-          if (error.code === "PGRST116") {
-            toast({
-              title: "Table manquante",
-              description: "La table profiles n'existe pas. Contactez l'administrateur.",
-              variant: "destructive",
-            })
-          } else {
-            throw error
-          }
+        // TODO(#4): Utiliser ce modèle pour la validation et la transformation des données
+        const _profileData: Partial<Profile> = {
+          id: user.id,
+          username,
+          bio,
+          website,
+          updatedAt: new Date().toISOString(),
         }
+
+        const { error } = await supabase.from("profiles").upsert({
+          id: user.id,
+          username,
+          bio,
+          website,
+          updated_at: new Date().toISOString(),
+        })
+
+        if (error) throw error
+
+        // Rafraîchir les données utilisateur dans le contexte
+        await refreshUserData()
+
+        toast({
+          title: "Profil mis à jour",
+          description: "Votre profil a été mis à jour avec succès.",
+        })
       })
     } catch (error: any) {
       toast({
@@ -155,23 +102,11 @@ export default function ProfilePage() {
   }
 
   const handleSignOut = async () => {
-    try {
-      setLoading(true)
-      await supabase.auth.signOut()
-      router.push("/")
-      router.refresh()
-    } catch (error: any) {
-      toast({
-        title: "Erreur de déconnexion",
-        description: error.message,
-        variant: "destructive",
-      })
-    } finally {
-      setLoading(false)
-    }
+    await signOut()
+    router.push("/")
   }
 
-  if (loading) {
+  if (isLoading || !user) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="px-8 py-6 bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex items-center">
@@ -235,93 +170,37 @@ export default function ProfilePage() {
             />
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="role" className="text-lg font-bold">
-              Rôle
-            </label>
-            <input
-              id="role"
-              type="text"
-              value={userRole || "utilisateur"}
-              disabled
-              className="w-full p-3 border-4 border-black font-medium text-base bg-gray-100"
-            />
-          </div>
-
           <div className="pt-4">
             <button
               onClick={updateProfile}
-              disabled={updating}
+              disabled={_updating}
               className="w-full px-6 py-3 bg-black text-white font-black text-lg uppercase hover:bg-gray-800 hover:-translate-y-1 transition-all"
             >
-              {updating ? (
+              {_updating ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin mr-2 inline" />
                   Mise à jour...
                 </>
               ) : (
-                <>
-                  <Save className="h-5 w-5 mr-2 inline" />
-                  Enregistrer les modifications
-                </>
+                "Enregistrer les modifications"
               )}
-            </button>
-          </div>
-
-          {/* Lien vers le dashboard admin si l'utilisateur est admin ou validator */}
-          {(userRole === "admin" || userRole === "validator") && (
-            <div className="pt-4">
-              <button
-                onClick={() => router.push("/admin/dashboard")}
-                className="w-full px-6 py-3 bg-white border-4 border-black text-black font-black text-lg uppercase hover:bg-blue-300 hover:-translate-y-1 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
-              >
-                Accéder au tableau de bord d'administration
-              </button>
-            </div>
-          )}
-
-          {/* Lien direct vers le dashboard admin (pour déboguer) */}
-          <div className="pt-4">
-            <p className="text-sm text-gray-500 mb-2">
-              Si le bouton ci-dessus n'apparaît pas malgré votre rôle d'administrateur, utilisez ce lien direct :
-            </p>
-            <button
-              onClick={() => router.push("/admin/dashboard")}
-              className="w-full px-6 py-3 bg-red-500 text-white font-black text-lg uppercase hover:bg-red-600 hover:-translate-y-1 transition-all"
-            >
-              Accès direct au tableau de bord admin
             </button>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="border-t-4 border-black p-6 flex justify-between">
+        <div className="border-t-4 border-black p-6">
           <button
             onClick={handleSignOut}
-            disabled={updating}
             className="px-6 py-3 bg-white border-4 border-black text-black font-bold hover:bg-red-100 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
           >
-            <LogOut className="h-5 w-5 mr-2 inline" />
             Déconnexion
-          </button>
-
-          <button
-            onClick={() => router.push("/")}
-            className="px-6 py-3 bg-white border-4 border-black text-black font-bold hover:bg-blue-100 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
-          >
-            <Home className="h-5 w-5 mr-2 inline" />
-            Retour à l'accueil
           </button>
         </div>
       </div>
 
-      {/* Informations de débogage */}
-      <div className="mt-8 p-4 bg-gray-100 border border-gray-300 rounded-md">
-        <h3 className="font-bold mb-2">Informations de débogage :</h3>
-        <p>User ID: {user?.id}</p>
-        <p>Rôle: {userRole || "non défini"}</p>
-        <p>Email: {user?.email}</p>
-      </div>
+      {/* TODO(#4): Ajouter une section pour afficher et gérer les rôles utilisateur */}
+      {/* TODO(#4): Implémenter un tableau de bord spécifique au rôle */}
     </div>
   )
 }

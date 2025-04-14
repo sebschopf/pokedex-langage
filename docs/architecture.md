@@ -1,235 +1,150 @@
-# Guide d'Architecture et Bonnes Pratiques
+# Architecture du Projet Pokedex Langage de Programmation
 
-## 1. Architecture Globale
+## Vue d'ensemble
 
-Notre application suit une architecture en couches avec une séparation claire des responsabilités :
+Ce projet est une application web moderne qui catalogue et présente différents langages de programmation, leurs frameworks associés, et d'autres technologies connexes. L'application est construite avec une architecture orientée composants, utilisant Next.js comme framework principal.
 
-- **Couche Présentation** : Composants React dans `/components` et `/app`
-- **Couche Logique Métier** : Hooks et utilitaires dans `/hooks` et `/lib/utils`
-- **Couche Accès aux Données** : API et mappeurs dans `/lib/server/api` et `/lib/server/mapping`
-- **Couche Infrastructure** : Configuration Supabase dans `/lib/server/supabase`
+## Stack Technologique
 
-Nous utilisons le modèle "Server Components" de Next.js pour maximiser les performances, avec une distinction claire entre les composants serveur et client.
+### Frontend
+- **Next.js 14+** : Framework React avec rendu côté serveur (SSR) et génération statique (SSG)
+- **React 18+** : Bibliothèque UI pour la construction d'interfaces utilisateur
+- **TypeScript** : Superset typé de JavaScript pour une meilleure maintenabilité
+- **Tailwind CSS** : Framework CSS utilitaire pour le styling
+- **shadcn/ui** : Composants UI réutilisables basés sur Radix UI
 
-## 2. Principes SOLID
+### Backend
+- **Next.js API Routes** : Points d'entrée API serverless
+- **Supabase** : Plateforme backend-as-a-service (alternative open source à Firebase)
+  - Base de données PostgreSQL
+  - Authentification et gestion des utilisateurs
+  - Stockage de fichiers
 
-Nous appliquons les principes SOLID dans notre code :
+### Outils de développement
+- **ESLint** : Linting du code JavaScript/TypeScript
+- **Prettier** : Formatage du code
+- **TanStack Query** (anciennement React Query) : Gestion des états serveur et mise en cache
 
-### Single Responsibility Principle (SRP)
-Chaque fonction ou composant ne doit avoir qu'une seule raison de changer.
+### Déploiement
+- **Vercel** : Plateforme de déploiement optimisée pour Next.js
+- **GitHub** : Gestion de version et CI/CD
 
-✅ **Bon exemple** :
-\`\`\`typescript
-// Fonction qui récupère uniquement les IDs
-async function fetchLibraryIdsByLanguageId(languageId: number): Promise<number[]> {
-  // ...
-}
+## Architecture Logicielle
 
-// Fonction qui récupère uniquement les données
-async function fetchLibrariesData(libraryIds: number[]): Promise<DbLibrary[]> {
-  // ...
-}
+L'application suit une architecture en couches avec une séparation claire des responsabilités :
 
-// Fonction qui orchestre le processus
-export const getFrameworksByLanguageId = cache(async (languageId: number): Promise<Library[]> => {
-  const libraryIds = await fetchLibraryIdsByLanguageId(languageId);
-  const librariesData = await fetchLibrariesData(libraryIds);
-  return librariesData.map(dbToLibrary);
-});
-\`\`\`
+### 1. Couche Présentation
+- **Components** (`/components`) : Composants React réutilisables
+- **Pages** (`/app`) : Routes et pages de l'application (App Router de Next.js)
 
-❌ **Mauvais exemple** :
-\`\`\`typescript
-export const getFrameworksByLanguageId = cache(async (languageId: number): Promise<Library[]> => {
-  // Récupération des IDs, des données et transformation tout dans une seule fonction
-  // ...
-});
-\`\`\`
+### 2. Couche Logique Métier
+- **Hooks** (`/hooks`) : Hooks React personnalisés pour la logique métier
+- **Utilitaires** (`/utils`) : Fonctions utilitaires génériques
+- **Lib** (`/lib`) : Logique métier spécifique à l'application
 
-### Open/Closed Principle (OCP)
-Les entités doivent être ouvertes à l'extension mais fermées à la modification.
+### 3. Couche Accès aux Données
+- **API** (`/lib/server/api`) : Fonctions d'accès aux données
+- **Mapping** (`/lib/server/mapping`) : Conversion entre les types de base de données et les modèles
 
-✅ **Bon exemple** :
-\`\`\`typescript
-// Fonction de base pour générer un slug
-export function generateSlug(name: string): string {
-  // Logique de base
-}
+### 4. Couche Infrastructure
+- **Supabase** (`/lib/server/supabase`) : Configuration et clients Supabase
 
-// Extension pour les cas spécifiques sans modifier la fonction originale
-export function generateLanguageSlug(name: string): string {
-  // Cas spéciaux pour les langages
-  if (specialCases[name]) return specialCases[name];
-  
-  // Utilisation de la fonction de base pour les autres cas
-  return generateSlug(name);
-}
-\`\`\`
+## Méthodologies et Principes
 
-### Liskov Substitution Principle (LSP)
-Les objets d'une classe dérivée doivent pouvoir remplacer les objets d'une classe de base.
+### 1. Principes SOLID
+- **Single Responsibility** : Chaque module a une seule raison de changer
+- **Open/Closed** : Les modules sont ouverts à l'extension mais fermés à la modification
+- **Liskov Substitution** : Les sous-types doivent être substituables à leurs types de base
+- **Interface Segregation** : Plusieurs interfaces spécifiques sont préférables à une seule interface générale
+- **Dependency Inversion** : Dépendre des abstractions, pas des implémentations
 
-### Interface Segregation Principle (ISP)
-Plusieurs interfaces spécifiques sont préférables à une seule interface générale.
+### 2. Architecture Orientée Composants
+- Composants autonomes et réutilisables
+- Composition plutôt qu'héritage
+- Props pour la configuration et les données
+- État local pour les interactions utilisateur
 
-✅ **Bon exemple** :
-\`\`\`typescript
-// Types spécifiques pour différentes entités
-interface LanguageBase {
-  id: number;
-  name: string;
-  // Propriétés communes
-}
+### 3. Gestion des Types
+- Types stricts avec TypeScript
+- Séparation entre types de base de données et modèles d'application
+- Utilisation d'interfaces pour définir les contrats
 
-interface ProgrammingLanguage extends LanguageBase {
-  paradigms: string[];
-  // Propriétés spécifiques aux langages de programmation
-}
+### 4. Gestion d'État
+- État local avec `useState` et `useReducer`
+- État global avec React Context API
+- État serveur avec TanStack Query
 
-interface MarkupLanguage extends LanguageBase {
-  doctype: string;
-  // Propriétés spécifiques aux langages de balisage
-}
-\`\`\`
-
-### Dependency Inversion Principle (DIP)
-Dépendre des abstractions, pas des implémentations concrètes.
-
-✅ **Bon exemple** :
-\`\`\`typescript
-// Dépendance sur une interface/type plutôt qu'une implémentation
-function processLanguage(language: Language) {
-  // ...
-}
-\`\`\`
-
-## 3. Structure des Dossiers
+## Structure des Dossiers
 
 \`\`\`
-/app                   # Routes et pages Next.js
+/app                   # Routes et pages Next.js (App Router)
   /api                 # Routes API
   /language            # Pages des langages
+  /profile             # Pages de profil utilisateur
+  /login               # Pages d'authentification
 /components            # Composants React réutilisables
+  /admin               # Composants d'administration
+  /ui                  # Composants UI génériques
 /hooks                 # Hooks React personnalisés
-/lib                   # Logique métier et utilitaires
-  /client              # Code exécuté côté client
-  /server              # Code exécuté côté serveur
+/lib                   # Logique métier et utilitaires spécifiques
+  /client              # Code côté client
+  /server              # Code côté serveur
     /api               # Fonctions d'accès aux données
-    /mapping           # Fonctions de transformation de données
-    /supabase          # Configuration et utilitaires Supabase
-  /utils               # Fonctions utilitaires génériques
+    /mapping           # Fonctions de transformation
+    /supabase          # Configuration Supabase
+  /hooks               # Hooks spécifiques à l'application
+  /providers           # Providers React Context
+/utils                 # Utilitaires génériques
+  /conversion          # Conversion entre types
+  /date                # Manipulation de dates
+  /pagination          # Utilitaires de pagination
+  /security            # Sécurité
+  /slug                # Génération de slugs
+  /storage             # Gestion du stockage
+  /string              # Manipulation de chaînes
+  /supabase            # Utilitaires Supabase
+  /theme               # Thème et apparence
+  /type-check          # Vérification de types
+  /validation          # Validation de données
 /types                 # Définitions de types TypeScript
-  /database            # Types correspondant aux tables de la base de données
+  /database            # Types correspondant aux tables
   /models              # Types utilisés dans l'application
   /dto                 # Types pour les transferts de données
 /public                # Fichiers statiques
+/scripts               # Scripts utilitaires
 \`\`\`
 
-## 4. Conventions de Nommage
+## Flux de Données
 
-- **Fichiers** : kebab-case pour les fichiers (`language-card.tsx`)
-- **Composants React** : PascalCase (`LanguageCard`)
-- **Fonctions** : camelCase (`getLanguageById`)
-- **Types/Interfaces** : PascalCase (`Language`, `DbLanguage`)
-- **Variables d'environnement** : SCREAMING_SNAKE_CASE (`NEXT_PUBLIC_SUPABASE_URL`)
+1. **Requête Client** : L'utilisateur interagit avec l'interface
+2. **Composant React** : Capture l'interaction et appelle un hook ou une fonction
+3. **Hook/Fonction** : Exécute la logique métier et appelle l'API si nécessaire
+4. **API Client** : Envoie la requête au serveur
+5. **API Route** : Traite la requête et interagit avec Supabase
+6. **Mapping** : Convertit les données de la base de données en modèles d'application
+7. **Réponse** : Les données sont renvoyées au client et affichées
 
-## 5. Gestion des Types
+## Authentification et Autorisation
 
-Nous utilisons une approche en couches pour les types :
+- Authentification basée sur Supabase Auth
+- Stratégie de session avec cookies
+- Rôles utilisateur pour l'autorisation
+- Middleware Next.js pour la protection des routes
 
-- **Types de Base de Données** (`/types/database`) : Correspondent exactement à la structure des tables
-- **Types de Modèles** (`/types/models`) : Représentent les données utilisées dans l'application
-- **Types DTO** (`/types/dto`) : Pour les transferts de données entre le client et le serveur
+## Gestion des Erreurs
 
-Les fonctions de mapping (`/lib/server/mapping`) convertissent entre ces différents types.
+- Capture des erreurs avec try/catch
+- Journalisation des erreurs
+- Pages d'erreur personnalisées
+- Récupération gracieuse avec valeurs par défaut
 
-## 6. Gestion des Erreurs
+## Performance
 
-Nous utilisons une approche en trois niveaux pour la gestion des erreurs :
-
-1. **Capture** : Toujours utiliser try/catch pour capturer les erreurs
-2. **Journalisation** : Logger les erreurs avec des informations contextuelles
-3. **Récupération gracieuse** : Toujours fournir une valeur par défaut en cas d'erreur
-
-\`\`\`typescript
-try {
-  // Code qui peut échouer
-} catch (error) {
-  console.error(`Contexte de l'erreur: ${contextInfo}`, error);
-  return defaultValue; // Valeur par défaut pour une récupération gracieuse
-}
-\`\`\`
-
-## 7. Requêtes à Supabase
-
-### Bonnes Pratiques
-
-1. **Utiliser le client serveur** pour les requêtes sensibles :
-   \`\`\`typescript
-   const supabase = createServerSupabaseClient();
-   \`\`\`
-
-2. **Spécifier les colonnes** pour optimiser les performances :
-   \`\`\`typescript
-   const { data } = await supabase
-     .from("languages")
-     .select("id, name, description")
-   \`\`\`
-
-3. **Utiliser le cache React** pour les requêtes fréquentes :
-   \`\`\`typescript
-   export const getLanguages = cache(async () => {
-     // ...
-   });
-   \`\`\`
-
-4. **Utiliser TanStack Query** pour la mise en cache côté client :
-   \`\`\`typescript
-   const { data, isLoading } = useQuery({
-     queryKey: ['languages'],
-     queryFn: fetchLanguages
-   });
-   \`\`\`
-
-## 8. Optimisation des Performances
-
-1. **Mise en cache** :
-   - Utiliser `cache()` de React pour les fonctions serveur
-   - Utiliser TanStack Query pour les requêtes client
-   - Implémenter des stratégies de revalidation appropriées
-
-2. **Chargement différé** :
-   - Utiliser `React.lazy()` et `Suspense` pour les composants volumineux
-   - Implémenter des squelettes de chargement pour améliorer l'UX
-
-3. **Pagination et chargement à la demande** :
-   - Limiter le nombre d'éléments chargés initialement
-   - Implémenter le chargement à la demande ou la pagination
-
-4. **Optimisation des images** :
-   - Utiliser le composant `Image` de Next.js
-   - Spécifier les dimensions et utiliser des formats modernes
-
-## 9. Tests
-
-Nous utilisons une approche de test en trois niveaux :
-
-1. **Tests unitaires** : Pour les fonctions et composants isolés
-2. **Tests d'intégration** : Pour les interactions entre composants
-3. **Tests end-to-end** : Pour les parcours utilisateur complets
-
-Chaque fonction d'API et composant majeur devrait avoir des tests associés.
-
-## 10. Déploiement
-
-Notre application est déployée sur Vercel avec les configurations suivantes :
-
-- **Environnement de production** : Branche `main`
-- **Environnement de prévisualisation** : Pull Requests
-- **Variables d'environnement** : Configurées dans le dashboard Vercel
+- Mise en cache avec React Cache et TanStack Query
+- Optimisation des images avec Next.js Image
+- Chargement différé des composants
+- Pagination et chargement à la demande
 
 ## Conclusion
 
-Ce guide est un document vivant qui évoluera avec le projet. Suivez ces principes pour maintenir un code propre, maintenable et performant.
-
-Pour toute question ou suggestion d'amélioration, n'hésitez pas à ouvrir une issue sur le dépôt GitHub.
+Cette architecture est conçue pour être modulaire, maintenable et évolutive. Elle suit les meilleures pratiques modernes de développement web et s'appuie sur des technologies éprouvées.

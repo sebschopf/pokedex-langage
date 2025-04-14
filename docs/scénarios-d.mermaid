@@ -1,0 +1,24 @@
+graph TD
+    A["Visiteur Non Enregistré"] -->|"Consulte uniquement"| B["Affichage du contenu public"]
+    A -->|"Invité à s'enregistrer"| C["Création de compte"]
+    
+    D["Utilisateur Enregistré<br>role: registered"] -->|"Soumet une correction<br>sur contenu existant"| E["Table: corrections<br>status: pending"]
+    
+    F["Utilisateur Vérifié<br>role: verified"] -->|"Soumet une correction"| E
+    F -->|"Soumet un nouvel élément<br>bibliothèque, framework, etc."| G["Table: libraries<br>status: pending"]
+    
+    H["Validateur<br>role: validator"] -->|"Examine"| E
+    H -->|"Examine"| G
+    
+    H -->|"Approuve"| I["Mise à jour<br>status: approved"]
+    H -->|"Rejette avec<br>commentaire obligatoire"| J["Mise à jour<br>status: rejected<br>+ commentaire"]
+    
+    H -->|"Gère les utilisateurs"| K["Peut attribuer/retirer<br>le rôle 'verified'"]
+    H -->|"Gère les todos"| L["Création/assignation<br>de tâches"]
+    
+    M["Référent de Langage<br>(Validateur désigné)"] -->|"Associé à un<br>ou plusieurs langages"| N["Table: language_referents"]
+    M -->|"Mêmes droits qu'un<br>validateur standard"| H
+    
+    O["Administrateur<br>role: admin"] -->|"Toutes les actions<br>des validateurs"| H
+    O -->|"Gestion complète<br>des rôles"| P["Modification de<br>tous les user_roles"]
+    O -->|"Désigne les<br>référents de langage"| Q["Attribue le statut<br>de référent"]

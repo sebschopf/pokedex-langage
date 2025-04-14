@@ -3,7 +3,17 @@
  */
 
 // Exportation explicite des fonctions de type-conversion.ts
-export { toNumber, toString, toBoolean } from "./type-conversion"
-
-// Exportation explicite des fonctions de null-undefined.ts
-export { nullToUndefined, undefinedToNull } from "./null-undefined"
+export {
+    toNumber,
+    toNumberOrNull,
+    toString,
+    toStringOrNull,
+    toBoolean,
+    toBooleanOrNull,
+    toArray,
+    toArrayOrNull,
+  } from "./type-conversion"
+  
+  // Exportation explicite des fonctions de null-undefined.ts
+  export { nullToUndefined, undefinedToNull, nullToDefault } from "./null-undefined"
+  

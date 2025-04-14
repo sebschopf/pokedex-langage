@@ -1,37 +1,58 @@
 /**
  * Point d'entrée principal pour les utilitaires
- * Exporte toutes les fonctions utilitaires depuis leurs modules respectifs
+ * Exporte toutes les fonctions utilitaires de manière organisée
  */
 
-// Exports des utilitaires de conversion
+// Importations des modules
+import * as ConversionUtils from "./conversion"
+import * as DateUtils from "./date"
+import * as ImageUtils from "./image"
+import * as PaginationUtils from "./pagination"
+import * as SecurityUtils from "./security"
+import * as SlugUtils from "./slug"
+import * as StringUtils from "./string"
+import * as StorageUtils from "./storage"
+import * as SupabaseUtils from "./supabase"
+import * as ThemeUtils from "./theme"
+import * as TypeCheckUtils from "./type-check"
+import * as ValidationUtils from "./validation"
+
+// Exportation des modules sous forme de namespaces
+export {
+  ConversionUtils,
+  DateUtils,
+  ImageUtils,
+  PaginationUtils,
+  SecurityUtils,
+  SlugUtils,
+  StringUtils,
+  StorageUtils,
+  SupabaseUtils,
+  ThemeUtils,
+  TypeCheckUtils,
+  ValidationUtils,
+}
+
+// Exportation directe des fonctions couramment utilisées
+export { cn } from "./theme"
+export { getTypeBadgeColor } from "./theme"
+export { getImageName } from "./image"
+export { generateSlug, generateLanguageSlug } from "./slug"
+export { toNumber, toString, toBoolean } from "./conversion"
+export { formatDate, formatDateFr } from "./date"
+export { isNullOrUndefined, isEmptyString, isNullOrEmpty } from "./validation"
+export { isNumber, isString, isBoolean, isObject, isArray } from "./type-check"
+
+// Exportation des modules entiers
 export * from "./conversion"
-
-// Exports des utilitaires de date
 export * from "./date"
-
-// Exports des utilitaires de pagination
+export * from "./image"
 export * from "./pagination"
-
-// Exports des utilitaires de sécurité
 export * from "./security"
-
-// Exports des utilitaires de slug
 export * from "./slug"
-
-// Exports des utilitaires de stockage
-export * from "./storage"
-
-// Exports des utilitaires de chaîne
 export * from "./string"
-
-// Exports des utilitaires Supabase
+export * from "./storage"
 export * from "./supabase"
-
-// Exports des utilitaires de thème
 export * from "./theme"
-
-// Exports des utilitaires de vérification de type
 export * from "./type-check"
-
-// Exports des utilitaires de validation
 export * from "./validation"

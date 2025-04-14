@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getLanguageById, updateLanguage, deleteLanguage } from "@/lib/server/api/languages"
 import { createServerSupabaseClient } from "@/lib/server/supabase/client"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const id = Number.parseInt(params.id, 10)
     if (isNaN(id)) {
@@ -61,7 +61,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
   try {
     // Vérifier l'authentification et les autorisations (admin uniquement)
     const supabase = createServerSupabaseClient()

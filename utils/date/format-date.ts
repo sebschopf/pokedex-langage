@@ -13,35 +13,23 @@ export function formatDateFr(date: Date | string | number): string {
   }
   
   /**
-   * Formate une date en format ISO (YYYY-MM-DD)
+   * Formate une date selon le format spécifié
    * @param date Date à formater
+   * @param format Format de date (par défaut: 'DD/MM/YYYY')
    * @returns Date formatée
    */
-  export function formatDateIso(date: Date | string | number): string {
+  export function formatDate(date: Date | string | number, format = "DD/MM/YYYY"): string {
     const d = new Date(date)
-    return d.toISOString().split("T")[0]
-  }
   
-  /**
-   * Formate une date avec l'heure en format français
-   * @param date Date à formater
-   * @returns Date et heure formatées
-   */
-  export function formatDateTimeFr(date: Date | string | number): string {
-    const d = new Date(date)
-    return d.toLocaleString("fr-FR")
-  }
+    // Format simple basé sur des remplacements de chaînes
+    const day = d.getDate().toString().padStart(2, "0")
+    const month = (d.getMonth() + 1).toString().padStart(2, "0")
+    const year = d.getFullYear()
   
-  /**
-   * Calcule la différence en jours entre deux dates
-   * @param date1 Première date
-   * @param date2 Deuxième date (par défaut: date actuelle)
-   * @returns Nombre de jours de différence
-   */
-  export function daysBetween(date1: Date | string | number, date2: Date | string | number = new Date()): number {
-    const d1 = new Date(date1)
-    const d2 = new Date(date2)
-    const diffTime = Math.abs(d2.getTime() - d1.getTime())
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return format
+      .replace("DD", day)
+      .replace("MM", month)
+      .replace("YYYY", year.toString())
+      .replace("YY", year.toString().slice(-2))
   }
   
