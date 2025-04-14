@@ -7,11 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2, Plus, Trash, Edit, Eye } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { getLanguages, deleteLanguage } from "@/lib/data"
 import type { Language } from "@/types/models"
 import { getImageName } from "@/utils/image"
 import { getTypeBadgeColor } from "@/utils/theme"
 import LanguageImage from "@/components/language-image"
+import { fetchLanguages, deleteLanguageClient } from "@/lib/client/api"
 
 export default function LanguagesAdminPage() {
   const [languages, setLanguages] = useState<Language[]>([])
@@ -25,7 +25,7 @@ export default function LanguagesAdminPage() {
   useEffect(() => {
     async function loadLanguages() {
       try {
-        const data = await getLanguages()
+        const data = await fetchLanguages()
         setLanguages(data || [])
       } catch (error) {
         console.error("Erreur lors du chargement des langages:", error)
@@ -52,17 +52,12 @@ export default function LanguagesAdminPage() {
 
     setDeleting(true)
     try {
-      // Convertir l'ID en nombre pour la fonction deleteLanguage
-      const success = await deleteLanguage(Number(languageToDelete.id))
-      if (success) {
-        setLanguages(languages.filter((lang) => lang.id !== languageToDelete.id))
-        toast({
-          title: "Langage supprimé",
-          description: `Le langage ${languageToDelete.name} a été supprimé avec succès.`,
-        })
-      } else {
-        throw new Error("Échec de la suppression")
-      }
+      await deleteLanguageClient(Number(languageToDelete.id))
+      setLanguages(languages.filter((lang) => lang.id !== languageToDelete.id))
+      toast({
+        title: "Langage supprimé",
+        description: `Le langage ${languageToDelete.name} a été supprimé avec succès.`,
+      })
     } catch (error) {
       console.error("Erreur lors de la suppression du langage:", error)
       toast({
