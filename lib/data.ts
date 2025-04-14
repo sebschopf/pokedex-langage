@@ -1,11 +1,12 @@
 import { createServerSupabaseClient } from "@/lib/supabase-server"
-import type { Language } from "@/types/language"
-import type { Library } from "@/types/library"
-import type { Correction } from "@/types/correction"
-import type { LanguageProposal } from "@/types/database/language-proposal"
-import type { LibraryLanguage } from "@/types/database/library-language"
-import type { TechnologyCategory } from "@/types/database/technology-category"
-import type { TechnologySubtype } from "@/types/database/technology-subtype"
+import type { Language,
+  Library,
+  Correction,
+  LanguageProposal,
+  LibraryLanguage,
+  TechnologyCategory,
+  TechnologySubtype } from "@/types/models";
+
 import {
   dbToLanguage,
   languageToDb,
@@ -21,7 +22,7 @@ import {
   technologyCategoryToDb,
   dbToTechnologySubtype,
   technologySubtypeToDb,
-} from "./database-mapping"
+} from "./server/mapping"
 
 // ===== FONCTIONS DE LECTURE (READ) =====
 
@@ -253,7 +254,7 @@ export async function createLibrary(library: Omit<Library, "id">, languageId: st
     const supabase = createServerSupabaseClient()
     const dbData = libraryToDb({
       ...library,
-      languageId: languageId, // Simplement utiliser languageId tel quel, car il est déjà une chaîne
+      languageId: Number(languageId), // Convertir languageId en nombre
     })
 
     const { data, error } = await supabase.from("libraries").insert(dbData).select().single()
@@ -624,10 +625,13 @@ export async function createLibraryLanguage(
   try {
     const supabase = createServerSupabaseClient()
 
-    // Générer un ID unique si non fourni
+    // Assurez-vous que les IDs sont des nombres et ajoutez les champs manquants
+    // Mais ne générez pas d'ID - laissez Supabase le faire
     const newLibraryLanguage = {
       ...libraryLanguage,
-      id: crypto.randomUUID(),
+      libraryId: Number(libraryLanguage.libraryId),
+      languageId: Number(libraryLanguage.languageId),
+      // Supprimez la génération d'ID ici, Supabase le fera automatiquement
       createdAt: new Date().toISOString(),
     }
 
