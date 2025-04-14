@@ -1,0 +1,30 @@
+[Major Update]: Refactorisation du projet, amélioration de l'architecture et ajout de documentation
+
+## Structure et Architecture
+- Refactorisation des utilitaires avec une meilleure organisation modulaire
+- Restructuration des providers React pour une meilleure séparation des responsabilités
+- Mise à jour de la documentation d'architecture
+- Ajout de guides de contribution et de style
+
+## Interface Utilisateur
+- Amélioration des composants de la grille et des cartes de langages
+- Mise à jour du layout principal et des styles globaux
+- Optimisation de la page de détail des langages
+- Mise à jour du composant d'authentification
+
+## API et Données
+- Amélioration des routes API pour les langages et frameworks
+- Optimisation des requêtes Supabase
+- Mise à jour des utilitaires de manipulation de données
+
+## Configuration et Dépendances
+- Mise à jour des dépendances dans package.json
+- Amélioration de la configuration TypeScript
+- Ajout de configurations ESLint et Prettier
+- Mise à jour des polices et styles globaux
+
+## Documentation
+- Ajout de CODE_OF_CONDUCT.md et CONTRIBUTING.md
+- Création de LICENSE pour le projet
+- Ajout de documentation API et tables
+- Documentation des scénarios d'utilisation avec diagrammes

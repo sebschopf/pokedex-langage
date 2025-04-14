@@ -3,7 +3,7 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { TodoForm } from "@/components/todo-form"
 
-export const dynamic = "force_dynamic"
+export const dynamic = "force-dynamic"
 
 export default async function NewTodoPage() {
   // Vérifier si l'utilisateur est connecté
