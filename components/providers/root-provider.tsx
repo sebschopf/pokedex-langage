@@ -1,15 +1,19 @@
 "use client"
 
-import { ThemeProvider } from "next-themes" // Ajustez l'import selon votre implémentation
+import { ThemeProvider } from "@/components/theme-provider"
 import { QueryProvider } from "@/components/providers/query-provider"
 import { AuthProvider } from "@/components/providers/auth-provider"
+import ScrollToTop from "@/components/scroll-to-top"
 import type { ReactNode } from "react"
 
-export default function AppProviders({ children }: { children: ReactNode }) {
+export function RootProvider({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <QueryProvider>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {children}
+          <ScrollToTop />
+        </AuthProvider>
       </QueryProvider>
     </ThemeProvider>
   )

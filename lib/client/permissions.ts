@@ -57,4 +57,31 @@ export async function hasRole(requiredRole: UserRoleType): Promise<boolean> {
   return roleHierarchy[userRole] >= roleHierarchy[requiredRole as UserRoleTypeDB]
 }
 
-// Autres fonctions...
+// Ajouter après les fonctions existantes
+
+// Obtenir le libellé d'un rôle pour l'affichage
+export function getRoleLabel(role: UserRoleType): string {
+  const roleLabels: Record<UserRoleType, string> = {
+    admin: "Administrateur",
+    validator: "Validateur",
+    verified: "Utilisateur vérifié",
+    registered: "Utilisateur enregistré",
+    anonymous: "Visiteur",
+  }
+
+  return roleLabels[role] || "Inconnu"
+}
+
+// Obtenir la couleur associée à un rôle pour l'affichage
+export function getRoleColor(role: UserRoleType): string {
+  const roleColors: Record<UserRoleType, string> = {
+    admin: "bg-red-100 text-red-800 border-red-300",
+    validator: "bg-purple-100 text-purple-800 border-purple-300",
+    verified: "bg-green-100 text-green-800 border-green-300",
+    registered: "bg-blue-100 text-blue-800 border-blue-300",
+    anonymous: "bg-gray-100 text-gray-800 border-gray-300",
+  }
+
+  return roleColors[role] || "bg-gray-100 text-gray-800 border-gray-300"
+}
+

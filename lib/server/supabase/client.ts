@@ -3,12 +3,20 @@ import { cookies } from "next/headers"
 import type { Database } from "@/types/supabase"
 import { cache } from "react"
 
+// Variable globale pour stocker l'instance du client
+let globalSupabaseClient: ReturnType<typeof createClient<Database>> | null = null
+
 /**
  * Crée ou récupère une instance du client Supabase pour le serveur
- * Utilise React cache pour garantir une seule instance par requête
+ * Utilise une variable globale pour garantir une seule instance par serveur
  * @returns Client Supabase
  */
 export const createServerSupabaseClient = cache(() => {
+  // Si le client existe déjà, le retourner
+  if (globalSupabaseClient) {
+    return globalSupabaseClient
+  }
+
   const timestamp = new Date().toISOString()
   console.log(`[${timestamp}] Création du client Supabase serveur...`)
 
@@ -28,14 +36,14 @@ export const createServerSupabaseClient = cache(() => {
   console.log(`[${timestamp}] Variables d'environnement Supabase vérifiées, création du client...`)
 
   try {
-    const client = createClient<Database>(supabaseUrl, supabaseKey, {
+    globalSupabaseClient = createClient<Database>(supabaseUrl, supabaseKey, {
       auth: {
         persistSession: false,
       },
     })
 
     console.log(`[${timestamp}] Client Supabase créé avec succès`)
-    return client
+    return globalSupabaseClient
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Erreur inconnue"
     console.error(`[${timestamp}] Erreur lors de la création du client Supabase:`, errorMessage)
@@ -43,11 +51,14 @@ export const createServerSupabaseClient = cache(() => {
   }
 })
 
-/**
- * Crée un client Supabase pour les composants serveur avec cookies
- * @returns Client Supabase
- */
+// Même approche pour les autres clients
+let globalComponentClient: ReturnType<typeof createClient<Database>> | null = null
+
 export const createServerComponentSupabaseClient = cache(() => {
+  if (globalComponentClient) {
+    return globalComponentClient
+  }
+
   const cookieStore = cookies()
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -57,7 +68,7 @@ export const createServerComponentSupabaseClient = cache(() => {
     throw new Error("Les variables d'environnement Supabase ne sont pas définies")
   }
 
-  return createClient<Database>(supabaseUrl, supabaseKey, {
+  globalComponentClient = createClient<Database>(supabaseUrl, supabaseKey, {
     auth: {
       persistSession: false,
     },
@@ -67,13 +78,18 @@ export const createServerComponentSupabaseClient = cache(() => {
       },
     },
   })
+
+  return globalComponentClient
 })
 
-/**
- * Crée un client Supabase avec les droits d'administrateur
- * @returns Client Supabase avec droits admin
- */
+// Même approche pour le client admin
+let globalAdminClient: ReturnType<typeof createClient<Database>> | null = null
+
 export const createAdminSupabaseClient = cache(() => {
+  if (globalAdminClient) {
+    return globalAdminClient
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
@@ -81,9 +97,11 @@ export const createAdminSupabaseClient = cache(() => {
     throw new Error("Les variables d'environnement Supabase ne sont pas définies")
   }
 
-  return createClient<Database>(supabaseUrl, supabaseKey, {
+  globalAdminClient = createClient<Database>(supabaseUrl, supabaseKey, {
     auth: {
       persistSession: false,
     },
   })
+
+  return globalAdminClient
 })

@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import LanguageImage from "@/components/language-image"
-import  CategoryTitle from "@/components/category-title"
+import CategoryTitle from "@/components/category-title"
 import FrameworkCard from "@/components/framework-card"
 import { getImageName } from "@/utils/image"
 import { getTypeBadgeColor } from "@/utils/theme"
@@ -31,6 +31,9 @@ export default async function LanguagePage({ params }: LanguagePageProps) {
     const normalizedSlug = slug.toLowerCase()
     console.log("Slug normalisé:", normalizedSlug)
 
+    // Ajouter un délai pour éviter les problèmes de rate limiting
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
     const language = await getLanguageBySlug(normalizedSlug)
     console.log("Langage trouvé:", language ? language.name : "Non trouvé")
 
@@ -43,13 +46,20 @@ export default async function LanguagePage({ params }: LanguagePageProps) {
     let frameworks: Library[] = []
     try {
       if (language && language.id) {
+        // Ajouter un délai pour éviter les problèmes de rate limiting
+        await new Promise((resolve) => setTimeout(resolve, 100))
+
         frameworks = await getFrameworksByLanguageId(language.id)
         console.log("Frameworks trouvés:", frameworks.length)
       }
     } catch (error) {
       console.error("Erreur lors de la récupération des frameworks:", error)
       // Continuer avec un tableau vide
+      frameworks = []
     }
+
+    // Le reste du code reste inchangé...
+    // ...
 
     // Regrouper les frameworks par catégorie
     const frameworksByCategory: Record<string, Library[]> = {}
