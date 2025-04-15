@@ -11,5 +11,11 @@ export interface DbLanguageProposal {
   status: string
   created_at: string | null
   updated_at: string | null
+  // Propriétés supplémentaires
+  created_year: number | null
+  creator: string | null
+  popular_frameworks: string[] | null
+  strengths: string[] | null
+  used_for: string | null
   // Ajoutez d'autres propriétés selon votre schéma de base de données
 }

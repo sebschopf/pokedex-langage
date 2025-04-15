@@ -1,25 +1,25 @@
 /**
- * Type représentant une bibliothèque/framework tel que stocké dans la base de données
- * Correspond exactement à la structure de la table 'libraries' dans Supabase
+ * Interface représentant une bibliothèque dans la base de données
+ * Correspond exactement à la structure de la table libraries dans Supabase
  */
-export type DbLibrary = {
-  best_for: string | null
-  created_at: string | null
-  description: string | null
-  documentation_url: string | null
-  features: string[] | null
-  github_url: string | null
+export interface DbLibrary {
   id: number
-  is_open_source: boolean | null
-  language_id: number | null
-  logo_path: string | null
   name: string
-  official_website: string | null
-  popularity: number | null
-  sub_type: string | null
+  slug: string
+  description: string | null
+  language_id: number
   technology_type: string | null
-  unique_selling_point: string | null
+  website_url: string | null
+  github_url: string | null
+  logo_path: string | null
+  is_popular: boolean
+  created_at: string | null
   updated_at: string | null
-  used_for: string | null // C'est une chaîne, pas un tableau
-  version: string | null
+  // Propriétés supplémentaires
+  documentation_url: string | null
+  best_for: string | null
+  category: string | null
+  stars: number | null
+  last_release: string | null
+  license: string | null
 }

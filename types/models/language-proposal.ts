@@ -11,5 +11,11 @@ export interface LanguageProposal {
   status: string
   createdAt: string | null
   updatedAt: string | null
+  // Propriétés supplémentaires
+  createdYear: number | null
+  creator: string | null
+  popularFrameworks: string[] | null
+  strengths: string[] | null
+  usedFor: string | null
   // Ajoutez d'autres propriétés selon vos besoins
 }

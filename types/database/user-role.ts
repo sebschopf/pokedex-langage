@@ -1,9 +1,15 @@
-import type { UserRoleTypeDB } from "@/lib/client/permissions"
-
+/**
+ * Interface représentant un rôle utilisateur dans la base de données
+ */
 export interface DbUserRole {
   id: string
   user_id: string
-  role: UserRoleTypeDB // Utiliser UserRoleTypeDB qui correspond à l'enum PostgreSQL
-  created_at: string
+  role: string
+  created_at: string | null
   updated_at: string | null
 }
+
+/**
+ * Types de rôles utilisateur disponibles dans la base de données
+ */
+export type UserRoleType = "admin" | "validator" | "verified" | "registered" | "anonymous"

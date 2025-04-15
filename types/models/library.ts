@@ -1,26 +1,25 @@
 /**
- * Interface représentant une bibliothèque/framework dans l'application
+ * Interface représentant une bibliothèque dans l'application
  * Version transformée et normalisée de DbLibrary
  */
 export interface Library {
-    bestFor: string | null
-    createdAt: string | null
-    description: string | null
-    documentationUrl: string | null
-    features: string[] | null
-    githubUrl: string | null
-    id: number
-    isOpenSource: boolean | null
-    languageId: number | null
-    logoPath: string | null
-    name: string
-    officialWebsite: string | null
-    popularity: number | null
-    subtype: string | null // Notez que c'est "subtype" sans underscore
-    technologyType: string | null
-    uniqueSellingPoint: string | null
-    updatedAt: string | null
-    usedFor: string | null // C'est une chaîne, pas un tableau
-    version: string | null
-  }
-  
+  id: number
+  name: string
+  slug: string
+  description: string | null
+  languageId: number
+  technologyType: string | null
+  websiteUrl: string | null
+  githubUrl: string | null
+  logoPath: string | null
+  isPopular: boolean
+  createdAt: string | null
+  updatedAt: string | null
+  // Propriétés supplémentaires
+  documentationUrl: string | null
+  bestFor: string | null
+  category: string | null
+  stars: number | null
+  lastRelease: string | null
+  license: string | null
+}
