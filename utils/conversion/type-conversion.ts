@@ -1,24 +1,15 @@
 /**
- * Utilitaires pour la conversion de types
- */
-
-/**
  * Convertit une valeur en nombre
  * @param value Valeur à convertir
- * @param defaultValue Valeur par défaut si la conversion échoue (défaut: 0)
- * @returns Nombre converti ou valeur par défaut
+ * @returns Nombre converti
  */
-export function toNumber(value: any, defaultValue = 0): number {
-  if (value === null || value === undefined) {
-    return defaultValue
+export function toNumber(value: any): number {
+  if (typeof value === "number") return value
+  if (typeof value === "string") {
+    const parsed = Number(value)
+    return isNaN(parsed) ? 0 : parsed
   }
-
-  if (typeof value === "number") {
-    return value
-  }
-
-  const parsed = Number(value)
-  return isNaN(parsed) ? defaultValue : parsed
+  return 0
 }
 
 /**
@@ -27,69 +18,45 @@ export function toNumber(value: any, defaultValue = 0): number {
  * @returns Nombre converti ou null
  */
 export function toNumberOrNull(value: any): number | null {
-  if (value === null || value === undefined) {
-    return null
+  if (value === null || value === undefined) return null
+  if (typeof value === "number") return value
+  if (typeof value === "string") {
+    const parsed = Number(value)
+    return isNaN(parsed) ? null : parsed
   }
-
-  if (typeof value === "number") {
-    return value
-  }
-
-  const parsed = Number(value)
-  return isNaN(parsed) ? null : parsed
+  return null
 }
 
 /**
  * Convertit une valeur en chaîne de caractères
  * @param value Valeur à convertir
- * @param defaultValue Valeur par défaut si la conversion échoue (défaut: "")
- * @returns Chaîne convertie ou valeur par défaut
+ * @returns Chaîne de caractères convertie
  */
-export function toString(value: any, defaultValue = ""): string {
-  if (value === null || value === undefined) {
-    return defaultValue
-  }
-
+export function toString(value: any): string {
+  if (typeof value === "string") return value
+  if (value === null || value === undefined) return ""
   return String(value)
 }
 
 /**
  * Convertit une valeur en chaîne de caractères ou null
  * @param value Valeur à convertir
- * @returns Chaîne convertie ou null
+ * @returns Chaîne de caractères convertie ou null
  */
 export function toStringOrNull(value: any): string | null {
-  if (value === null || value === undefined) {
-    return null
-  }
-
+  if (value === null || value === undefined) return null
+  if (typeof value === "string") return value
   return String(value)
 }
 
 /**
  * Convertit une valeur en booléen
  * @param value Valeur à convertir
- * @param defaultValue Valeur par défaut si la conversion échoue (défaut: false)
- * @returns Booléen converti ou valeur par défaut
+ * @returns Booléen converti
  */
-export function toBoolean(value: any, defaultValue = false): boolean {
-  if (value === null || value === undefined) {
-    return defaultValue
-  }
-
-  if (typeof value === "boolean") {
-    return value
-  }
-
-  if (typeof value === "string") {
-    const lowercased = value.toLowerCase()
-    return lowercased === "true" || lowercased === "1" || lowercased === "yes" || lowercased === "y"
-  }
-
-  if (typeof value === "number") {
-    return value === 1
-  }
-
+export function toBoolean(value: any): boolean {
+  if (typeof value === "boolean") return value
+  if (typeof value === "string") return value.toLowerCase() === "true"
   return Boolean(value)
 }
 
@@ -99,52 +66,24 @@ export function toBoolean(value: any, defaultValue = false): boolean {
  * @returns Booléen converti ou null
  */
 export function toBooleanOrNull(value: any): boolean | null {
-  if (value === null || value === undefined) {
+  if (value === null || value === undefined) return null
+  if (typeof value === "boolean") return value
+  if (typeof value === "string") {
+    if (value.toLowerCase() === "true") return true
+    if (value.toLowerCase() === "false") return false
     return null
   }
-
-  if (typeof value === "boolean") {
-    return value
-  }
-
-  if (typeof value === "string") {
-    const lowercased = value.toLowerCase()
-    return lowercased === "true" || lowercased === "1" || lowercased === "yes" || lowercased === "y"
-  }
-
-  if (typeof value === "number") {
-    return value === 1
-  }
-
-  return Boolean(value)
+  return null
 }
 
 /**
  * Convertit une valeur en tableau
  * @param value Valeur à convertir
- * @param defaultValue Valeur par défaut si la conversion échoue (défaut: [])
- * @returns Tableau converti ou valeur par défaut
+ * @returns Tableau converti
  */
-export function toArray<T>(value: any, defaultValue: T[] = []): T[] {
-  if (value === null || value === undefined) {
-    return defaultValue
-  }
-
-  if (Array.isArray(value)) {
-    return value
-  }
-
-  try {
-    // Tenter de parser si c'est une chaîne JSON
-    if (typeof value === "string" && (value.startsWith("[") || value.startsWith("{"))) {
-      const parsed = JSON.parse(value)
-      return Array.isArray(parsed) ? parsed : defaultValue
-    }
-  } catch (e) {
-    // Ignorer les erreurs de parsing
-  }
-
-  // Si tout échoue, retourner un tableau avec la valeur comme seul élément
+export function toArray<T>(value: any): T[] {
+  if (Array.isArray(value)) return value
+  if (value === null || value === undefined) return []
   return [value] as T[]
 }
 
@@ -154,24 +93,7 @@ export function toArray<T>(value: any, defaultValue: T[] = []): T[] {
  * @returns Tableau converti ou null
  */
 export function toArrayOrNull<T>(value: any): T[] | null {
-  if (value === null || value === undefined) {
-    return null
-  }
-
-  if (Array.isArray(value)) {
-    return value
-  }
-
-  try {
-    // Tenter de parser si c'est une chaîne JSON
-    if (typeof value === "string" && (value.startsWith("[") || value.startsWith("{"))) {
-      const parsed = JSON.parse(value)
-      return Array.isArray(parsed) ? parsed : null
-    }
-  } catch (e) {
-    // Ignorer les erreurs de parsing
-  }
-
-  // Si tout échoue, retourner un tableau avec la valeur comme seul élément
+  if (value === null || value === undefined) return null
+  if (Array.isArray(value)) return value
   return [value] as T[]
 }
