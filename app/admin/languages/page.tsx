@@ -1,202 +1,104 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { createServerComponentSupabaseClient } from "@/lib/supabase-app-router"
+import { dbToLanguage } from "@/lib/database-mapping"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, Plus, Trash, Edit, Eye } from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import type { Language } from "@/types/models"
-import { getImageName } from "@/utils/image"
-import { getTypeBadgeColor } from "@/utils/theme"
-import LanguageImage from "@/components/language-image"
-import { fetchLanguages, deleteLanguageClient } from "@/lib/client/api"
+import { PlusCircle, Edit, Trash } from "lucide-react"
 
-export default function LanguagesAdminPage() {
-  const [languages, setLanguages] = useState<Language[]>([])
-  const [loading, setLoading] = useState(true)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [languageToDelete, setLanguageToDelete] = useState<Language | null>(null)
-  const [deleting, setDeleting] = useState(false)
-  const router = useRouter()
-  const { toast } = useToast()
+// Récupérer tous les langages pour l'administration
+async function getLanguagesForAdmin() {
+  const supabase = createServerComponentSupabaseClient()
+  const { data, error } = await supabase.from("languages").select("*").order("name")
 
-  useEffect(() => {
-    async function loadLanguages() {
-      try {
-        const data = await fetchLanguages()
-        setLanguages(data || [])
-      } catch (error) {
-        console.error("Erreur lors du chargement des langages:", error)
-        toast({
-          title: "Erreur",
-          description: "Impossible de charger les langages. Veuillez réessayer.",
-          variant: "destructive",
-        })
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadLanguages()
-  }, [toast])
-
-  const handleDeleteClick = (language: Language) => {
-    setLanguageToDelete(language)
-    setDeleteDialogOpen(true)
+  if (error) {
+    console.error("Erreur lors de la récupération des langages:", error)
+    return []
   }
 
-  const confirmDelete = async () => {
-    if (!languageToDelete) return
+  // Utiliser la fonction de mapping pour convertir les données
+  return data.map(dbToLanguage)
+}
 
-    setDeleting(true)
-    try {
-      await deleteLanguageClient(Number(languageToDelete.id))
-      setLanguages(languages.filter((lang) => lang.id !== languageToDelete.id))
-      toast({
-        title: "Langage supprimé",
-        description: `Le langage ${languageToDelete.name} a été supprimé avec succès.`,
-      })
-    } catch (error) {
-      console.error("Erreur lors de la suppression du langage:", error)
-      toast({
-        title: "Erreur",
-        description: "Impossible de supprimer le langage. Veuillez réessayer.",
-        variant: "destructive",
-      })
-    } finally {
-      setDeleting(false)
-      setDeleteDialogOpen(false)
-      setLanguageToDelete(null)
-    }
+// Fonction pour supprimer un langage (sera utilisée dans une action serveur)
+async function deleteLanguage(id: number) {
+  "use server"
+
+  const supabase = createServerComponentSupabaseClient()
+  const { error } = await supabase.from("languages").delete().eq("id", id)
+
+  if (error) {
+    console.error(`Erreur lors de la suppression du langage ${id}:`, error)
+    throw new Error(`Erreur lors de la suppression du langage: ${error.message}`)
   }
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    )
-  }
+  return { success: true }
+}
+
+export default async function AdminLanguagesPage() {
+  const languages = await getLanguagesForAdmin()
 
   return (
-    <div className="container py-8 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Gestion des Langages</h1>
-        <Button onClick={() => router.push("/admin/languages/new")} className="bg-green-600 hover:bg-green-700">
-          <Plus className="mr-2 h-4 w-4" /> Ajouter un langage
-        </Button>
+    <div className="container mx-auto py-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Administration des Langages</h1>
+        <Link href="/admin/languages/new">
+          <Button className="flex items-center gap-2">
+            <PlusCircle size={18} />
+            Ajouter un langage
+          </Button>
+        </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {languages.map((language) => (
-          <Card key={language.id} className="border-4 border-black overflow-hidden">
-            <CardHeader className="border-b-4 border-black p-4 flex flex-row items-center gap-4">
-              <div className="w-12 h-12 relative">
-                <LanguageImage
-                  src={language.logoPath || `/images/languages/${getImageName(language.name)}.svg`}
-                  alt={language.name}
-                  width={48}
-                  height={48}
-                  className="object-contain"
-                />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className={`${getTypeBadgeColor(language.type)} text-white text-xs font-bold px-2 py-0.5`}>
-                    {language.type || "Autre"}
+      <div className="bg-white shadow-md rounded-lg overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Année</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {languages.map((language) => (
+              <tr key={language.id}>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm font-medium text-gray-900">{language.name}</div>
+                  <div className="text-sm text-gray-500">{language.slug}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-900">{language.type || "Non spécifié"}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-900">{language.yearCreated || "Non spécifié"}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <div className="flex space-x-3">
+                    <Link href={`/admin/languages/edit/${language.id}`}>
+                      <Button variant="outline" size="sm" className="flex items-center gap-1">
+                        <Edit size={16} />
+                        Modifier
+                      </Button>
+                    </Link>
+                    <form
+                      action={async () => {
+                        // Convertir l'ID en string si nécessaire
+                        await deleteLanguage(language.id)
+                      }}
+                    >
+                      <Button variant="destructive" size="sm" className="flex items-center gap-1">
+                        <Trash size={16} />
+                        Supprimer
+                      </Button>
+                    </form>
                   </div>
-                  {language.isOpenSource ? (
-                    <div className="bg-green-500 text-white text-xs font-bold px-2 py-0.5">Open Source</div>
-                  ) : (
-                    <div className="bg-red-600 text-white text-xs font-bold px-2 py-0.5">Propriétaire</div>
-                  )}
-                </div>
-                <CardTitle className="text-xl">{language.name}</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="p-4 space-y-4">
-              <p className="text-sm line-clamp-2">{language.shortDescription || "Aucune description disponible"}</p>
-
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-2 border-black"
-                  onClick={() => router.push(`/admin/languages/edit/${language.id}`)}
-                >
-                  <Edit className="mr-2 h-4 w-4" /> Modifier
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-2 border-black text-red-600 hover:bg-red-50"
-                  onClick={() => handleDeleteClick(language)}
-                >
-                  <Trash className="mr-2 h-4 w-4" /> Supprimer
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-2 border-black"
-                  onClick={() => router.push(`/language/${language.slug}`)}
-                >
-                  <Eye className="mr-2 h-4 w-4" /> Voir
-                </Button>
-              </div>
-
-              <div className="text-xs text-gray-500 space-y-1">
-                <p>
-                  Année de création :{" "}
-                  {language.yearCreated ||
-                    (language.createdAt ? new Date(language.createdAt).getFullYear() : "Inconnue")}
-                </p>
-                <p>
-                  Dernière mise à jour :{" "}
-                  {language.updatedAt ? new Date(language.updatedAt).toLocaleDateString() : "Jamais"}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-
-      {languages.length === 0 && (
-        <div className="text-center p-8 border-4 border-black bg-gray-50">
-          <p className="text-lg font-bold">Aucun langage trouvé</p>
-          <p className="mt-2">Commencez par ajouter un nouveau langage de programmation.</p>
-        </div>
-      )}
-
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="border-4 border-black">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Confirmer la suppression</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <p>
-              Êtes-vous sûr de vouloir supprimer le langage <span className="font-bold">{languageToDelete?.name}</span>{" "}
-              ?
-            </p>
-            <p className="mt-2 text-red-600">Cette action est irréversible.</p>
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={deleting}>
-              Annuler
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={confirmDelete}
-              disabled={deleting}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {deleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trash className="h-4 w-4 mr-2" />}
-              {deleting ? "Suppression..." : "Supprimer"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
