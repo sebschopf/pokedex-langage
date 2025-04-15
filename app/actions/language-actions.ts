@@ -1,9 +1,29 @@
 "use server"
 
-import { createLanguage, updateLanguage, deleteLanguage, getLanguageBySlug } from "@/lib/data"
+import { createServerSupabaseClient } from "@/lib/server/supabase/client"
+import { languageToDb, dbToLanguage } from "@/lib/server/mapping"
 import { revalidatePath } from "next/cache"
-import type { Language } from "@/types/language"
+// Corriger l'importation pour utiliser le type Language de models
+import type { Language } from "@/types/models/language"
+import type { DbLanguage } from "@/types/database/language"
 import { deleteFile } from "@/lib/storage"
+
+/**
+ * Récupère un langage par son slug
+ */
+export async function getLanguageBySlug(slug: string) {
+  const supabase = createServerSupabaseClient()
+
+  const { data, error } = await supabase.from("languages").select("*").eq("slug", slug).single()
+
+  if (error) {
+    console.error(`Erreur lors de la récupération du langage avec le slug ${slug}:`, error)
+    return null
+  }
+
+  // Utiliser une assertion de type pour résoudre l'erreur
+  return dbToLanguage(data as unknown as DbLanguage)
+}
 
 /**
  * Action serveur pour créer un langage
@@ -12,29 +32,67 @@ import { deleteFile } from "@/lib/storage"
  */
 export async function createLanguageAction(formData: FormData) {
   try {
-    const language: Omit<Language, "id"> = {
+    // Créer un objet partiel de Language avec les données du formulaire
+    const language: Partial<Language> = {
       name: formData.get("name") as string,
-      logo: formData.get("logo") as string,
+      logoPath: formData.get("logo") as string,
       shortDescription: formData.get("shortDescription") as string,
-      type: (formData.get("type") as Language["type"]) || "Fullstack",
+      type: formData.get("type") as string,
       usedFor: formData.get("usedFor") as string,
       usageRate: Number(formData.get("usageRate")) || 0,
-      createdYear: Number(formData.get("createdYear")) || 0,
+      yearCreated: Number(formData.get("createdYear")) || 0,
       popularFrameworks: (formData.get("popularFrameworks") as string)?.split(",").map((s) => s.trim()) || [],
       strengths: (formData.get("strengths") as string)?.split(",").map((s) => s.trim()) || [],
-      difficulty: Number(formData.get("difficulty")) as Language["difficulty"],
+      difficulty: Number(formData.get("difficulty")),
       isOpenSource: formData.get("isOpenSource") === "true",
-      tools: JSON.parse((formData.get("tools") as string) || "{}"),
+      // Propriétés obligatoires
+      slug: (formData.get("name") as string).toLowerCase().replace(/\s+/g, "-"),
+      createdAt: new Date().toISOString(),
     }
 
-    const newLanguage = await createLanguage(language)
+    const supabase = createServerSupabaseClient()
+    const dbData = languageToDb(language)
 
-    if (!newLanguage) {
+    // Créer un objet qui respecte les contraintes de type de Supabase
+    // en incluant tous les champs obligatoires
+    const insertData = {
+      name: dbData.name!,
+      slug: dbData.slug!,
+      type: dbData.type!,
+      // Champs optionnels avec valeurs par défaut si nécessaire
+      short_description: dbData.short_description,
+      used_for: dbData.used_for,
+      usage_rate: dbData.usage_rate,
+      year_created: dbData.year_created,
+      popular_frameworks: dbData.popular_frameworks,
+      strengths: dbData.strengths,
+      is_open_source: dbData.is_open_source,
+      created_at: dbData.created_at || new Date().toISOString(),
+      updated_at: dbData.updated_at,
+      creator: dbData.creator,
+      description: dbData.description,
+      logo_path: dbData.logo_path,
+      github_url: dbData.github_url || null,
+      website_url: dbData.website_url || null,
+      current_version: dbData.current_version || null,
+      last_updated: dbData.last_updated || null,
+      license: dbData.license || null,
+      difficulty: dbData.difficulty,
+      tools: dbData.tools || null,
+    }
+
+    const { data, error } = await supabase.from("languages").insert(insertData).select().single()
+
+    if (error) {
+      console.error("Erreur lors de la création du langage:", error)
       return {
         success: false,
         message: "Erreur lors de la création du langage",
       }
     }
+
+    // Utiliser une assertion de type pour résoudre l'erreur
+    const newLanguage = dbToLanguage(data as unknown as DbLanguage)
 
     revalidatePath("/")
     revalidatePath("/admin/languages")
@@ -61,12 +119,12 @@ export async function createLanguageAction(formData: FormData) {
  */
 export async function updateLanguageAction(id: string, formData: FormData) {
   try {
-    const language: Partial<Omit<Language, "id">> = {}
+    const language: Partial<Language> = {}
 
     // Ne mettre à jour que les champs qui sont présents dans le formulaire
     if (formData.has("name")) language.name = formData.get("name") as string
     if (formData.has("logo")) {
-      const oldLogo = (await getLanguageBySlug(formData.get("slug") as string))?.logo
+      const oldLogo = (await getLanguageBySlug(formData.get("slug") as string))?.logoPath
       const newLogo = formData.get("logo") as string
 
       // Si le logo a changé et que l'ancien logo était stocké dans Supabase, le supprimer
@@ -74,24 +132,62 @@ export async function updateLanguageAction(id: string, formData: FormData) {
         await deleteFile(oldLogo)
       }
 
-      language.logo = newLogo
+      language.logoPath = newLogo
     }
     if (formData.has("shortDescription")) language.shortDescription = formData.get("shortDescription") as string
-    if (formData.has("type")) language.type = formData.get("type") as Language["type"]
+    if (formData.has("type")) language.type = formData.get("type") as string
     if (formData.has("usedFor")) language.usedFor = formData.get("usedFor") as string
     if (formData.has("usageRate")) language.usageRate = Number(formData.get("usageRate"))
-    if (formData.has("createdYear")) language.createdYear = Number(formData.get("createdYear"))
+    if (formData.has("createdYear")) language.yearCreated = Number(formData.get("createdYear"))
     if (formData.has("popularFrameworks"))
       language.popularFrameworks = (formData.get("popularFrameworks") as string)?.split(",").map((s) => s.trim()) || []
     if (formData.has("strengths"))
       language.strengths = (formData.get("strengths") as string)?.split(",").map((s) => s.trim()) || []
-    if (formData.has("difficulty")) language.difficulty = Number(formData.get("difficulty")) as Language["difficulty"]
+    if (formData.has("difficulty")) language.difficulty = Number(formData.get("difficulty"))
     if (formData.has("isOpenSource")) language.isOpenSource = formData.get("isOpenSource") === "true"
     if (formData.has("tools")) language.tools = JSON.parse((formData.get("tools") as string) || "{}")
+    // Ajoutez d'autres champs selon vos besoins
+    if (formData.has("githubUrl")) language.githubUrl = formData.get("githubUrl") as string
+    if (formData.has("websiteUrl")) language.websiteUrl = formData.get("websiteUrl") as string
+    if (formData.has("currentVersion")) language.currentVersion = formData.get("currentVersion") as string
+    if (formData.has("lastUpdated")) language.lastUpdated = formData.get("lastUpdated") as string
+    if (formData.has("license")) language.license = formData.get("license") as string
 
-    const success = await updateLanguage(id, language)
+    const supabase = createServerSupabaseClient()
+    const dbData = languageToDb(language)
 
-    if (!success) {
+    // Créer un objet de mise à jour qui ne contient que les champs à modifier
+    const updateData: Record<string, any> = {}
+
+    // N'ajouter que les champs qui sont présents dans dbData
+    if (dbData.name !== undefined) updateData.name = dbData.name
+    if (dbData.slug !== undefined) updateData.slug = dbData.slug
+    if (dbData.short_description !== undefined) updateData.short_description = dbData.short_description
+    if (dbData.type !== undefined) updateData.type = dbData.type
+    if (dbData.used_for !== undefined) updateData.used_for = dbData.used_for
+    if (dbData.usage_rate !== undefined) updateData.usage_rate = dbData.usage_rate
+    if (dbData.year_created !== undefined) updateData.year_created = dbData.year_created
+    if (dbData.popular_frameworks !== undefined) updateData.popular_frameworks = dbData.popular_frameworks
+    if (dbData.strengths !== undefined) updateData.strengths = dbData.strengths
+    if (dbData.is_open_source !== undefined) updateData.is_open_source = dbData.is_open_source
+    if (dbData.creator !== undefined) updateData.creator = dbData.creator
+    if (dbData.description !== undefined) updateData.description = dbData.description
+    if (dbData.logo_path !== undefined) updateData.logo_path = dbData.logo_path
+    if (dbData.github_url !== undefined) updateData.github_url = dbData.github_url
+    if (dbData.website_url !== undefined) updateData.website_url = dbData.website_url
+    if (dbData.current_version !== undefined) updateData.current_version = dbData.current_version
+    if (dbData.last_updated !== undefined) updateData.last_updated = dbData.last_updated
+    if (dbData.license !== undefined) updateData.license = dbData.license
+    if (dbData.difficulty !== undefined) updateData.difficulty = dbData.difficulty
+    if (dbData.tools !== undefined) updateData.tools = dbData.tools
+
+    // Ajouter le timestamp de mise à jour
+    updateData.updated_at = new Date().toISOString()
+
+    const { error } = await supabase.from("languages").update(updateData).eq("id", Number(id))
+
+    if (error) {
+      console.error(`Erreur lors de la mise à jour du langage ${id}:`, error)
       return {
         success: false,
         message: "Erreur lors de la mise à jour du langage",
@@ -129,9 +225,12 @@ export async function deleteLanguageAction(id: string, logoUrl?: string) {
       await deleteFile(logoUrl)
     }
 
-    const success = await deleteLanguage(id)
+    const supabase = createServerSupabaseClient()
 
-    if (!success) {
+    const { error } = await supabase.from("languages").delete().eq("id", Number(id))
+
+    if (error) {
+      console.error(`Erreur lors de la suppression du langage ${id}:`, error)
       return {
         success: false,
         message: "Erreur lors de la suppression du langage",
@@ -153,4 +252,3 @@ export async function deleteLanguageAction(id: string, logoUrl?: string) {
     }
   }
 }
-

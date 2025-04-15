@@ -6,7 +6,7 @@ import type { Language } from "@/types/models/language"
 // Récupérer les données du langage par ID
 async function getLanguageById(id: string): Promise<Language | null> {
   const supabase = createServerComponentSupabaseClient()
-  const { data, error } = await supabase.from("languages").select("*").eq("id", id).single()
+  const { data, error } = await supabase.from("languages").select("*").eq("id", Number.parseInt(id)).single()
 
   if (error || !data) {
     console.error("Erreur lors de la récupération du langage:", error)

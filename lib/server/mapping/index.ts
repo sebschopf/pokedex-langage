@@ -31,4 +31,6 @@ export { dbToProposal, proposalToDb } from "./proposal-mapping"
 
 // Mappings liés aux bibliothèques
 export { dbToLibrary, libraryToDb } from "./library-mapping"
+
+// Ajoutons l'export pour library-language-mapping s'il existe
 export { dbToLibraryLanguage, libraryLanguageToDb } from "./library-language-mapping"
