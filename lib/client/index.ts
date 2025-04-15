@@ -10,3 +10,6 @@ export * from "./permissions"
 
 // Exports des fonctions Supabase
 export * from "./supabase"
+
+// Exports des fonctions API
+export * from "./api"

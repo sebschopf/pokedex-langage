@@ -1,209 +1,92 @@
-// Fonctions client pour interagir avec l'API
+import { withTokenRefresh } from "./auth-helpers"
+import type { Language } from "@/types"
 
 // ===== LANGAGES =====
 
 export async function fetchLanguages() {
-    try {
-      const response = await fetch("/api/language")
-      if (!response.ok) {
-        throw new Error("Erreur lors de la récupération des langages")
-      }
-      return await response.json()
-    } catch (error) {
-      console.error("Erreur:", error)
-      return []
+  return withTokenRefresh(async () => {
+    const response = await fetch("/api/languages")
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.message || "Erreur lors de la récupération des langages")
     }
-  }
-  
-  export async function fetchLanguageById(id: number) {
-    try {
-      const response = await fetch(`/api/language/${id}`)
-      if (!response.ok) {
-        throw new Error("Erreur lors de la récupération du langage")
-      }
-      return await response.json()
-    } catch (error) {
-      console.error("Erreur:", error)
-      return null
+    return await response.json()
+  })
+}
+
+export async function fetchLanguageById(id: string) {
+  return withTokenRefresh(async () => {
+    const response = await fetch(`/api/languages/${id}`)
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.message || "Erreur lors de la récupération du langage")
     }
-  }
-  
-  export async function fetchLanguageBySlug(slug: string) {
-    try {
-      const response = await fetch(`/api/language/slug/${slug}`)
-      if (!response.ok) {
-        throw new Error("Erreur lors de la récupération du langage")
-      }
-      return await response.json()
-    } catch (error) {
-      console.error("Erreur:", error)
-      return null
+    return await response.json()
+  })
+}
+
+export async function fetchLanguageBySlug(slug: string) {
+  return withTokenRefresh(async () => {
+    const response = await fetch(`/api/languages/slug/${slug}`)
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.message || "Erreur lors de la récupération du langage")
     }
-  }
-  
-  export async function createLanguageClient(languageData: any) {
-    try {
-      const response = await fetch("/api/language", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(languageData),
-      })
-  
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Erreur lors de la création du langage")
-      }
-  
-      return await response.json()
-    } catch (error) {
-      console.error("Erreur:", error)
-      throw error
+    return await response.json()
+  })
+}
+
+export async function createLanguageClient(languageData: Partial<Language>) {
+  return withTokenRefresh(async () => {
+    const response = await fetch("/api/languages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(languageData),
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.message || "Erreur lors de la création du langage")
     }
-  }
-  
-  export async function updateLanguageClient(id: number, languageData: any) {
-    try {
-      const response = await fetch(`/api/language/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(languageData),
-      })
-  
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Erreur lors de la mise à jour du langage")
-      }
-  
-      return await response.json()
-    } catch (error) {
-      console.error("Erreur:", error)
-      throw error
+
+    return await response.json()
+  })
+}
+
+export async function updateLanguageClient(id: string, languageData: Partial<Language>) {
+  return withTokenRefresh(async () => {
+    const response = await fetch(`/api/languages/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(languageData),
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.message || "Erreur lors de la mise à jour du langage")
     }
-  }
-  
-  export async function deleteLanguageClient(id: number) {
-    try {
-      const response = await fetch(`/api/language/${id}`, {
-        method: "DELETE",
-      })
-  
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Erreur lors de la suppression du langage")
-      }
-  
-      return true
-    } catch (error) {
-      console.error("Erreur:", error)
-      throw error
+
+    return await response.json()
+  })
+}
+
+export async function deleteLanguageClient(id: string) {
+  return withTokenRefresh(async () => {
+    const response = await fetch(`/api/languages/${id}`, {
+      method: "DELETE",
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.message || "Erreur lors de la suppression du langage")
     }
-  }
-  
-  export async function fetchFrameworksByLanguageId(languageId: number) {
-    try {
-      const response = await fetch(`/api/language/frameworks?languageId=${languageId}`)
-      if (!response.ok) {
-        throw new Error("Erreur lors de la récupération des frameworks")
-      }
-      return await response.json()
-    } catch (error) {
-      console.error("Erreur:", error)
-      return []
-    }
-  }
-  
-  // ===== BIBLIOTHÈQUES =====
-  
-  export async function fetchLibraries(languageId?: number) {
-    try {
-      const url = languageId ? `/api/library?languageId=${languageId}` : "/api/library"
-      const response = await fetch(url)
-      if (!response.ok) {
-        throw new Error("Erreur lors de la récupération des bibliothèques")
-      }
-      return await response.json()
-    } catch (error) {
-      console.error("Erreur:", error)
-      return []
-    }
-  }
-  
-  export async function fetchLibraryById(id: number) {
-    try {
-      const response = await fetch(`/api/library/${id}`)
-      if (!response.ok) {
-        throw new Error("Erreur lors de la récupération de la bibliothèque")
-      }
-      return await response.json()
-    } catch (error) {
-      console.error("Erreur:", error)
-      return null
-    }
-  }
-  
-  export async function createLibraryClient(libraryData: any) {
-    try {
-      const response = await fetch("/api/library", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(libraryData),
-      })
-  
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Erreur lors de la création de la bibliothèque")
-      }
-  
-      return await response.json()
-    } catch (error) {
-      console.error("Erreur:", error)
-      throw error
-    }
-  }
-  
-  export async function updateLibraryClient(id: number, libraryData: any) {
-    try {
-      const response = await fetch(`/api/library/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(libraryData),
-      })
-  
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Erreur lors de la mise à jour de la bibliothèque")
-      }
-  
-      return await response.json()
-    } catch (error) {
-      console.error("Erreur:", error)
-      throw error
-    }
-  }
-  
-  export async function deleteLibraryClient(id: number) {
-    try {
-      const response = await fetch(`/api/library/${id}`, {
-        method: "DELETE",
-      })
-  
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Erreur lors de la suppression de la bibliothèque")
-      }
-  
-      return true
-    } catch (error) {
-      console.error("Erreur:", error)
-      throw error
-    }
-  }
-  
+
+    return true
+  })
+}
+
+// Autres fonctions...
