@@ -1,69 +1,147 @@
-import { getAllCorrections, updateCorrectionStatus } from "@/lib/data"
-import { RoleProtected } from "@/components/role-protected"
-
-// Type local qui étend Correction avec les données jointes
-type CorrectionWithJoins = Awaited<ReturnType<typeof getAllCorrections>>[number]
+import { getCorrections, updateCorrection } from "@/lib/server/api/corrections"
+import RoleProtected from "@/components/role-protected"
+import { Button } from "@/components/ui/button"
+import { formatDate } from "@/utils/date"
+import type { Correction } from "@/types/models/correction"
+import { revalidatePath } from "next/cache"
 
 export default async function AdminCorrectionsPage() {
-  const corrections = await getAllCorrections()
+  // Récupérer toutes les corrections avec les options de pagination
+  const { data: corrections } = await getCorrections({
+    page: 1,
+    pageSize: 100,
+  })
+
+  // Trier les corrections par date de création (plus récentes d'abord)
+  const sortedCorrections = [...corrections].sort((a: Correction, b: Correction) => {
+    return new Date(b.createdAt || "").getTime() - new Date(a.createdAt || "").getTime()
+  })
+
+  // Fonction pour mettre à jour le statut d'une correction
+  async function handleStatusUpdate(id: number, newStatus: string) {
+    "use server"
+
+    try {
+      await updateCorrection(id, { status: newStatus })
+      // Revalider le chemin pour rafraîchir les données
+      revalidatePath("/admin/corrections")
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du statut:", error)
+    }
+  }
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-6">Gestion des Corrections</h1>
+    <RoleProtected roles={["admin", "validator"]}>
+      <div className="container mx-auto py-8">
+        <h1 className="text-3xl font-bold mb-8">Gestion des Corrections</h1>
 
-      <RoleProtected requiredRole="validator">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Corrections en attente</h2>
-
-          {corrections.filter((c) => c.status === "pending").length === 0 ? (
-            <p className="text-muted-foreground">Aucune correction en attente.</p>
-          ) : (
-            <div className="space-y-4">
-              {corrections
-                .filter((c) => c.status === "pending")
-                .map((correction) => {
-                  // Déterminer le type de correction et le nom associé
-                  const isFrameworkCorrection = !!correction.framework
-                  const correctionName = isFrameworkCorrection
-                    ? `Correction pour ${correction.framework}`
-                    : `Correction pour langage ID: ${correction.languageId}`
-
-                  return (
-                    <div key={String(correction.id)} className="border p-4 rounded-md">
-                      <div className="flex justify-between">
-                        <h3 className="font-medium">{correctionName}</h3>
-                        <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">En attente</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-1">Champ: {correction.field}</p>
-                      <p className="mt-2">{correction.suggestion}</p>
-
-                      <div className="mt-4 flex gap-2 justify-end">
-                        <form
-                          action={async () => {
-                            "use server"
-                            await updateCorrectionStatus(String(correction.id), "approved")
-                          }}
-                        >
-                          <button className="px-3 py-1 bg-green-600 text-white rounded-md text-sm">Approuver</button>
-                        </form>
-
-                        <form
-                          action={async () => {
-                            "use server"
-                            await updateCorrectionStatus(String(correction.id), "rejected")
-                          }}
-                        >
-                          <button className="px-3 py-1 bg-red-600 text-white rounded-md text-sm">Rejeter</button>
-                        </form>
-                      </div>
+        <div className="bg-white shadow-md rounded-lg overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Langage
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Correction
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Statut
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {sortedCorrections.map((correction) => (
+                <tr key={correction.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">
+                      {/* Utiliser languageId puisque languageName n'est pas disponible */}
+                      Langage ID: {correction.languageId}
                     </div>
-                  )
-                })}
-            </div>
-          )}
+                    {correction.field && <div className="text-sm text-gray-500">Champ: {correction.field}</div>}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-gray-900">{correction.correctionText}</div>
+                    {correction.suggestion && (
+                      <div className="text-sm text-gray-500 mt-1">
+                        <span className="font-semibold">Suggestion:</span> {correction.suggestion}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        correction.status === "approved"
+                          ? "bg-green-100 text-green-800"
+                          : correction.status === "rejected"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {correction.status === "approved"
+                        ? "Approuvée"
+                        : correction.status === "rejected"
+                          ? "Rejetée"
+                          : "En attente"}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {correction.createdAt ? formatDate(new Date(correction.createdAt)) : "N/A"}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex space-x-2">
+                      {correction.status === "pending" && (
+                        <>
+                          <form
+                            action={async () => {
+                              await handleStatusUpdate(correction.id, "approved")
+                            }}
+                          >
+                            <Button variant="outline" size="sm" className="text-green-600 hover:text-green-800">
+                              Approuver
+                            </Button>
+                          </form>
+                          <form
+                            action={async () => {
+                              await handleStatusUpdate(correction.id, "rejected")
+                            }}
+                          >
+                            <Button variant="outline" size="sm" className="text-red-600 hover:text-red-800">
+                              Rejeter
+                            </Button>
+                          </form>
+                        </>
+                      )}
+                      {correction.status !== "pending" && (
+                        <form
+                          action={async () => {
+                            await handleStatusUpdate(correction.id, "pending")
+                          }}
+                        >
+                          <Button variant="outline" size="sm">
+                            Remettre en attente
+                          </Button>
+                        </form>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {sortedCorrections.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                    Aucune correction trouvée.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
-      </RoleProtected>
-    </div>
+      </div>
+    </RoleProtected>
   )
 }
-

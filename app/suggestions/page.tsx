@@ -1,74 +1,90 @@
-// app/suggestions/page.tsx
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { createServerSupabaseClient } from "@/lib/supabase"
-import { getLanguages } from "@/lib/data"
-import { redirect } from "next/navigation"
-import { CorrectionForm } from "../admin/suggestions/correction-form"
-import { ProposalForm } from "../admin/suggestions/proposal-form"
+"use client"
 
-export const metadata = {
-  title: "Contribuer | POKEDEX_DEV",
-  description: "Proposez des corrections ou suggérez de nouveaux langages de programmation",
-}
+import { getLanguages } from "@/lib/server/api/languages"
+import { createCorrection } from "@/lib/server/api/corrections"
+import { getUserRole } from "@/lib/server/api/users"
+import { createServerComponentSupabaseClient } from "@/lib/supabase-app-router"
+import { redirect } from "next/navigation"
+import CorrectionForm from "../admin/suggestions/correction-form"
+import type { Correction } from "@/types/models/correction"
+import type { UserRoleType } from "@/types/models/user-role"
 
 export default async function SuggestionsPage() {
-  const supabase = createServerSupabaseClient()
-  
   // Vérifier si l'utilisateur est connecté
+  const supabase = createServerComponentSupabaseClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()
 
   if (!session) {
-    redirect("/login?redirect=/suggestions")
+    redirect("/login?redirectTo=/suggestions")
   }
 
   // Récupérer le rôle de l'utilisateur
-  const { data: userRole } = await supabase.from("user_roles").select("role").eq("id", session.user.id).single()
+  const userRole = await getUserRole(session.user.id)
 
-  // Vérifier si l'utilisateur a au moins le rôle "registered"
-  if (!userRole || userRole.role === "anonymous") {
-    redirect("/profile?message=Vous devez compléter votre profil pour contribuer")
+  // Vérifier si l'utilisateur a un rôle valide
+  // Utiliser une approche plus typesafe pour la vérification
+  const validRoles: UserRoleType[] = ["admin", "validator", "verified", "registered"]
+  if (!userRole || !validRoles.includes(userRole as UserRoleType)) {
+    redirect("/")
   }
 
-  // Récupérer les langages pour le formulaire de correction
-  const languages = await getLanguages()
+  // Fonction pour créer une correction
+  async function handleCreateCorrection(formData: FormData) {
+    "use server"
+
+    try {
+      // Vérifier à nouveau la session côté serveur
+      const supabase = createServerComponentSupabaseClient()
+      const { data: sessionData } = await supabase.auth.getSession()
+      const currentSession = sessionData.session
+
+      if (!currentSession) {
+        return { success: false, message: "Vous devez être connecté pour soumettre une correction" }
+      }
+
+      const languageId = Number.parseInt(formData.get("languageId") as string)
+      const correctionText = formData.get("correctionText") as string
+      const field = formData.get("field") as string
+      const suggestion = formData.get("suggestion") as string
+
+      // Créer un objet correction
+      const correction: Omit<Correction, "id" | "updatedAt"> = {
+        languageId,
+        correctionText,
+        field: field || null,
+        suggestion: suggestion || null,
+        status: "pending",
+        userId: currentSession.user.id,
+        createdAt: new Date().toISOString(),
+        framework: null,
+      }
+
+      // Enregistrer la correction
+      await createCorrection(correction)
+
+      return { success: true }
+    } catch (error) {
+      console.error("Erreur lors de la création de la correction:", error)
+      return { success: false }
+    }
+  }
+
+  // Récupérer la liste des langages
+  const { data: languages } = await getLanguages()
 
   return (
-    <div className="container mx-auto py-12">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4">Contribuer au Pokedex</h1>
-          <p className="text-lg text-gray-700 dark:text-gray-300">
-            Aidez-nous à améliorer notre base de données de langages de programmation en proposant des corrections
-            ou en suggérant de nouveaux langages.
-          </p>
-        </div>
+    <div className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-8">Proposer une correction</h1>
 
-        <Tabs defaultValue="correction" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8 border-4 border-black">
-            <TabsTrigger value="correction" className="text-lg font-bold py-2">
-              Corriger un langage existant
-            </TabsTrigger>
-            <TabsTrigger value="proposal" className="text-lg font-bold py-2">
-              Proposer un nouveau langage
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="correction">
-            <div className="bg-white p-6 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-              <h2 className="text-xl font-semibold mb-4">Corriger un langage existant</h2>
-              <CorrectionForm languages={languages} />
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="proposal">
-            <div className="bg-white p-6 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-              <h2 className="text-xl font-semibold mb-4">Proposer un nouveau langage</h2>
-              <ProposalForm />
-            </div>
-          </TabsContent>
-        </Tabs>
+      <div className="bg-white shadow-md rounded-lg p-6">
+        <p className="mb-6 text-gray-700">
+          Vous avez repéré une erreur ou souhaitez suggérer une amélioration pour un langage de programmation ? Utilisez
+          ce formulaire pour nous en faire part.
+        </p>
+
+        <CorrectionForm languages={languages} onSubmit={handleCreateCorrection} />
       </div>
     </div>
   )
