@@ -17,7 +17,7 @@ export function dbToCorrection(dbCorrection: DbCorrection): Correction {
     languageId: toNumber(dbCorrection.language_id),
     status: toString(dbCorrection.status),
     suggestion: dbCorrection.suggestion,
-    updatedAt: dbCorrection.updated_at,
+    updatedAt: dbCorrection.updated_at ? toNumber(new Date(dbCorrection.updated_at).getTime()) : 0,
     userId: dbCorrection.user_id,
   }
 }
@@ -38,7 +38,7 @@ export function correctionToDb(correction: Partial<Correction>): Partial<DbCorre
   if (correction.languageId !== undefined) dbCorrection.language_id = correction.languageId
   if (correction.status !== undefined) dbCorrection.status = correction.status
   if (correction.suggestion !== undefined) dbCorrection.suggestion = correction.suggestion
-  if (correction.updatedAt !== undefined) dbCorrection.updated_at = correction.updatedAt
+  if (correction.updatedAt !== undefined) dbCorrection.updated_at = new Date(correction.updatedAt).toISOString()
   if (correction.userId !== undefined) dbCorrection.user_id = correction.userId
 
   return dbCorrection
