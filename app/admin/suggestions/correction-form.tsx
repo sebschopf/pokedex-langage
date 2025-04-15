@@ -1,75 +1,50 @@
 "use client"
 
-import type React from "react"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { toast } from "@/components/ui/use-toast"
-import type { Language } from "@/types/language"
+import type { Language } from "@/types/models/language"
 
 interface CorrectionFormProps {
   languages: Language[]
+  onSubmit: (formData: FormData) => Promise<{ success: boolean }>
 }
 
-export function CorrectionForm({ languages }: CorrectionFormProps) {
+export default function CorrectionForm({ languages, onSubmit }: CorrectionFormProps) {
   const [selectedLanguage, setSelectedLanguage] = useState<string>("")
-  const [field, setField] = useState<string>("usedFor")
-  const [correctionText, setCorrectionText] = useState<string>("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const router = useRouter()
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null)
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  const formRef = useRef<HTMLFormElement>(null)
 
-    if (!selectedLanguage || !field || !correctionText) {
-      toast({
-        title: "Formulaire incomplet",
-        description: "Veuillez remplir tous les champs obligatoires.",
-        variant: "destructive",
-      })
-      return
-    }
-
+  async function handleSubmit(formData: FormData) {
     setIsSubmitting(true)
+    setMessage(null)
 
     try {
-      const response = await fetch("/api/corrections", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          language_id: selectedLanguage,
-          field,
-          correction_text: correctionText,
-        }),
-      })
+      const result = await onSubmit(formData)
 
-      if (!response.ok) {
-        throw new Error("Erreur lors de la soumission")
+      if (result.success) {
+        setMessage({
+          text: "Votre correction a été soumise avec succès. Merci pour votre contribution !",
+          type: "success",
+        })
+        // Réinitialiser le formulaire
+        formRef.current?.reset()
+        setSelectedLanguage("")
+      } else {
+        setMessage({
+          text: "Une erreur est survenue lors de la soumission de votre correction. Veuillez réessayer.",
+          type: "error",
+        })
       }
-
-      toast({
-        title: "Correction soumise",
-        description: "Votre suggestion a été soumise avec succès et sera examinée par notre équipe.",
-      })
-
-      // Réinitialiser le formulaire
-      setSelectedLanguage("")
-      setField("")
-      setCorrectionText("")
-
-      // Rafraîchir la page
-      router.refresh()
     } catch (error) {
-      console.error("Erreur:", error)
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la soumission de votre correction.",
-        variant: "destructive",
+      setMessage({
+        text: "Une erreur est survenue lors de la soumission de votre correction. Veuillez réessayer.",
+        type: "error",
       })
     } finally {
       setIsSubmitting(false)
@@ -77,16 +52,21 @@ export function CorrectionForm({ languages }: CorrectionFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form ref={formRef} action={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="language">Langage</Label>
-        <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-          <SelectTrigger id="language">
+        <Label htmlFor="languageId">Langage concerné</Label>
+        <Select
+          value={selectedLanguage}
+          onValueChange={(value) => setSelectedLanguage(value)}
+          name="languageId"
+          required
+        >
+          <SelectTrigger>
             <SelectValue placeholder="Sélectionnez un langage" />
           </SelectTrigger>
           <SelectContent>
             {languages.map((language) => (
-              <SelectItem key={String(language.id)} value={String(language.id)}>
+              <SelectItem key={language.id} value={language.id.toString()}>
                 {language.name}
               </SelectItem>
             ))}
@@ -95,36 +75,44 @@ export function CorrectionForm({ languages }: CorrectionFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="field">Champ à corriger</Label>
-        <Select value={field} onValueChange={setField}>
-          <SelectTrigger id="field">
-            <SelectValue placeholder="Sélectionnez un champ" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="usedFor">Utilisé pour</SelectItem>
-            <SelectItem value="shortDescription">Description courte</SelectItem>
-            <SelectItem value="popularFrameworks">Frameworks populaires</SelectItem>
-            <SelectItem value="strengths">Forces</SelectItem>
-            <SelectItem value="usageRate">Taux d'utilisation</SelectItem>
-          </SelectContent>
-        </Select>
+        <Label htmlFor="field">Champ concerné (optionnel)</Label>
+        <Input id="field" name="field" placeholder="Ex: description, année de création, etc." />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="correction">Votre correction</Label>
+        <Label htmlFor="correctionText">Correction proposée</Label>
         <Textarea
-          id="correction"
-          value={correctionText}
-          onChange={(e) => setCorrectionText(e.target.value)}
-          placeholder="Décrivez votre correction ici..."
-          rows={5}
+          id="correctionText"
+          name="correctionText"
+          placeholder="Décrivez l'erreur que vous avez repérée"
+          required
+          rows={4}
         />
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="suggestion">Suggestion (optionnel)</Label>
+        <Textarea
+          id="suggestion"
+          name="suggestion"
+          placeholder="Proposez une correction ou une amélioration"
+          rows={4}
+        />
+      </div>
+
+      {message && (
+        <div
+          className={`p-4 rounded-md ${
+            message.type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
+
       <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Soumission en cours..." : "Soumettre la correction"}
+        {isSubmitting ? "Envoi en cours..." : "Soumettre la correction"}
       </Button>
     </form>
   )
 }
-

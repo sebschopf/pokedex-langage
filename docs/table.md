@@ -1,98 +1,37 @@
-La requête a affiché les politiques RLS (Row Level Security) qui définissent les contrôles d'accès aux données. Les principales politiques montrent que:
+I'll update each of the documentation files to reflect the changes we've made to the codebase. Let me go through them one by one:
 
-- Les utilisateurs peuvent voir leurs propres corrections/propositions
-- Les admins et validateurs peuvent voir et modifier toutes les corrections/propositions
-- Seuls les admins peuvent supprimer des propositions
-- Tout le monde peut soumettre des corrections, mais seuls les utilisateurs enregistrés peuvent proposer des langages
+## 1. Updated table.md
 
+```markdown file="table.md"
+...
+```
 
-Basé sur toutes ces informations, voici la documentation complète de la base de données:
-
-# Documentation de la Base de Données - Pokedex Langage de Programmation
-
-## Structure de la Base de Données
-
-### Tables Principales
-
-1. **languages** - Table principale des langages de programmation
-
-1. Contient les informations sur les langages: nom, description, année de création, créateur, etc.
-2. Seuls les admins et validateurs peuvent ajouter de nouveaux langages
-
-
-
-2. **libraries** - Bibliothèques et frameworks associés aux langages
-
-1. Liée à la table languages via language_id
-
-
-
-3. **language_proposals** - Propositions de nouveaux langages
-
-1. Les utilisateurs enregistrés peuvent soumettre des propositions
-2. Les admins et validateurs peuvent les approuver/rejeter
-
-
-
-4. **corrections** - Corrections pour les langages existants
-
-1. Tout utilisateur peut soumettre des corrections
-2. Les admins et validateurs peuvent les approuver/rejeter
-
-
-
-5. **profiles** - Profils des utilisateurs
-
-1. Étend les informations de base des utilisateurs stockées dans auth.users
-
-
-
-6. **user_roles** - Rôles des utilisateurs
-
-1. Définit les rôles: admin, validator, verified, registered
-
-
-
-
-
-### Tables de Relations et de Catégorisation
-
-1. **language_usage** - Relie les langages à leurs catégories d'utilisation
-2. **library_languages** - Relie les bibliothèques aux langages
-3. **technology_categories** - Catégories de technologies
-4. **technology_subtypes** - Sous-types de technologies
-5. **usage_categories** - Catégories d'utilisation des langages
-
-
-### Tables Utilitaires
-
-1. **todos** - Tâches à effectuer
-2. **todo_categories** - Catégories de tâches
-3. **todo_status** - Statuts des tâches
-
-
-## Structure des Tables Principales
-
-### languages
+### libraries
 
 ```plaintext
 id                  integer         NOT NULL (PK)
 name                varchar         NOT NULL
 slug                varchar         NOT NULL
-year_created        integer         
-creator             varchar         
 description         text            
+language_id         integer         NOT NULL (FK -> languages.id)
+technology_type     varchar         
+website_url         varchar         
+github_url          varchar         
 logo_path           varchar         
+is_popular          boolean         
 created_at          timestamp       
 updated_at          timestamp       
-type                varchar         
-usage_rate          integer         
-is_open_source      boolean         
-short_description   text            
-used_for            text            
-strengths           array           
-popular_frameworks  array           
-tools               jsonb           
+documentation_url   varchar
+best_for            text
+category            varchar
+stars               integer
+last_release        varchar
+license             varchar
+features            array
+version             varchar
+subtype             varchar
+popularity          integer
+is_open_source      boolean
 ```
 
 ### profiles
@@ -106,12 +45,15 @@ avatar_url          text
 full_name           text            
 bio                 text            
 website             text            
+email               text
+is_verified         boolean
 ```
 
 ### user_roles
 
 ```plaintext
 id                  uuid            NOT NULL (PK)
+user_id             uuid            NOT NULL (FK -> auth.users.id)
 role                user_role       NOT NULL (enum: admin, validator, verified, registered)
 created_at          timestamp       
 updated_at          timestamp       
@@ -161,6 +103,7 @@ user_id             uuid
 7. **technology_subtypes.category_id** -> technology_categories.id
 8. **todos.category_id** -> todo_categories.id
 9. **todos.status_id** -> todo_status.id
+10. **user_roles.user_id** -> auth.users.id
 
 
 ## Système de Rôles et Permissions
@@ -171,6 +114,7 @@ user_id             uuid
 - **validator** - Validateur qui peut approuver/rejeter des propositions et corrections
 - **verified** - Utilisateur vérifié
 - **registered** - Utilisateur simplement enregistré
+- **anonymous** - Utilisateur non connecté (implicite)
 
 
 ### Politiques d'Accès (RLS)
@@ -192,7 +136,8 @@ user_id             uuid
 
 #### Table languages
 
-1. **Insertion**: Seuls les admins et validateurs peuvent ajouter des langages
+1. **Lecture**: Tout le monde peut lire les langages
+2. **Insertion/Modification/Suppression**: Seuls les admins et validateurs peuvent gérer les langages
 
 
 ## Flux de Travail
@@ -213,6 +158,49 @@ user_id             uuid
 4. Le statut de la correction est mis à jour
 
 
+## Fonctions de Mapping
+
+Pour faciliter la conversion entre les types de base de données et les modèles d'application, nous utilisons des fonctions de mapping:
+
+```typescript
+// Exemple de fonction de mapping pour les langages
+export function dbToLanguage(dbLanguage: DbLanguage): Language {
+  return {
+    id: dbLanguage.id,
+    name: dbLanguage.name,
+    slug: dbLanguage.slug,
+    shortDescription: dbLanguage.short_description,
+    type: dbLanguage.type,
+    usedFor: dbLanguage.used_for,
+    usageRate: dbLanguage.usage_rate,
+    yearCreated: dbLanguage.year_created,
+    popularFrameworks: dbLanguage.popular_frameworks || [],
+    strengths: dbLanguage.strengths || [],
+    isOpenSource: dbLanguage.is_open_source,
+    createdAt: dbLanguage.created_at,
+    updatedAt: dbLanguage.updated_at,
+    creator: dbLanguage.creator,
+    description: dbLanguage.description,
+    logoPath: dbLanguage.logo_path,
+    githubUrl: dbLanguage.github_url || null,
+    websiteUrl: dbLanguage.website_url || null,
+    // ...autres propriétés
+  }
+}
+
+// Fonction inverse pour convertir un modèle en objet de base de données
+export function languageToDb(language: Partial<Language>): Partial<DbLanguage> {
+  const dbLanguage: Partial<DbLanguage> = {}
+
+  if (language.id !== undefined) dbLanguage.id = language.id
+  if (language.name !== undefined) dbLanguage.name = language.name
+  if (language.slug !== undefined) dbLanguage.slug = language.slug
+  // ...autres propriétés
+
+  return dbLanguage
+}
+```
+
 ## Bonnes Pratiques pour l'Interaction avec la Base de Données
 
 ### Clients Supabase
@@ -222,28 +210,45 @@ user_id             uuid
 ```typescript
 // lib/server/supabase/client.ts
 import { createClient } from '@supabase/supabase-js';
+import { cache } from 'react';
 
-export const supabaseAdmin = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const createServerSupabaseClient = cache(() => {
+  return createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        persistSession: false,
+      }
+    }
+  );
+});
 ```
 
 #### Côté Client
 
 ```typescript
 // lib/client/supabase.ts
-import { createBrowserClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 
-let supabaseClient: ReturnType<typeof createBrowserClient> | null = null;
+let supabaseClient: ReturnType<typeof createClient> | null = null;
 
-export function getSupabaseClient() {
-  if (!supabaseClient) {
-    supabaseClient = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+export function createClientSupabaseClient() {
+  if (supabaseClient) {
+    return supabaseClient;
   }
+
+  supabaseClient = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        persistSession: true,
+        storageKey: "supabase-auth",
+      }
+    }
+  );
+
   return supabaseClient;
 }
 ```
@@ -253,68 +258,95 @@ export function getSupabaseClient() {
 #### Récupérer les Langages
 
 ```typescript
-async function getLanguages() {
-  const { data, error } = await supabaseAdmin
-    .from('languages')
-    .select('*, libraries(*)')
-    .order('name');
-    
-  if (error) throw error;
-  return data;
+// lib/server/api/languages.ts
+export async function getLanguages(options = {}) {
+  const { page = 1, pageSize = 10, search, category, subtype } = options;
+  
+  const supabase = createServerSupabaseClient();
+  
+  let query = supabase.from("languages").select("*", { count: "exact" });
+  
+  // Appliquer les filtres
+  if (search) {
+    query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+  }
+  
+  if (category) {
+    query = query.eq("type", category);
+  }
+  
+  // Pagination
+  const offset = (page - 1) * pageSize;
+  
+  const { data, error, count } = await query
+    .range(offset, offset + pageSize - 1)
+    .order("name");
+  
+  if (error) {
+    console.error("Erreur lors de la récupération des langages:", error);
+    throw error;
+  }
+  
+  // Convertir les données avec la fonction de mapping
+  const mappedData = data ? data.map(dbToLanguage) : [];
+  
+  return {
+    data: mappedData,
+    totalCount: count || 0,
+    page,
+    pageSize,
+  };
 }
 ```
 
-#### Soumettre une Proposition
+#### Server Actions pour les Mutations
 
 ```typescript
-async function submitProposal(proposalData) {
-  const { data, error } = await supabaseClient
-    .from('language_proposals')
-    .insert({
-      ...proposalData,
-      user_id: (await supabaseClient.auth.getUser()).data.user?.id,
-      status: 'pending'
-    })
-    .select();
+// app/actions/language-actions.ts
+"use server"
+
+export async function createLanguageAction(formData: FormData) {
+  try {
+    const language = {
+      name: formData.get("name") as string,
+      // ...autres propriétés
+      slug: (formData.get("name") as string).toLowerCase().replace(/\s+/g, "-"),
+      createdAt: new Date().toISOString(),
+    };
     
-  if (error) throw error;
-  return data;
-}
-```
-
-#### Approuver une Proposition
-
-```typescript
-async function approveProposal(proposalId) {
-  const { data, error } = await supabaseAdmin
-    .from('language_proposals')
-    .update({
-      status: 'approved',
-      updated_at: new Date().toISOString()
-    })
-    .eq('id', proposalId)
-    .select();
+    const supabase = createServerSupabaseClient();
+    const dbData = languageToDb(language);
     
-  if (error) throw error;
-  return data;
-}
-```
-
-#### Soumettre une Correction
-
-```typescript
-async function submitCorrection(correctionData) {
-  const { data, error } = await supabaseClient
-    .from('corrections')
-    .insert({
-      ...correctionData,
-      user_id: (await supabaseClient.auth.getUser()).data.user?.id,
-      status: 'pending'
-    })
-    .select();
+    const { data, error } = await supabase
+      .from("languages")
+      .insert(dbData)
+      .select()
+      .single();
     
-  if (error) throw error;
-  return data;
+    if (error) {
+      console.error("Erreur lors de la création du langage:", error);
+      return {
+        success: false,
+        message: "Erreur lors de la création du langage",
+      };
+    }
+    
+    // Revalider les chemins pour mettre à jour les données
+    revalidatePath("/");
+    revalidatePath("/admin/languages");
+    
+    return {
+      success: true,
+      message: "Langage créé avec succès",
+      data: dbToLanguage(data),
+    };
+  } catch (error) {
+    console.error("Erreur lors de la création du langage:", error);
+    return {
+      success: false,
+      message: "Une erreur est survenue lors de la création du langage",
+    };
+  }
 }
 ```
 

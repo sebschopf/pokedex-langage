@@ -1,3 +1,6 @@
+
+##  Updated api.md
+
 # Documentation de l'API
 
 ## Introduction
@@ -9,9 +12,10 @@ L'API du projet Pokedex Langage de Programmation est construite sur Next.js API 
 L'API est organisée selon les principes suivants :
 
 1. **Routes API Next.js** : Endpoints serverless dans `/app/api/`
-2. **Fonctions d'accès aux données** : Logique métier dans `/lib/server/api/`
-3. **Fonctions de mapping** : Conversion des données dans `/lib/server/mapping/`
-4. **Client Supabase** : Interaction avec la base de données via `/lib/server/supabase/`
+2. **Server Actions** : Fonctions côté serveur dans `/app/actions/`
+3. **Fonctions d'accès aux données** : Logique métier dans `/lib/server/api/`
+4. **Fonctions de mapping** : Conversion des données dans `/lib/server/mapping/`
+5. **Client Supabase** : Interaction avec la base de données via `/lib/server/supabase/`
 
 ## Structure des Endpoints
 
@@ -20,15 +24,26 @@ L'API est organisée selon les principes suivants :
   /languages            # Gestion des langages de programmation
     /[id]               # Opérations sur un langage spécifique
       /frameworks       # Frameworks associés à un langage
+    /slug/[slug]        # Récupération d'un langage par son slug
+  /library              # Gestion des bibliothèques et frameworks
+    /[id]               # Opérations sur une bibliothèque spécifique
   /proposals            # Propositions de nouveaux langages
     /[id]               # Opérations sur une proposition spécifique
   /corrections          # Corrections pour les langages existants
     /[id]               # Opérations sur une correction spécifique
-  /suggestions          # Suggestions des utilisateurs
   /revalidate           # Revalidation du cache Next.js
   /storage              # Gestion des fichiers stockés
     /[bucket]/[...path] # Accès aux fichiers dans un bucket
-  /seed-user-todo       # Initialisation des todos utilisateur
+\`\`\`
+
+## Server Actions
+
+En plus des routes API, l'application utilise des Server Actions pour les opérations côté serveur :
+
+\`\`\`
+/app/actions
+  /language-actions.ts  # Actions pour les langages
+  /framework-actions.ts # Actions pour les frameworks
 \`\`\`
 
 ## Endpoints Principaux
@@ -47,137 +62,162 @@ Récupère la liste des langages de programmation.
 - `subtype` (optionnel) : Filtrer par sous-type
 
 **Réponse :**
-\`\`\`json
+```json
 {
   "data": [
     {
       "id": 1,
       "name": "JavaScript",
-      "description": "...",
-      "logoUrl": "...",
+      "shortDescription": "...",
+      "logoPath": "...",
       "slug": "javascript",
-      "subtypes": ["Frontend", "Backend"],
-      "category": "Programming"
+      "type": "Frontend",
+      "usageRate": 85
     }
   ],
   "totalCount": 100,
   "page": 1,
   "pageSize": 10
 }
-\`\`\`
+```
 
 #### GET /api/languages/[id]
 
 Récupère les détails d'un langage spécifique.
 
 **Paramètres de chemin :**
+
 - `id` : ID du langage
 
+
 **Réponse :**
-\`\`\`json
+
+```json
 {
   "id": 1,
   "name": "JavaScript",
   "description": "...",
-  "logoUrl": "...",
+  "shortDescription": "...",
+  "logoPath": "...",
   "slug": "javascript",
-  "subtypes": ["Frontend", "Backend"],
-  "category": "Programming",
+  "type": "Frontend",
+  "usageRate": 85,
+  "yearCreated": 1995,
+  "creator": "Brendan Eich",
+  "popularFrameworks": ["React", "Vue", "Angular"],
+  "strengths": ["Versatile", "Ubiquitous", "Easy to learn"],
+  "isOpenSource": true,
   "createdAt": "2023-01-01T00:00:00Z",
   "updatedAt": "2023-01-01T00:00:00Z",
-  "usageCategories": [...]
+  "githubUrl": "https://github.com/tc39/ecma262",
+  "websiteUrl": "https://developer.mozilla.org/en-US/docs/Web/JavaScript"
 }
-\`\`\`
+```
+
+#### GET /api/languages/slug/[slug]
+
+Récupère les détails d'un langage par son slug.
+
+**Paramètres de chemin :**
+
+- `slug` : Slug du langage
+
+
+**Réponse :**
+Identique à GET /api/languages/[id]
 
 #### GET /api/languages/[id]/frameworks
 
 Récupère les frameworks associés à un langage.
 
 **Paramètres de chemin :**
+
 - `id` : ID du langage
 
+
 **Réponse :**
-\`\`\`json
+
+```json
+[
+  {
+    "id": 1,
+    "name": "React",
+    "description": "...",
+    "logoPath": "...",
+    "languageId": 1,
+    "technologyType": "framework",
+    "websiteUrl": "https://reactjs.org",
+    "githubUrl": "https://github.com/facebook/react"
+  }
+]
+```
+
+### Bibliothèques
+
+#### GET /api/library
+
+Récupère la liste des bibliothèques et frameworks.
+
+**Paramètres de requête :**
+
+- `page` (optionnel) : Numéro de page pour la pagination
+- `pageSize` (optionnel) : Nombre d'éléments par page
+- `search` (optionnel) : Terme de recherche
+- `languageId` (optionnel) : Filtrer par langage
+- `technologyType` (optionnel) : Filtrer par type de technologie
+
+
+**Réponse :**
+
+```json
 {
   "data": [
     {
       "id": 1,
       "name": "React",
       "description": "...",
-      "logoUrl": "...",
-      "languageId": 1
+      "languageId": 1,
+      "technologyType": "framework"
     }
-  ]
+  ],
+  "totalCount": 50,
+  "page": 1,
+  "pageSize": 10
 }
-\`\`\`
+```
 
-### Propositions
+#### GET /api/library/[id]
 
-#### POST /api/proposals
-
-Soumet une proposition pour un nouveau langage.
-
-**Corps de la requête :**
-\`\`\`json
-{
-  "name": "Nouveau Langage",
-  "description": "Description du langage",
-  "category": "Programming",
-  "subtypes": [1, 2],
-  "usageCategories": [1, 3]
-}
-\`\`\`
-
-**Réponse :**
-\`\`\`json
-{
-  "id": 123,
-  "status": "pending",
-  "message": "Proposition soumise avec succès"
-}
-\`\`\`
-
-#### GET /api/proposals
-
-Récupère la liste des propositions (admin uniquement).
-
-**Réponse :**
-\`\`\`json
-{
-  "data": [
-    {
-      "id": 123,
-      "name": "Nouveau Langage",
-      "status": "pending",
-      "createdAt": "2023-01-01T00:00:00Z",
-      "userId": "user-123"
-    }
-  ]
-}
-\`\`\`
-
-#### PUT /api/proposals/[id]
-
-Met à jour le statut d'une proposition (admin uniquement).
+Récupère les détails d'une bibliothèque spécifique.
 
 **Paramètres de chemin :**
-- `id` : ID de la proposition
 
-**Corps de la requête :**
-\`\`\`json
-{
-  "status": "approved",
-  "message": "Proposition approuvée"
-}
-\`\`\`
+- `id` : ID de la bibliothèque
+
 
 **Réponse :**
-\`\`\`json
+
+```json
 {
-  "success": true,
-  "message": "Statut mis à jour"
+  "id": 1,
+  "name": "React",
+  "description": "A JavaScript library for building user interfaces",
+  "languageId": 1,
+  "technologyType": "framework",
+  "websiteUrl": "https://reactjs.org",
+  "githubUrl": "https://github.com/facebook/react",
+  "logoPath": "...",
+  "isPopular": true,
+  "createdAt": "2023-01-01T00:00:00Z",
+  "updatedAt": "2023-01-01T00:00:00Z",
+  "documentationUrl": "https://reactjs.org/docs/getting-started.html",
+  "bestFor": "Building interactive UIs",
+  "category": "UI",
+  "stars": 200000,
+  "lastRelease": "18.2.0",
+  "license": "MIT"
 }
-\`\`\`
+```
 
 ### Corrections
 
@@ -186,98 +226,189 @@ Met à jour le statut d'une proposition (admin uniquement).
 Soumet une correction pour un langage existant.
 
 **Corps de la requête :**
-\`\`\`json
+
+```json
 {
   "languageId": 1,
   "field": "description",
-  "currentValue": "...",
-  "proposedValue": "...",
-  "reason": "Correction d'une erreur factuelle"
+  "correctionText": "La description actuelle contient une erreur...",
+  "suggestion": "Voici la description corrigée..."
 }
-\`\`\`
+```
 
 **Réponse :**
-\`\`\`json
+
+```json
 {
   "id": 456,
   "status": "pending",
   "message": "Correction soumise avec succès"
 }
-\`\`\`
+```
 
 #### GET /api/corrections
 
 Récupère la liste des corrections (admin uniquement).
 
 **Réponse :**
-\`\`\`json
+
+```json
 {
   "data": [
     {
       "id": 456,
       "languageId": 1,
       "field": "description",
+      "correctionText": "...",
+      "suggestion": "...",
       "status": "pending",
       "createdAt": "2023-01-01T00:00:00Z",
       "userId": "user-123"
     }
-  ]
+  ],
+  "totalCount": 20,
+  "page": 1,
+  "pageSize": 10
 }
-\`\`\`
+```
 
-### Stockage
+## Server Actions
 
-#### GET /api/storage/[bucket]/[...path]
+### Langages
 
-Récupère un fichier du stockage Supabase.
+#### createLanguageAction
 
-**Paramètres de chemin :**
-- `bucket` : Nom du bucket
-- `path` : Chemin du fichier
+Crée un nouveau langage.
+
+**Paramètres :**
+
+- `formData` : FormData contenant les données du langage
+
+
+**Exemple d'utilisation :**
+
+```typescriptreact
+<form action={createLanguageAction}>
+  <input name="name" />
+  <input name="type" />
+  <input name="shortDescription" />
+  {/* Autres champs */}
+  <button type="submit">Créer</button>
+</form>
+```
 
 **Réponse :**
-Le fichier demandé avec les en-têtes appropriés.
 
-#### POST /api/storage/[bucket]/[...path]
+```json
+{
+  "success": true,
+  "message": "Langage créé avec succès",
+  "data": {
+    "id": 123,
+    "name": "Nouveau Langage",
+    "slug": "nouveau-langage",
+    "type": "Programming"
+  }
+}
+```
 
-Télécharge un fichier vers le stockage Supabase.
+#### updateLanguageAction
 
-**Paramètres de chemin :**
-- `bucket` : Nom du bucket
-- `path` : Chemin du fichier
+Met à jour un langage existant.
 
-**Corps de la requête :**
-Données du fichier en multipart/form-data.
+**Paramètres :**
+
+- `id` : ID du langage
+- `formData` : FormData contenant les données à mettre à jour
+
+
+**Exemple d'utilisation :**
+
+```typescriptreact
+<form action={async (formData) => {
+  await updateLanguageAction("123", formData);
+}}>
+  <input name="name" />
+  <input name="type" />
+  {/* Autres champs */}
+  <button type="submit">Mettre à jour</button>
+</form>
+```
 
 **Réponse :**
-\`\`\`json
+
+```json
 {
-  "path": "logos/javascript.png",
-  "url": "https://..."
+  "success": true,
+  "message": "Langage mis à jour avec succès"
 }
-\`\`\`
+```
 
-### Revalidation
+#### deleteLanguageAction
 
-#### POST /api/revalidate
+Supprime un langage.
 
-Revalide le cache Next.js pour les pages spécifiées.
+**Paramètres :**
 
-**Corps de la requête :**
-\`\`\`json
-{
-  "paths": ["/", "/language/javascript"],
-  "secret": "votre-secret-de-revalidation"
-}
-\`\`\`
+- `id` : ID du langage
+- `logoUrl` (optionnel) : URL du logo à supprimer
+
+
+**Exemple d'utilisation :**
+
+```typescriptreact
+<form action={async () => {
+  await deleteLanguageAction("123", "https://example.com/logo.png");
+}}>
+  <button type="submit">Supprimer</button>
+</form>
+```
 
 **Réponse :**
-\`\`\`json
+
+```json
 {
-  "revalidated": true,
-  "message": "Revalidation déclenchée"
+  "success": true,
+  "message": "Langage supprimé avec succès"
 }
-\`\`\`
+```
+
+### Frameworks
+
+#### createFrameworkAction
+
+Crée un nouveau framework.
+
+**Paramètres :**
+
+- `formData` : FormData contenant les données du framework
+
+
+**Exemple d'utilisation :**
+
+```typescriptreact
+<form action={createFrameworkAction}>
+  <input name="name" />
+  <input name="languageId" />
+  <input name="description" />
+  {/* Autres champs */}
+  <button type="submit">Créer</button>
+</form>
+```
+
+**Réponse :**
+
+```json
+{
+  "success": true,
+  "message": "Framework créé avec succès",
+  "data": {
+    "id": 456,
+    "name": "Nouveau Framework",
+    "languageId": 123
+  }
+}
+```
 
 ## Implémentation Côté Serveur
 
@@ -285,60 +416,64 @@ Les endpoints API s'appuient sur des fonctions d'accès aux données dans `/lib/
 
 ### Exemple : Récupération des langages
 
-\`\`\`typescript
+```typescript
 // lib/server/api/languages.ts
-import { createServerSupabaseClient } from '@/lib/server/supabase';
+import { createServerSupabaseClient } from '@/lib/server/supabase/client';
 import { dbToLanguage } from '@/lib/server/mapping/language-mapping';
-import { cache } from 'react';
+import type { DbLanguage } from '@/types/database/language';
+import type { Language } from '@/types/models/language';
 
-export const getLanguages = cache(async (options = {}) => {
+export async function getLanguages(options = {}) {
   const { page = 1, pageSize = 10, search, category, subtype } = options;
+
   const supabase = createServerSupabaseClient();
-  
-  let query = supabase
-    .from('languages')
-    .select('*, technology_subtypes(*)');
-  
-  // Appliquer les filtres
+
+  // Calculer l'offset pour la pagination
+  const offset = (page - 1) * pageSize;
+
+  // Construire la requête de base
+  let query = supabase.from("languages").select("*", { count: "exact" });
+
+  // Appliquer les filtres si nécessaire
   if (search) {
-    query = query.ilike('name', `%${search}%`);
+    query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
   }
-  
+
   if (category) {
-    query = query.eq('category_id', category);
+    query = query.eq("type", category);
   }
-  
-  // Pagination
-  const from = (page - 1) * pageSize;
-  const to = from + pageSize - 1;
-  
+
+  if (subtype) {
+    query = query.contains("subtypes", [subtype]);
+  }
+
+  // Exécuter la requête avec pagination
   const { data, error, count } = await query
-    .range(from, to)
-    .order('name')
-    .returns<DbLanguage[]>();
-  
+    .range(offset, offset + pageSize - 1)
+    .order("name");
+
   if (error) {
-    console.error('Error fetching languages:', error);
-    return { data: [], totalCount: 0, page, pageSize };
+    console.error("Erreur lors de la récupération des langages:", error);
+    throw error;
   }
-  
-  // Mapper les données
-  const languages = data.map(dbToLanguage);
-  
+
+  // Convertir les données avec la fonction de mapping
+  const mappedData = data ? data.map((item) => dbToLanguage(item as DbLanguage)) : [];
+
   return {
-    data: languages,
+    data: mappedData,
     totalCount: count || 0,
     page,
-    pageSize
+    pageSize,
   };
-});
-\`\`\`
+}
+```
 
 ## Gestion des Erreurs
 
 L'API utilise un système standardisé de gestion des erreurs :
 
-\`\`\`typescript
+```typescript
 // lib/server/api/error-handling.ts
 export class ApiError extends Error {
   statusCode: number;
@@ -365,15 +500,16 @@ export function handleApiError(error: unknown) {
     { status: 500, headers: { 'Content-Type': 'application/json' } }
   );
 }
-\`\`\`
+```
 
 ## Authentification et Autorisation
 
 L'API utilise Supabase Auth pour l'authentification et l'autorisation :
 
-\`\`\`typescript
+```typescript
 // lib/server/auth/session.ts
-import { createServerSupabaseClient } from '@/lib/server/supabase';
+import { createServerSupabaseClient } from '@/lib/server/supabase/client';
+import { ApiError } from '@/lib/server/api/error-handling';
 
 export async function requireAuth() {
   const supabase = createServerSupabaseClient();
@@ -402,7 +538,58 @@ export async function requireAdmin() {
   
   return session;
 }
-\`\`\`
+```
+
+## Client API
+
+Pour faciliter l'interaction avec l'API côté client, nous utilisons des fonctions dans `/lib/client/api.ts` :
+
+```typescript
+// lib/client/api.ts
+import { withTokenRefresh } from './auth-helpers';
+import type { Language } from '@/types/models/language';
+
+export async function fetchLanguages() {
+  return withTokenRefresh(async () => {
+    const response = await fetch('/api/languages');
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message || 'Erreur lors de la récupération des langages');
+    }
+    return await response.json();
+  });
+}
+
+export async function fetchLanguageById(id: string) {
+  return withTokenRefresh(async () => {
+    const response = await fetch(`/api/languages/${id}`);
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message || 'Erreur lors de la récupération du langage');
+    }
+    return await response.json();
+  });
+}
+
+export async function createLanguageClient(languageData: Partial<Language>) {
+  return withTokenRefresh(async () => {
+    const response = await fetch('/api/languages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(languageData),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message || 'Erreur lors de la création du langage');
+    }
+
+    return await response.json();
+  });
+}
+```
 
 ## Bonnes Pratiques
 
@@ -413,6 +600,8 @@ export async function requireAdmin() {
 5. **Limiter les requêtes** : Implémenter la pagination pour les listes volumineuses.
 6. **Sécuriser les endpoints** : Utiliser `requireAuth()` et `requireAdmin()` pour protéger les endpoints sensibles.
 7. **Journaliser les actions** : Enregistrer les actions importantes pour le débogage et l'audit.
+8. **Utiliser les Server Actions** : Pour les opérations de mutation, privilégier les Server Actions qui offrent une meilleure expérience utilisateur.
+
 
 ## Conclusion
 
