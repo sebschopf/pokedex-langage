@@ -1,5 +1,4 @@
 import { createClient } from "@supabase/supabase-js"
-// Utiliser le type Database généré
 import type { Database } from "@/types/database-types"
 
 // Singleton pour le client côté client
