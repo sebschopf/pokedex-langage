@@ -1,5 +1,6 @@
 import type { DbUserRole } from "@/types/database/user-role"
 import type { UserRole } from "@/types/models/user-role"
+import { toNumber, toString } from "@/utils/conversion/type-conversion"
 
 /**
  * Convertit un objet DbUserRole en UserRole
@@ -8,7 +9,7 @@ import type { UserRole } from "@/types/models/user-role"
  */
 export function dbToUserRole(dbUserRole: DbUserRole): UserRole {
   return {
-    id: dbUserRole.id,
+    id: toNumber(dbUserRole.id), // Conversion explicite de string à number
     userId: dbUserRole.user_id,
     role: dbUserRole.role,
     createdAt: dbUserRole.created_at,
@@ -24,7 +25,7 @@ export function dbToUserRole(dbUserRole: DbUserRole): UserRole {
 export function userRoleToDb(userRole: Partial<UserRole>): Partial<DbUserRole> {
   const dbUserRole: Partial<DbUserRole> = {}
 
-  if (userRole.id !== undefined) dbUserRole.id = userRole.id
+  if (userRole.id !== undefined) dbUserRole.id = toString(userRole.id) // Conversion explicite de number à string
   if (userRole.userId !== undefined) dbUserRole.user_id = userRole.userId
   if (userRole.role !== undefined) dbUserRole.role = userRole.role
   if (userRole.createdAt !== undefined) dbUserRole.created_at = userRole.createdAt
