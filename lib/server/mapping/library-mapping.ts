@@ -20,13 +20,21 @@ export function dbToLibrary(dbLibrary: DbLibrary): Library {
     isPopular: dbLibrary.is_popular || false,
     createdAt: dbLibrary.created_at || null,
     updatedAt: dbLibrary.updated_at || null,
-    // Conserver toutes les autres propriétés qui existent dans votre interface
+    // Propriétés supplémentaires
     documentationUrl: dbLibrary.documentation_url || null,
     bestFor: dbLibrary.best_for || null,
     category: dbLibrary.category || null,
     stars: dbLibrary.stars || null,
     lastRelease: dbLibrary.last_release || null,
     license: dbLibrary.license || null,
+    // Nouvelles propriétés
+    features: dbLibrary.features || null,
+    version: dbLibrary.version || null,
+    subtype: dbLibrary.subtype || null,
+    popularity: dbLibrary.popularity || null,
+    isOpenSource: dbLibrary.is_open_source || null,
+    officialWebsite: dbLibrary.official_website || null,
+    uniqueSellingPoint: dbLibrary.unique_selling_point || null,
   }
 }
 
@@ -50,13 +58,21 @@ export function libraryToDb(library: Partial<Library>): Partial<DbLibrary> {
   if (library.isPopular !== undefined) dbLibrary.is_popular = library.isPopular
   if (library.createdAt !== undefined) dbLibrary.created_at = library.createdAt
   if (library.updatedAt !== undefined) dbLibrary.updated_at = library.updatedAt
-  // Conserver toutes les autres propriétés qui existent dans votre interface
+  // Propriétés supplémentaires
   if (library.documentationUrl !== undefined) dbLibrary.documentation_url = library.documentationUrl
   if (library.bestFor !== undefined) dbLibrary.best_for = library.bestFor
   if (library.category !== undefined) dbLibrary.category = library.category
   if (library.stars !== undefined) dbLibrary.stars = library.stars
   if (library.lastRelease !== undefined) dbLibrary.last_release = library.lastRelease
   if (library.license !== undefined) dbLibrary.license = library.license
+  // Nouvelles propriétés
+  if (library.features !== undefined) dbLibrary.features = library.features
+  if (library.version !== undefined) dbLibrary.version = library.version
+  if (library.subtype !== undefined) dbLibrary.subtype = library.subtype
+  if (library.popularity !== undefined) dbLibrary.popularity = library.popularity
+  if (library.isOpenSource !== undefined) dbLibrary.is_open_source = library.isOpenSource
+  if (library.officialWebsite !== undefined) dbLibrary.official_website = library.officialWebsite
+  if (library.uniqueSellingPoint !== undefined) dbLibrary.unique_selling_point = library.uniqueSellingPoint
 
   return dbLibrary
 }

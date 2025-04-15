@@ -15,11 +15,17 @@ export interface Library {
   isPopular: boolean
   createdAt: string | null
   updatedAt: string | null
-  // Propriétés supplémentaires
   documentationUrl: string | null
   bestFor: string | null
   category: string | null
   stars: number | null
   lastRelease: string | null
   license: string | null
+  features: string[] | null
+  version: string | null
+  subtype: string | null
+  popularity: number | null
+  isOpenSource: boolean | null
+  officialWebsite: string | null
+  uniqueSellingPoint: string | null
 }
