@@ -3,18 +3,13 @@
  * Version transformée et normalisée de DbLanguageProposal
  */
 export interface LanguageProposal {
-    createdAt: string | null
-    createdYear: number | null
-    creator: string | null
-    description: string | null
-    id: number
-    name: string
-    popularFrameworks: string[] | null
-    status: string
-    strengths: string[] | null
-    type: string | null
-    updatedAt: string | null
-    usedFor: string | null
-    userId: string | null
-  }
-  
+  id: number
+  name: string
+  description: string | null
+  type: string | null
+  userId: string
+  status: string
+  createdAt: string | null
+  updatedAt: string | null
+  // Ajoutez d'autres propriétés selon vos besoins
+}

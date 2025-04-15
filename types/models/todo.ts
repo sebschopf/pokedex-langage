@@ -1,17 +1,35 @@
 /**
  * Interface représentant une tâche dans l'application
- * Version transformée et normalisée de DbTodo
  */
 export interface Todo {
-    categoryId: number | null
-    createdAt: string | null
-    description: string | null
-    dueDate: string | null
-    id: number
-    isCompleted: boolean | null
-    statusId: number | null
-    title: string
-    updatedAt: string | null
-    userId: string | null
-  }
-  
+  id: number
+  title: string
+  description: string
+  isCompleted: boolean
+  categoryId: number | null
+  statusId: number | null
+  userId: string | null
+  dueDate: string | null
+  createdAt: string | null
+  updatedAt: string | null
+}
+
+/**
+ * Interface représentant une catégorie de tâche dans l'application
+ */
+export interface TodoCategory {
+  id: number
+  name: string
+  color: string
+  createdAt: string | null
+}
+
+/**
+ * Interface représentant un statut de tâche dans l'application
+ */
+export interface TodoStatus {
+  id: number
+  name: string
+  description: string | null
+  createdAt: string | null
+}
