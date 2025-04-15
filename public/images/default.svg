@@ -1,5 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
-  <rect width="64" height="64" rx="8" fill="#F0F0F0"/>
-  <path d="M32 16L48 32L32 48L16 32L32 16Z" fill="#CCCCCC"/>
-  <text x="32" y="36" font-family="Arial" font-size="12" text-anchor="middle" fill="#666666">CODE</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150">
+  <rect width="150" height="150" fill="#f0f0f0" />
+  <text x="75" y="75" font-family="Arial" font-size="14" text-anchor="middle" dominant-baseline="middle" fill="#666">
+    Logo non disponible
+  </text>
+  <path d="M50,50 L100,100 M100,50 L50,100" stroke="#999" stroke-width="2" />
 </svg>

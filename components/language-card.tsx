@@ -14,11 +14,7 @@ interface LanguageCardProps {
 
 export function LanguageCard({ language }: LanguageCardProps) {
   // Générer un slug à partir du nom si nécessaire
-  const getSlug = () => {
-    if (language.slug && language.slug.trim() !== "") return language.slug
-
-    return generateLanguageSlug(language.name)
-  }
+  const slug = language.slug && language.slug.trim() !== "" ? language.slug : generateLanguageSlug(language.name)
 
   // Préparer l'URL de l'image
   const imageSrc = language.logoPath || `/images/${getImageName(language.name)}.svg`
@@ -31,12 +27,13 @@ export function LanguageCard({ language }: LanguageCardProps) {
 
   return (
     <Link
-      href={language.slug ? `/language/${language.slug}` : `/language/id/${language.id}`}
+      href={slug ? `/language/${slug}` : `/language/id/${language.id}`}
       className={cn(
         "block h-full border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 hover:-translate-y-1",
         "dark:bg-[#2a2a20] dark:border-[#3a3a30] dark:shadow-[8px_8px_0px_0px_rgba(58,58,48,1)] dark:hover:shadow-[12px_12px_0px_0px_rgba(58,58,48,1)]",
       )}
       aria-label={`Voir les détails de ${language.name}`}
+      prefetch={false} // Ajout pour éviter le prefetching automatique de toutes les pages
     >
       <div className="p-4 pb-6 flex flex-col h-full">
         {/* Badges en haut */}
@@ -54,9 +51,6 @@ export function LanguageCard({ language }: LanguageCardProps) {
 
         {/* Nom du langage */}
         <h2 className="text-2xl font-bold mb-4">{language.name}</h2>
-
-        {/* Affichage du slug pour débogage */}
-        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Slug: {getSlug()}</p>
 
         {/* Logo - Utilisation du composant LanguageImage */}
         <div className="flex justify-center items-center mb-4 flex-grow">

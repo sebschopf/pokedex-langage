@@ -1,82 +1,57 @@
-import SearchBar from "@/components/search-bar"
-import FilterBar from "@/components/filter-bar"
-import { LanguageGrid } from "@/components/language-grid"
-import { AuthButton } from "@/components/auth-button"
-import Link from "next/link"
-import { createServerSupabaseClient } from "@/lib/server/supabase/client"
 import { Suspense } from "react"
-import Loading from "./loading"
+import { getLanguages } from "@/lib/server/api/languages"
+import { LanguageGrid } from "@/components/language-grid"
+import CategoryTitle from "@/components/category-title"
+import { Skeleton } from "@/components/ui/skeleton"
 
-// Revalider la page toutes les heures
-export const revalidate = 3600
+// Utiliser une fonction de chargement de données côté serveur
+async function getHomePageData() {
+  try {
+    // Récupérer les langages avec une taille de page plus grande pour éviter les requêtes multiples
+    const { data: languages, totalCount } = await getLanguages({
+      page: 1,
+      pageSize: 20, // Augmenter la taille de la page
+      search: "",
+      category: "",
+      subtype: "",
+    })
+
+    return { languages, totalCount }
+  } catch (error) {
+    console.error("Erreur lors du chargement des données de la page d'accueil:", error)
+    return { languages: [], totalCount: 0 }
+  }
+}
 
 export default async function Home() {
-  try {
-    // Vérifier si l'utilisateur est connecté
-    const supabase = createServerSupabaseClient()
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
+  // Charger les données côté serveur
+  const { languages, totalCount } = await getHomePageData()
 
-    const isLoggedIn = !!session
+  return (
+    <main className="container mx-auto px-4 py-8">
+      <CategoryTitle
+        title="Langages de Programmation"
+        description={`Découvrez notre collection de ${totalCount} langages de programmation`}
+      />
 
-    // Récupérer le rôle de l'utilisateur si connecté
-    let userRole = null
-    if (session) {
-      const { data: roleData } = await supabase.from("user_roles").select("role").eq("id", session.user.id).single()
-      userRole = roleData?.role
-    }
+      <Suspense fallback={<LanguageGridSkeleton />}>
+        <LanguageGrid languages={languages} totalCount={totalCount} searchParams={{}} />
+      </Suspense>
+    </main>
+  )
+}
 
-    return (
-      <div className="space-y-8">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <h1 className="text-5xl md:text-7xl font-black mb-4 text-black uppercase tracking-tighter lcp-title">
-            Pokedex des langages
-          </h1>
-          <div className="flex flex-wrap gap-4 justify-center md:justify-end">
-            <AuthButton />
-
-            {/* N'afficher le lien vers le profil que si l'utilisateur est connecté */}
-            {isLoggedIn && (
-              <Link
-                href="/profile"
-                className="px-6 py-3 bg-white border-4 border-black text-black font-black text-lg uppercase hover:bg-blue-300 hover:-translate-y-1 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
-              >
-                Profil
-              </Link>
-            )}
-
-            <Link
-              href="/about"
-              className="px-6 py-3 bg-white border-4 border-black text-black font-black text-lg uppercase hover:bg-yellow-300 hover:-translate-y-1 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]"
-            >
-              À propos
-            </Link>
-          </div>
+function LanguageGridSkeleton() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i} className="bg-card rounded-lg shadow-md p-4">
+          <Skeleton className="h-40 w-full rounded-md" />
+          <Skeleton className="h-6 w-3/4 mt-4" />
+          <Skeleton className="h-4 w-full mt-2" />
+          <Skeleton className="h-4 w-2/3 mt-2" />
         </div>
-
-        <div className="space-y-4">
-          <SearchBar />
-          <FilterBar />
-        </div>
-
-        <Suspense fallback={<Loading />}>
-          <LanguageGrid />
-        </Suspense>
-      </div>
-    )
-  } catch (error) {
-    console.error("Erreur dans la page d'accueil:", error)
-    return (
-      <div className="space-y-8">
-        <h1 className="text-5xl md:text-7xl font-black mb-4 text-black uppercase tracking-tighter">
-          Pokedex des langages
-        </h1>
-        <div className="p-8 bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-          <p className="text-xl">Une erreur est survenue lors du chargement des données.</p>
-          <p>Veuillez réessayer ultérieurement.</p>
-        </div>
-      </div>
-    )
-  }
+      ))}
+    </div>
+  )
 }

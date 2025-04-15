@@ -1,17 +1,27 @@
 import { createClient } from "@supabase/supabase-js"
-import type { Database } from "@/types/supabase"
+import type { Database } from "@/types/database"
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+let supabaseClient: ReturnType<typeof createClient<Database>> | null = null
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error("Missing Supabase environment variables")
-}
+export function createClientSupabaseClient() {
+  if (supabaseClient) {
+    return supabaseClient
+  }
 
-export const createSupabaseClient = () => {
-  return createClient<Database>(supabaseUrl, supabaseAnonKey)
-}
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-export const createClientSupabaseClient = () => {
-  return createClient<Database>(supabaseUrl, supabaseAnonKey)
+  if (!supabaseUrl || !supabaseKey) {
+    console.error("Variables d'environnement Supabase côté client manquantes")
+    throw new Error("Variables d'environnement Supabase côté client manquantes")
+  }
+
+  supabaseClient = createClient<Database>(supabaseUrl, supabaseKey, {
+    auth: {
+      persistSession: true,
+      storageKey: "supabase-auth",
+    },
+  })
+
+  return supabaseClient
 }
