@@ -8,7 +8,7 @@ import type { Profile } from "@/types/models"
  */
 export function dbToProfile(dbProfile: DbProfile): Profile {
   return {
-    id: dbProfile.id,
+    id: dbProfile.id, 
     avatarUrl: dbProfile.avatar_url,
     bio: dbProfile.bio,
     createdAt: dbProfile.created_at,
@@ -27,7 +27,7 @@ export function dbToProfile(dbProfile: DbProfile): Profile {
 export function profileToDb(profile: Partial<Profile>): Partial<DbProfile> {
   const dbProfile: Partial<DbProfile> = {}
 
-  if (profile.id !== undefined) dbProfile.id = profile.id
+  if (profile.id !== undefined) dbProfile.id = profile.id // Pas de conversion
   if (profile.avatarUrl !== undefined) dbProfile.avatar_url = profile.avatarUrl
   if (profile.bio !== undefined) dbProfile.bio = profile.bio
   if (profile.createdAt !== undefined) dbProfile.created_at = profile.createdAt
