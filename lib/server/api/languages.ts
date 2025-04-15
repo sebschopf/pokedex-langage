@@ -1,7 +1,9 @@
-import { getSupabaseServerClient } from "@/lib/server/supabase/client"
-import type { Language } from "@/types/models"
+import { createServerSupabaseClient } from "@/lib/server/supabase/client"
+import { dbToLanguage } from "@/lib/server/mapping/language-mapping"
+import type { DbLanguage } from "@/types/database/language"
 
-interface GetLanguagesOptions {
+// Options pour la récupération des langages
+export interface GetLanguagesOptions {
   page?: number
   pageSize?: number
   search?: string
@@ -9,22 +11,16 @@ interface GetLanguagesOptions {
   subtype?: string
   openSource?: boolean
   minUsage?: number
-  sort?: string
+  sort?: "name" | "usage" | "year"
 }
 
+/**
+ * Récupère la liste des langages avec pagination et filtres
+ */
 export async function getLanguages(options: GetLanguagesOptions = {}) {
-  const {
-    page = 1,
-    pageSize = 10,
-    search = "",
-    category = "",
-    subtype = "",
-    openSource,
-    minUsage,
-    sort = "name",
-  } = options
+  const { page = 1, pageSize = 10, search, category, subtype, openSource, minUsage, sort = "name" } = options
 
-  const supabase = getSupabaseServerClient()
+  const supabase = createServerSupabaseClient()
 
   // Calculer l'offset pour la pagination
   const offset = (page - 1) * pageSize
@@ -32,7 +28,7 @@ export async function getLanguages(options: GetLanguagesOptions = {}) {
   // Construire la requête de base
   let query = supabase.from("languages").select("*", { count: "exact" })
 
-  // Ajouter les filtres
+  // Appliquer les filtres si nécessaire
   if (search) {
     query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`)
   }
@@ -62,41 +58,94 @@ export async function getLanguages(options: GetLanguagesOptions = {}) {
     query = query.order("year_created", { ascending: true })
   }
 
-  // Ajouter la pagination
-  query = query.range(offset, offset + pageSize - 1)
-
-  // Exécuter la requête
-  const { data, error, count } = await query
+  // Exécuter la requête avec pagination
+  const { data, error, count } = await query.range(offset, offset + pageSize - 1)
 
   if (error) {
     console.error("Erreur lors de la récupération des langages:", error)
-    throw new Error(`Erreur lors de la récupération des langages: ${error.message}`)
+    throw error
   }
 
-  // Mapper les données pour correspondre au type Language
-  const languages = data.map(mapDatabaseLanguageToModel)
+  // Convertir les données avec la fonction de mapping
+  // Utiliser une assertion de type pour résoudre le problème de compatibilité
+  const mappedData = data ? data.map((item) => dbToLanguage(item as unknown as DbLanguage)) : []
 
   return {
-    data: languages,
+    data: mappedData,
     totalCount: count || 0,
+    page,
+    pageSize,
   }
 }
 
-// Fonction pour mapper les données de la base de données au modèle
-function mapDatabaseLanguageToModel(dbLanguage: any): Language {
-  return {
-    id: dbLanguage.id,
-    name: dbLanguage.name,
-    description: dbLanguage.description,
-    shortDescription: dbLanguage.short_description,
-    logoPath: dbLanguage.logo_path,
-    slug: dbLanguage.slug,
-    type: dbLanguage.type,
-    subtypes: dbLanguage.subtypes,
-    usageRate: dbLanguage.usage_rate,
-    yearCreated: dbLanguage.year_created,
-    isOpenSource: dbLanguage.is_open_source,
-    creator: dbLanguage.creator,
-    // Ajouter d'autres champs selon votre modèle
+/**
+ * Récupère un langage par son ID
+ */
+export async function getLanguageById(id: number) {
+  const supabase = createServerSupabaseClient()
+  const { data, error } = await supabase.from("languages").select("*").eq("id", id).single()
+
+  if (error) {
+    console.error(`Erreur lors de la récupération du langage ${id}:`, error)
+    throw error
   }
+
+  // Utiliser une assertion de type pour résoudre le problème de compatibilité
+  return data ? dbToLanguage(data as unknown as DbLanguage) : null
+}
+
+/**
+ * Récupère un langage par son slug
+ */
+export async function getLanguageBySlug(slug: string) {
+  const supabase = createServerSupabaseClient()
+  const { data, error } = await supabase.from("languages").select("*").eq("slug", slug).single()
+
+  if (error) {
+    console.error(`Erreur lors de la récupération du langage avec le slug ${slug}:`, error)
+    throw error
+  }
+
+  // Utiliser une assertion de type pour résoudre le problème de compatibilité
+  return data ? dbToLanguage(data as unknown as DbLanguage) : null
+}
+
+/**
+ * Récupère les langages les plus populaires
+ */
+export async function getPopularLanguages(limit = 5) {
+  const supabase = createServerSupabaseClient()
+  const { data, error } = await supabase
+    .from("languages")
+    .select("*")
+    .order("usage_rate", { ascending: false })
+    .limit(limit)
+
+  if (error) {
+    console.error("Erreur lors de la récupération des langages populaires:", error)
+    throw error
+  }
+
+  // Utiliser une assertion de type pour résoudre le problème de compatibilité
+  return data ? data.map((item) => dbToLanguage(item as unknown as DbLanguage)) : []
+}
+
+/**
+ * Récupère les langages récemment ajoutés
+ */
+export async function getRecentLanguages(limit = 5) {
+  const supabase = createServerSupabaseClient()
+  const { data, error } = await supabase
+    .from("languages")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit)
+
+  if (error) {
+    console.error("Erreur lors de la récupération des langages récents:", error)
+    throw error
+  }
+
+  // Utiliser une assertion de type pour résoudre le problème de compatibilité
+  return data ? data.map((item) => dbToLanguage(item as unknown as DbLanguage)) : []
 }
