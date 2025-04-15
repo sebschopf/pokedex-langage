@@ -15,16 +15,8 @@ export { dbToUserRole, userRoleToDb } from "./user-role-mapping"
 export {
   dbToTodo,
   todoToDb,
-} from "./todo-mapping"
-
-// Mappings liés aux catégories de tâches
-export {
   dbToTodoCategory,
   todoCategoryToDb,
-} from "./todo-mapping"
-
-// Mappings liés aux statuts de tâches
-export {
   dbToTodoStatus,
   todoStatusToDb,
 } from "./todo-mapping"
@@ -39,3 +31,4 @@ export { dbToProposal, proposalToDb } from "./proposal-mapping"
 
 // Mappings liés aux bibliothèques
 export { dbToLibrary, libraryToDb } from "./library-mapping"
+export { dbToLibraryLanguage, libraryLanguageToDb } from "./library-language-mapping"

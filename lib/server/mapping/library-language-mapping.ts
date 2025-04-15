@@ -1,6 +1,5 @@
 import type { DbLibraryLanguage } from "@/types/database/library-language"
 import type { LibraryLanguage } from "@/types/models/library-language"
-import { toNumber, toString } from "@/utils/conversion/type-conversion"
 
 /**
  * Convertit un objet DbLibraryLanguage en LibraryLanguage
@@ -9,11 +8,11 @@ import { toNumber, toString } from "@/utils/conversion/type-conversion"
  */
 export function dbToLibraryLanguage(dbLibraryLanguage: DbLibraryLanguage): LibraryLanguage {
   return {
-    id: toNumber(dbLibraryLanguage.id),
-    createdAt: dbLibraryLanguage.created_at,
-    languageId: dbLibraryLanguage.language_id,
+    id: typeof dbLibraryLanguage.id === "string" ? Number(dbLibraryLanguage.id) : dbLibraryLanguage.id,
     libraryId: dbLibraryLanguage.library_id,
+    languageId: dbLibraryLanguage.language_id,
     primaryLanguage: dbLibraryLanguage.primary_language,
+    createdAt: dbLibraryLanguage.created_at,
   }
 }
 
@@ -25,12 +24,18 @@ export function dbToLibraryLanguage(dbLibraryLanguage: DbLibraryLanguage): Libra
 export function libraryLanguageToDb(libraryLanguage: Partial<LibraryLanguage>): Partial<DbLibraryLanguage> {
   const dbLibraryLanguage: Partial<DbLibraryLanguage> = {}
 
-  if (libraryLanguage.id !== undefined) dbLibraryLanguage.id = toString(libraryLanguage.id)
-  if (libraryLanguage.createdAt !== null) dbLibraryLanguage.created_at = libraryLanguage.createdAt
-  if (libraryLanguage.languageId !== undefined) dbLibraryLanguage.language_id = libraryLanguage.languageId
+  if (libraryLanguage.id !== undefined) dbLibraryLanguage.id = String(libraryLanguage.id)
   if (libraryLanguage.libraryId !== undefined) dbLibraryLanguage.library_id = libraryLanguage.libraryId
-  if (libraryLanguage.primaryLanguage !== null)
+  if (libraryLanguage.languageId !== undefined) dbLibraryLanguage.language_id = libraryLanguage.languageId
+
+  // Convertir null en undefined pour les propriétés qui n'acceptent pas null
+  if (libraryLanguage.primaryLanguage !== undefined && libraryLanguage.primaryLanguage !== null) {
     dbLibraryLanguage.primary_language = libraryLanguage.primaryLanguage
+  }
+
+  if (libraryLanguage.createdAt !== undefined && libraryLanguage.createdAt !== null) {
+    dbLibraryLanguage.created_at = libraryLanguage.createdAt
+  }
 
   return dbLibraryLanguage
 }

@@ -1,19 +1,22 @@
 /**
- * Utilitaires de conversion de types et valeurs
+ * Point d'entrée pour les fonctions de conversion
  */
 
-// Exportation explicite des fonctions de type-conversion.ts
+// Réexporter toutes les fonctions de conversion de type
 export {
-    toNumber,
-    toNumberOrNull,
-    toString,
-    toStringOrNull,
-    toBoolean,
-    toBooleanOrNull,
-    toArray,
-    toArrayOrNull,
-  } from "./type-conversion"
-  
-  // Exportation explicite des fonctions de null-undefined.ts
-  export { nullToUndefined, undefinedToNull, nullToDefault } from "./null-undefined"
-  
+  toNumber,
+  toNumberOrNull,
+  toString,
+  toStringOrNull,
+  toBoolean,
+  toBooleanOrNull,
+  toArray,
+  toArrayOrNull,
+} from "./type-conversion"
+
+// Réexporter les fonctions de gestion de null et undefined
+export {
+  nullToUndefined,
+  undefinedToNull,
+  nullToDefault,
+} from "./null-undefined"
