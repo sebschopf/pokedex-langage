@@ -6,6 +6,20 @@ export async function middleware(req: NextRequest) {
   // Créer une réponse initiale que nous pouvons modifier
   const res = NextResponse.next()
 
+  // Vérifier si la route commence par /debug
+  if (req.nextUrl.pathname.startsWith("/debug")) {
+    // En production, bloquer l'accès aux routes de débogage
+    if (process.env.NODE_ENV === "production") {
+      // Rediriger vers la page 404 ou la page d'accueil
+      return NextResponse.redirect(new URL("/404", req.url))
+    }
+
+    // En développement, ajouter un en-tête d'avertissement
+    const debugResponse = NextResponse.next()
+    debugResponse.headers.set("X-Debug-Mode", "Enabled")
+    return debugResponse
+  }
+
   // Créer un client Supabase spécifique pour le middleware
   const supabase = createMiddlewareClient({ req, res })
 
@@ -19,7 +33,6 @@ export async function middleware(req: NextRequest) {
   const isProfileRoute = req.nextUrl.pathname === "/profile" || req.nextUrl.pathname === "/dashboard"
   const isProtectedRoute = isAdminRoute || isProfileRoute
   const isLoginRoute = req.nextUrl.pathname === "/login"
-  const isDebugRoute = req.nextUrl.pathname.startsWith("/debug")
   // Ignorer les routes API dans l'App Router
   const isApiRoute = req.nextUrl.pathname.startsWith("/app/api")
 
@@ -73,23 +86,18 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Permettre l'accès aux routes de débogage sans vérification supplémentaire
-  if (isDebugRoute) {
-    return res
-  }
-
   return res
 }
 
 // Mettre à jour le matcher pour inclure les nouvelles routes API
 export const config = {
   matcher: [
-    "/admin/:path*", 
-    "/profile", 
-    "/dashboard", 
-    "/login", 
+    "/admin/:path*",
+    "/profile",
+    "/dashboard",
+    "/login",
     "/debug/:path*",
     // Exclure les routes API de l'App Router
-    "/((?!app/api/).)*"
+    "/((?!app/api/).)*",
   ],
 }
