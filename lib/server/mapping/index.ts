@@ -37,5 +37,5 @@ export { dbToUsageCategory, usageCategoryToDb } from "./usage-category-mapping"
 // Mappings liés aux propositions
 export { dbToProposal, proposalToDb } from "./proposal-mapping"
 
-// Mappings liés aux bibliothèques (si vous avez ce fichier)
-// export { dbToLibrary, libraryToDb } from "./library-mapping"
+// Mappings liés aux bibliothèques
+export { dbToLibrary, libraryToDb } from "./library-mapping"
