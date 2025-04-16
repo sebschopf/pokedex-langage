@@ -28,4 +28,5 @@ export interface Library {
   isOpenSource: boolean | null
   officialWebsite: string | null
   uniqueSellingPoint: string | null
+  usedFor: string | null
 }

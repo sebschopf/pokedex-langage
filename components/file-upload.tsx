@@ -30,7 +30,7 @@ export default function FileUpload({
   const [progress, setProgress] = useState(0)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const supabase = createClientSupabaseClient()
+  const supabase = createBrowserClient()
   const { toast } = useToast()
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

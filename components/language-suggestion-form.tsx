@@ -19,7 +19,7 @@ const formSchema = z.object({
 
 export function LanguageSuggestionForm() {
   const [isLoading, setIsLoading] = useState(false)
-  const supabase = createClientSupabaseClient()
+  const supabase = createBrowserClient()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

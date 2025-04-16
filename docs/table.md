@@ -233,7 +233,7 @@ import { createClient } from '@supabase/supabase-js';
 
 let supabaseClient: ReturnType<typeof createClient> | null = null;
 
-export function createClientSupabaseClient() {
+export function createBrowserClient() {
   if (supabaseClient) {
     return supabaseClient;
   }
@@ -262,7 +262,7 @@ export function createClientSupabaseClient() {
 export async function getLanguages(options = {}) {
   const { page = 1, pageSize = 10, search, category, subtype } = options;
   
-  const supabase = createServerSupabaseClient();
+  const supabase = createServerClient();
   
   let query = supabase.from("languages").select("*", { count: "exact" });
   
@@ -314,7 +314,7 @@ export async function createLanguageAction(formData: FormData) {
       createdAt: new Date().toISOString(),
     };
     
-    const supabase = createServerSupabaseClient();
+    const supabase = createServerClient();
     const dbData = languageToDb(language);
     
     const { data, error } = await supabase

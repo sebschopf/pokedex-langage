@@ -23,7 +23,7 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
   const [isUpdating, setIsUpdating] = useState<Record<string, boolean>>({})
   const [selectedUser, setSelectedUser] = useState<UserWithDetails | null>(null)
   const { toast } = useToast()
-  const supabase = createClientSupabaseClient()
+  const supabase = createBrowserClient()
 
   // Filtrer les utilisateurs en fonction du terme de recherche
   const filteredUsers = users.filter(

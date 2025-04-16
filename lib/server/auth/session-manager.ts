@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from "../supabase/client"
+import { createServerClient } from "../../supabase/"
 
 /**
  * Gestionnaire de sessions utilisateur
@@ -9,7 +9,7 @@ export class SessionManager {
    */
   static async getCurrentSession() {
     try {
-      const supabase = createServerSupabaseClient()
+      const supabase = createServerClient()
       const { data, error } = await supabase.auth.getSession()
 
       if (error) {
@@ -37,7 +37,7 @@ export class SessionManager {
    */
   static async terminateOtherSessions() {
     try {
-      const supabase = createServerSupabaseClient()
+      const supabase = createServerClient()
       const { error } = await supabase.auth.signOut({ scope: "others" })
 
       if (error) {
@@ -57,7 +57,7 @@ export class SessionManager {
    */
   static async terminateAllSessions(userId?: string) {
     try {
-      const supabase = createServerSupabaseClient()
+      const supabase = createServerClient()
       
       let error;
       if (userId) {
@@ -87,7 +87,7 @@ export class SessionManager {
    */
   static async getCurrentUser() {
     try {
-      const supabase = createServerSupabaseClient()
+      const supabase = createServerClient()
       const { data, error } = await supabase.auth.getUser()
 
       if (error) {

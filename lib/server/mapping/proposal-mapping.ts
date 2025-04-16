@@ -1,6 +1,6 @@
 import type { DbLanguageProposal } from "@/types/database/language-proposal"
 import type { LanguageProposal } from "@/types/models/language-proposal"
-import { toNumber, toString } from "@/utils/conversion/type-conversion"
+import { toNumber } from "@/utils/conversion/type-conversion"
 
 /**
  * Convertit un objet DbLanguageProposal en LanguageProposal
@@ -13,11 +13,10 @@ export function dbToProposal(dbProposal: DbLanguageProposal): LanguageProposal {
     name: dbProposal.name,
     description: dbProposal.description || null,
     type: dbProposal.type || null,
-    userId: dbProposal.user_id,
+    userId: dbProposal.user_id|| "",
     status: dbProposal.status || "pending",
     createdAt: dbProposal.created_at || null,
     updatedAt: dbProposal.updated_at || null,
-    // Ajout des propriétés manquantes
     createdYear: dbProposal.created_year || null,
     creator: dbProposal.creator || null,
     popularFrameworks: dbProposal.popular_frameworks || [],
@@ -34,7 +33,7 @@ export function dbToProposal(dbProposal: DbLanguageProposal): LanguageProposal {
 export function proposalToDb(proposal: Partial<LanguageProposal>): Partial<DbLanguageProposal> {
   const dbProposal: Partial<DbLanguageProposal> = {}
 
-  if (proposal.id !== undefined) dbProposal.id = toString(proposal.id)
+  if (proposal.id !== undefined) dbProposal.id = (proposal.id)
   if (proposal.name !== undefined) dbProposal.name = proposal.name
   if (proposal.description !== undefined) dbProposal.description = proposal.description
   if (proposal.type !== undefined) dbProposal.type = proposal.type
@@ -42,7 +41,6 @@ export function proposalToDb(proposal: Partial<LanguageProposal>): Partial<DbLan
   if (proposal.status !== undefined) dbProposal.status = proposal.status
   if (proposal.createdAt !== undefined) dbProposal.created_at = proposal.createdAt
   if (proposal.updatedAt !== undefined) dbProposal.updated_at = proposal.updatedAt
-  // Ajout des propriétés manquantes
   if (proposal.createdYear !== undefined) dbProposal.created_year = proposal.createdYear
   if (proposal.creator !== undefined) dbProposal.creator = proposal.creator
   if (proposal.popularFrameworks !== undefined) dbProposal.popular_frameworks = proposal.popularFrameworks

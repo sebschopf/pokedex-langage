@@ -38,7 +38,7 @@ interface AdminLayoutProps {
 export function AdminLayout({ children, userRole }: AdminLayoutProps) {
   const pathname = usePathname()
   const router = useRouter()
-  const supabase = createClientSupabaseClient()
+  const supabase = createBrowserClient()
   const [userProfile, setUserProfile] = useState<{ avatar_url?: string; email?: string } | null>(null)
 
   useEffect(() => {

@@ -426,7 +426,7 @@ import type { Language } from '@/types/models/language';
 export async function getLanguages(options = {}) {
   const { page = 1, pageSize = 10, search, category, subtype } = options;
 
-  const supabase = createServerSupabaseClient();
+  const supabase = createServerClient();
 
   // Calculer l'offset pour la pagination
   const offset = (page - 1) * pageSize;
@@ -512,7 +512,7 @@ import { createServerSupabaseClient } from '@/lib/server/supabase/client';
 import { ApiError } from '@/lib/server/api/error-handling';
 
 export async function requireAuth() {
-  const supabase = createServerSupabaseClient();
+  const supabase = createServerClient();
   const { data: { session } } = await supabase.auth.getSession();
   
   if (!session) {
@@ -524,7 +524,7 @@ export async function requireAuth() {
 
 export async function requireAdmin() {
   const session = await requireAuth();
-  const supabase = createServerSupabaseClient();
+  const supabase = createServerClient();
   
   const { data, error } = await supabase
     .from('user_roles')

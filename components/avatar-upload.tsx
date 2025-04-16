@@ -19,7 +19,7 @@ interface AvatarUploadProps {
 export default function AvatarUpload({ userId, avatarUrl, onAvatarChange, size = "md" }: AvatarUploadProps) {
   const [avatarPath, setAvatarPath] = useState<string | null>(avatarUrl)
   const [uploading, setUploading] = useState(false)
-  const supabase = createClientSupabaseClient()
+  const supabase = createBrowserClient()
   const { toast } = useToast()
 
   useEffect(() => {

@@ -1,21 +1,21 @@
 import type { UserRoleTypeDB } from "@/lib/client/permissions"
 
 export interface AuthUser {
-  id: string
+  id: number
   email: string
   createdAt: string
   lastSignInAt: string | null
 }
 
 export interface UserRoleData {
-  id: string
+  id: number
   role: UserRoleTypeDB
   createdAt: string
   updatedAt: string | null
 }
 
 export interface UserProfile {
-  id: string
+  id: number
   avatarUrl: string | null
   fullName: string | null
   username: string | null
@@ -26,7 +26,7 @@ export interface UserProfile {
 }
 
 export interface UserWithDetails {
-  id: string
+  id: number
   auth: AuthUser
   role: UserRoleData
   profile: UserProfile

@@ -38,7 +38,7 @@ export function UserProfileForm({ profile, userEmail, userRole }: UserProfileFor
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeTab, setActiveTab] = useState("profile")
   const { toast } = useToast()
-  const supabase = createClientSupabaseClient()
+  const supabase = createBrowserClient()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target

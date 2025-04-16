@@ -42,7 +42,7 @@ export default function SuggestionsList() {
   const { toast: _toast } = useToast()
   
   // TODO(#4): Implémenter les opérations CRUD avec supabase
-  const _supabase = createClientSupabaseClient()
+  const _supabase = createBrowserClient()
   
   const router = useRouter()
 

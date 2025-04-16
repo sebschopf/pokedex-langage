@@ -1,51 +1,79 @@
-import { createServerSupabaseClient } from "../supabase/client"
-import { cookies } from "next/headers"
-import { redirect } from "next/navigation"
-import type { UserRoleType } from "@/lib/client/permissions"
+import { createServerClient } from "@/lib/supabase"
+import { getUserRole } from "@/lib/server/api/users"
+import type { UserRoleType } from "@/types/models/user-role"
 
 /**
- * Vérifie si l'utilisateur est authentifié côté serveur
- * @param redirectTo URL vers laquelle rediriger si l'utilisateur n'est pas connecté
- * @returns Les données de session si l'utilisateur est connecté
+ * Vérifie si l'utilisateur est authentifié
+ * @returns La session si l'utilisateur est authentifié, null sinon
  */
-export async function requireAuth(redirectTo = "/login") {
-  const supabase = createServerSupabaseClient()
+export async function getSession() {
+  const supabase = createServerClient()
+  const { data } = await supabase.auth.getSession()
+  return data.session
+}
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+/**
+ * Vérifie si l'utilisateur est authentifié et renvoie une erreur si ce n'est pas le cas
+ * @returns La session si l'utilisateur est authentifié
+ * @throws Error si l'utilisateur n'est pas authentifié
+ */
+export async function requireAuth() {
+  const session = await getSession()
 
   if (!session) {
-    // Construire l'URL de redirection avec le paramètre redirectedFrom
-    const currentPath = (await cookies()).get("currentPath")?.value || "/"
-    const redirectUrl = `${redirectTo}?redirectedFrom=${encodeURIComponent(currentPath)}`
-    redirect(redirectUrl)
+    throw new Error("Non authentifié")
   }
 
   return session
 }
 
 /**
- * Vérifie si l'utilisateur a un rôle spécifique
- * @param requiredRole Rôle requis pour accéder à la ressource
- * @param redirectTo URL vers laquelle rediriger si l'utilisateur n'a pas le rôle requis
- * @returns Les données de session et le rôle si l'utilisateur a le rôle requis
+ * Vérifie si l'utilisateur a un rôle spécifique ou supérieur
+ * @param requiredRole Rôle requis
+ * @returns La session si l'utilisateur a le rôle requis
+ * @throws Error si l'utilisateur n'a pas le rôle requis
  */
-export async function requireRole(requiredRole: UserRoleType | UserRoleType[], redirectTo = "/") {
+export async function requireRole(requiredRole: UserRoleType) {
   const session = await requireAuth()
-  const supabase = createServerSupabaseClient()
 
-  const { data: userRole, error } = await supabase.from("user_roles").select("role").eq("id", session.user.id).single()
+  // Récupérer le rôle de l'utilisateur
+  const userRole = await getUserRole(session.user.id)
 
-  if (error || !userRole) {
-    redirect(redirectTo)
+  if (!userRole) {
+    throw new Error("Rôle non trouvé")
   }
 
-  // Vérifier si l'utilisateur a l'un des rôles requis
-  const requiredRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole]
-  if (!requiredRoles.includes(userRole.role as UserRoleType)) {
-    redirect(redirectTo)
+  // Définir la hiérarchie des rôles
+  const roleHierarchy: Record<UserRoleType, number> = {
+    admin: 4,
+    validator: 3,
+    verified: 2,
+    registered: 1,
+    anonymous: 0,
   }
 
-  return { session, role: userRole.role as UserRoleType }
+  // Vérifier si l'utilisateur a le rôle requis ou supérieur
+  if (roleHierarchy[userRole] < roleHierarchy[requiredRole]) {
+    throw new Error("Accès non autorisé")
+  }
+
+  return session
+}
+
+/**
+ * Vérifie si l'utilisateur est administrateur
+ * @returns La session si l'utilisateur est administrateur
+ * @throws Error si l'utilisateur n'est pas administrateur
+ */
+export async function requireAdmin() {
+  return requireRole("admin")
+}
+
+/**
+ * Vérifie si l'utilisateur est validateur ou administrateur
+ * @returns La session si l'utilisateur est validateur ou administrateur
+ * @throws Error si l'utilisateur n'est pas validateur ou administrateur
+ */
+export async function requireValidator() {
+  return requireRole("validator")
 }

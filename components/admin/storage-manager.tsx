@@ -47,7 +47,7 @@ export default function StorageManager({
 
     try {
       await withTokenRefresh(async () => {
-        const supabase = createClientSupabaseClient()
+        const supabase = createBrowserClient()
 
         const { data, error } = await supabase.storage.from(bucket).list(currentPath, {
           sortBy: { column: "name", order: "asc" },
@@ -115,7 +115,7 @@ export default function StorageManager({
 
     try {
       await withTokenRefresh(async () => {
-        const supabase = createClientSupabaseClient()
+        const supabase = createBrowserClient()
 
         const { error } = await supabase.storage
           .from(bucket)
@@ -176,7 +176,7 @@ export default function StorageManager({
 
     try {
       await withTokenRefresh(async () => {
-        const supabase = createClientSupabaseClient()
+        const supabase = createBrowserClient()
         const folderPath = currentPath ? `${currentPath}/${newFolderName}/.gitkeep` : `${newFolderName}/.gitkeep`
 
         // Créer un fichier vide pour simuler un dossier

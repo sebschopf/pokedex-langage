@@ -1,19 +1,15 @@
-/**
- * Interface représentant une bibliothèque dans la base de données
- * Correspond exactement à la structure de la table libraries dans Supabase
- */
 export interface DbLibrary {
   id: number
   name: string
   slug: string
   description: string | null
-  language_id: number
+  language_id: number | null
   technology_type: string | null
   website_url: string | null
   github_url: string | null
   logo_path: string | null
-  is_popular: boolean
-  created_at: string | null
+  is_popular: boolean | null
+  created_at: string
   updated_at: string | null
   documentation_url: string | null
   best_for: string | null
@@ -28,4 +24,5 @@ export interface DbLibrary {
   is_open_source: boolean | null
   official_website: string | null
   unique_selling_point: string | null
+  used_for: string | null
 }

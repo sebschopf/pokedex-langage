@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from "../supabase/client"
+import { createServerClient } from "../../supabase/"
 
 /**
  * Fonction de débogage pour vérifier le rôle d'un utilisateur
@@ -7,7 +7,7 @@ import { createServerSupabaseClient } from "../supabase/client"
  */
 export async function debugUserRole(userId: string) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
 
     // Récupérer le rôle de l'utilisateur
     const { data: roleData, error: roleError } = await supabase.from("user_roles").select("*").eq("id", userId).single()

@@ -5,7 +5,7 @@ import type { UserRoleType } from "@/lib/client/permissions"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClientSupabaseClient } from "@/lib/client/supabase"
+import { createBrowserClient } from "@/lib/client/supabase"
 import { withTokenRefresh } from "@/lib/client/auth-helpers"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
@@ -22,7 +22,7 @@ export function UpdateUserRoleForm({ userId, currentRole }: UpdateUserRoleFormPr
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
-  const supabase = createClientSupabaseClient()
+  const supabase = createBrowserClient()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
