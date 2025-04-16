@@ -1,34 +1,33 @@
 import { createClient } from "@supabase/supabase-js"
-import type { Database } from "@/types/database-types"
+import type { Database } from "@/types/database"
 
-// Singleton pour le client côté client
-let supabaseClientInstance: ReturnType<typeof createClient<Database>> | null = null
+// Singleton pattern pour éviter de créer plusieurs instances du client
+let browserClient: ReturnType<typeof createClient<Database>> | null = null
 
 /**
- * Crée ou récupère une instance du client Supabase pour le client
- * Utilise une variable globale pour garantir une seule instance par client
- * @returns Client Supabase
+ * Crée un client Supabase côté navigateur (singleton)
+ * À utiliser uniquement dans les composants client
  */
-export function createClientSupabaseClient() {
-  // Si le client existe déjà, le retourner
-  if (supabaseClientInstance) {
-    return supabaseClientInstance
-  }
+export function createBrowserClient() {
+  if (browserClient) return browserClient
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  if (!supabaseUrl || !supabaseKey) {
-    console.error("Variables d'environnement Supabase côté client manquantes")
-    throw new Error("Variables d'environnement Supabase côté client manquantes")
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      "Les variables d'environnement NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY sont requises",
+    )
   }
 
-  supabaseClientInstance = createClient<Database>(supabaseUrl, supabaseKey, {
+  browserClient = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
       storageKey: "supabase-auth",
     },
   })
 
-  return supabaseClientInstance
+  return browserClient
 }
