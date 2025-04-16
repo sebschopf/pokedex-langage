@@ -1,12 +1,14 @@
-import { createClientSupabaseClient } from "./supabase"
-import { toast } from "@/components/ui/use-toast"
+"use client"
+
+import { createBrowserClient } from "@/lib/client/supabase"
+import { toast } from "@/hooks/use-toast"
 
 /**
  * Fonction qui gère automatiquement le rafraîchissement des tokens
  * À utiliser dans les composants client qui font des requêtes authentifiées
  */
 export async function withTokenRefresh<T>(callback: () => Promise<T>): Promise<T> {
-  const supabase = createClientSupabaseClient()
+  const supabase = createBrowserClient()
 
   try {
     // Tenter d'exécuter la fonction callback
@@ -52,4 +54,24 @@ export async function withTokenRefresh<T>(callback: () => Promise<T>): Promise<T
     // Si ce n'est pas une erreur d'authentification, la propager
     throw error
   }
+}
+
+/**
+ * Vérifie si l'utilisateur est connecté côté client
+ * @returns Promise<boolean> indiquant si l'utilisateur est connecté
+ */
+export async function isAuthenticated(): Promise<boolean> {
+  const supabase = createBrowserClient()
+  const { data } = await supabase.auth.getSession()
+  return !!data.session
+}
+
+/**
+ * Déconnecte l'utilisateur
+ * @returns Promise<void>
+ */
+export async function signOut(): Promise<void> {
+  const supabase = createBrowserClient()
+  await supabase.auth.signOut()
+  window.location.href = "/"
 }

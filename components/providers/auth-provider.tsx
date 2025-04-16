@@ -1,67 +1,39 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState } from "react"
-import { createClientSupabaseClient } from "@/lib/client/supabase"
-import type { ReactNode } from "react"
-import type { Session, User } from "@supabase/supabase-js"
+import { createContext, useContext, type ReactNode } from "react"
+import { useUser, type UserData } from "@/hooks/use-user"
+import { signOut } from "@/lib/client/auth-helpers"
 
-interface AuthContextType {
-  user: User | null
-  session: Session | null
-  isLoading: boolean
+// Étendre l'interface UserData pour inclure la fonction de déconnexion
+interface AuthContextType extends UserData {
+  signOut: () => Promise<void>
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  session: null,
-  isLoading: true,
-})
+// Créer le contexte avec une valeur par défaut
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const supabase = createClientSupabaseClient()
+  // Utiliser le hook useUser pour obtenir les données utilisateur
+  const userData = useUser()
 
-  useEffect(() => {
-    // Fonction pour récupérer la session
-    async function getSession() {
-      try {
-        setIsLoading(true)
-        const {
-          data: { session },
-        } = await supabase.auth.getSession()
+  // Valeur du contexte avec les données utilisateur et la fonction de déconnexion
+  const value: AuthContextType = {
+    ...userData,
+    signOut,
+  }
 
-        if (session) {
-          setSession(session)
-          setUser(session.user)
-        }
-      } catch (error) {
-        console.error("Erreur lors de la récupération de la session:", error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    // Récupérer la session au chargement
-    getSession()
-
-    // Configurer l'écouteur d'événements d'authentification
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setIsLoading(false)
-    })
-
-    // Nettoyer l'écouteur
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [supabase])
-
-  return <AuthContext.Provider value={{ user, session, isLoading }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-export const useAuth = () => useContext(AuthContext)
+/**
+ * Hook pour accéder au contexte d'authentification
+ * @returns Le contexte d'authentification
+ * @throws Error si utilisé en dehors d'un AuthProvider
+ */
+export function useAuth(): AuthContextType {
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error("useAuth doit être utilisé à l'intérieur d'un AuthProvider")
+  }
+  return context
+}
