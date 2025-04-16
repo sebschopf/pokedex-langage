@@ -1,8 +1,9 @@
-// app/actions/proposal-actions.ts
 "use server"
 
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { createServerClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { createProposal, updateProposal } from "@/lib/server/api/proposals"
+import type { LanguageProposal } from "@/types/models/language-proposal"
 
 /**
  * Met à jour le statut d'une proposition de langage
@@ -11,7 +12,7 @@ import { revalidatePath } from "next/cache"
  */
 export async function updateProposalStatus(id: number, status: "approved" | "rejected") {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
 
     // Vérifier si l'utilisateur est connecté
     const {
@@ -29,18 +30,8 @@ export async function updateProposalStatus(id: number, status: "approved" | "rej
       throw new Error("Vous n'avez pas les permissions nécessaires pour effectuer cette action")
     }
 
-    // Mettre à jour le statut de la proposition
-    const { error } = await supabase
-      .from("language_proposals")
-      .update({
-        status,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id)
-
-    if (error) {
-      throw new Error(`Erreur lors de la mise à jour du statut: ${error.message}`)
-    }
+    // Mettre à jour le statut de la proposition via la fonction d'API
+    await updateProposal(id, { status, updatedAt: new Date().toISOString() })
 
     // Si la proposition est approuvée, créer un nouveau langage
     if (status === "approved") {
@@ -62,13 +53,15 @@ export async function updateProposalStatus(id: number, status: "approved" | "rej
         short_description: proposal.description,
         used_for: proposal.used_for || "",
         created_year: proposal.created_year || null,
-        logo: "/placeholder.svg", // Logo par défaut
+        logo_path: "/placeholder.svg", // Logo par défaut
         usage_rate: 0, // Valeur par défaut
         popular_frameworks: [],
         strengths: [],
         difficulty: 1, // Valeur par défaut
         is_open_source: true, // Valeur par défaut
         tools: {}, // Valeur par défaut
+        slug: proposal.name.toLowerCase().replace(/\s+/g, "-"),
+        created_at: new Date().toISOString(),
       })
 
       if (insertError) {
@@ -93,7 +86,7 @@ export async function updateProposalStatus(id: number, status: "approved" | "rej
  */
 export async function submitLanguageProposal(formData: FormData) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
 
     // Vérifier si l'utilisateur est connecté
     const {
@@ -117,21 +110,21 @@ export async function submitLanguageProposal(formData: FormData) {
       throw new Error("Veuillez remplir tous les champs obligatoires")
     }
 
-    // Soumettre la proposition
-    const { error } = await supabase.from("language_proposals").insert({
+    // Créer l'objet proposition
+    const proposal: Partial<LanguageProposal> = {
       name,
       type,
       description,
-      created_year: createdYear ? parseInt(createdYear) : null,
+      createdYear: createdYear ? Number.parseInt(createdYear) : null,
       creator: creator || null,
-      used_for: usedFor || null,
+      usedFor: usedFor || null,
       status: "pending",
-      user_id: session.user.id,
-    })
-
-    if (error) {
-      throw new Error(`Erreur lors de la soumission de la proposition: ${error.message}`)
+      userId: session.user.id,
+      createdAt: new Date().toISOString(),
     }
+
+    // Soumettre la proposition via la fonction d'API
+    await createProposal(proposal)
 
     // Revalider les chemins pour mettre à jour l'interface
     revalidatePath("/suggestions")

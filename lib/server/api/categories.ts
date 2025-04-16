@@ -2,7 +2,7 @@
 // À implémenter selon vos besoins
 
 import type { TechnologyCategory, UsageCategory } from "@/types/models"
-import { createServerSupabaseClient } from "@/lib/server/supabase/client"
+{ createServerClient } from "@/lib/supabase"
 import { dbToTechnologyCategory } from "@/lib/server/mapping/technology-category-mapping"
 import { dbToUsageCategory } from "@/lib/server/mapping/usage-category-mapping"
 
@@ -12,7 +12,7 @@ import { dbToUsageCategory } from "@/lib/server/mapping/usage-category-mapping"
  */
 export async function getTechnologyCategories(): Promise<TechnologyCategory[]> {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
     const { data, error } = await supabase.from("technology_categories").select("*")
 
     if (error) {
@@ -34,7 +34,7 @@ export async function getTechnologyCategories(): Promise<TechnologyCategory[]> {
  */
 export async function getUsageCategories(): Promise<UsageCategory[]> {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
     const { data, error } = await supabase.from("usage_categories").select("*")
 
     if (error) {

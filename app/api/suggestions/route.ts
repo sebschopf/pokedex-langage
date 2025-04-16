@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { createServerSupabaseClient } from "@/lib/server/supabase/client"
+{ createServerClient } from "@/lib/supabase"
 import { correctionToDb } from "@/lib/server/mapping/correction-mapping"
 import type { Correction } from "@/types/models"
 
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic"
  */
 export async function POST(request: Request) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
 
     // Récupérer les données de la requête
     const suggestionData = await request.json()
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
  */
 export async function GET(request: Request) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
 
     // Vérifier si l'utilisateur est authentifié
     const {

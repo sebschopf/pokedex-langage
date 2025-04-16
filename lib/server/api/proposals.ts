@@ -1,131 +1,84 @@
-import { createServerSupabaseClient } from "../supabase/client"
-import { dbToLanguageProposal, languageProposalToDb } from "../mapping/language-proposal-mapping"
-import type { LanguageProposal } from "@/types/models"
+// Correction des importations
+import { createServerClient } from "@/lib/supabase/server"
+import { dbToLanguageProposal, languageProposalToDb } from "@/lib/server/mapping/language-proposal-mapping"
+import type { DbLanguageProposal } from "@/types/database/language-proposal"
+import type { LanguageProposal } from "@/types/models/language-proposal"
 
 /**
- * Récupère toutes les propositions de langages
- * @returns Liste des propositions triées par date de création (plus récentes d'abord)
+ * Crée une nouvelle proposition
  */
-export async function getAllProposals(): Promise<LanguageProposal[]> {
-  try {
-    const supabase = createServerSupabaseClient()
-    const { data, error } = await supabase
-      .from("language_proposals")
-      .select("*")
-      .order("created_at", { ascending: false })
+export async function createProposal(proposal: Partial<LanguageProposal>) {
+  const supabase = createServerClient()
+  const dbData = languageProposalToDb(proposal)
 
-    if (error) {
-      console.error("Erreur lors de la récupération des propositions:", error)
-      return []
-    }
-
-    return data.map(dbToLanguageProposal)
-  } catch (error) {
-    console.error("Erreur lors de la récupération des propositions:", error)
-    return []
+  // Vérifier et ajouter les champs obligatoires
+  if (!dbData.name) {
+    throw new Error("Le nom de la proposition est obligatoire")
   }
-}
 
-/**
- * Récupère une proposition de langage par son ID
- * @param id ID de la proposition à récupérer
- * @returns La proposition ou null si non trouvée
- */
-export async function getProposalById(id: number): Promise<LanguageProposal | null> {
-  try {
-    const supabase = createServerSupabaseClient()
-    const { data, error } = await supabase.from("language_proposals").select("*").eq("id", id).single()
-
-    if (error) {
-      console.error(`Erreur lors de la récupération de la proposition avec l'ID ${id}:`, error)
-      return null
-    }
-
-    return dbToLanguageProposal(data)
-  } catch (error) {
-    console.error(`Erreur lors de la récupération de la proposition avec l'ID ${id}:`, error)
-    return null
+  // Créer un objet d'insertion avec les champs obligatoires garantis
+  const insertData = {
+    name: dbData.name,
+    status: dbData.status || "pending",
+    user_id: dbData.user_id || "", // Assurez-vous que user_id est défini
+    created_at: dbData.created_at || new Date().toISOString(),
+    // Ajouter d'autres champs optionnels
+    description: dbData.description,
+    type: dbData.type,
+    updated_at: dbData.updated_at,
+    created_year: dbData.created_year,
+    creator: dbData.creator,
+    popular_frameworks: dbData.popular_frameworks,
+    strengths: dbData.strengths,
+    used_for: dbData.used_for,
   }
-}
 
-/**
- * Crée une nouvelle proposition de langage
- * @param proposal Données de la proposition à créer (sans l'ID et les timestamps)
- * @returns La proposition créée ou null en cas d'erreur
- */
-export async function createProposal(
-  proposal: Omit<LanguageProposal, "id" | "createdAt" | "updatedAt">,
-): Promise<LanguageProposal | null> {
-  try {
-    const supabase = createServerSupabaseClient()
-    const dbData = languageProposalToDb({
-      ...proposal,
-      status: proposal.status || "pending",
-    })
+  const { data: insertedData, error } = await supabase.from("language_proposals").insert(insertData).select().single()
 
-    const { data, error } = await supabase.from("language_proposals").insert(dbData).select().single()
-
-    if (error) {
-      console.error("Erreur lors de la création de la proposition:", error)
-      return null
-    }
-
-    return dbToLanguageProposal(data)
-  } catch (error) {
+  if (error) {
     console.error("Erreur lors de la création de la proposition:", error)
-    return null
+    throw error
   }
+
+  return dbToLanguageProposal(insertedData as DbLanguageProposal)
 }
 
 /**
- * Met à jour le statut d'une proposition de langage
- * @param id ID de la proposition à mettre à jour
- * @param status Nouveau statut
- * @returns true si la mise à jour a réussi, false sinon
+ * Met à jour une proposition existante
  */
-export async function updateProposalStatus(id: number, status: string): Promise<boolean> {
-  try {
-    const supabase = createServerSupabaseClient()
+export async function updateProposal(id: number, proposal: Partial<LanguageProposal>) {
+  const supabase = createServerClient()
+  const dbData = languageProposalToDb(proposal)
 
-    const { error } = await supabase
-      .from("language_proposals")
-      .update({
-        status,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id)
+  // Créer un objet de mise à jour qui ne contient que les champs à modifier
+  const updateData: Record<string, any> = {}
 
-    if (error) {
-      console.error(`Erreur lors de la mise à jour du statut de la proposition avec l'ID ${id}:`, error)
-      return false
-    }
+  // N'ajouter que les champs qui sont présents dans dbData
+  if (dbData.name !== undefined) updateData.name = dbData.name
+  if (dbData.description !== undefined) updateData.description = dbData.description
+  if (dbData.type !== undefined) updateData.type = dbData.type
+  if (dbData.status !== undefined) updateData.status = dbData.status
+  if (dbData.user_id !== undefined) updateData.user_id = dbData.user_id
+  if (dbData.created_year !== undefined) updateData.created_year = dbData.created_year
+  if (dbData.creator !== undefined) updateData.creator = dbData.creator
+  if (dbData.popular_frameworks !== undefined) updateData.popular_frameworks = dbData.popular_frameworks
+  if (dbData.strengths !== undefined) updateData.strengths = dbData.strengths
+  if (dbData.used_for !== undefined) updateData.used_for = dbData.used_for
 
-    return true
-  } catch (error) {
-    console.error(`Erreur lors de la mise à jour du statut de la proposition avec l'ID ${id}:`, error)
-    return false
+  // Ajouter le timestamp de mise à jour
+  updateData.updated_at = new Date().toISOString()
+
+  const { data: updatedData, error } = await supabase
+    .from("language_proposals")
+    .update(updateData)
+    .eq("id", id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error(`Erreur lors de la mise à jour de la proposition ${id}:`, error)
+    throw error
   }
-}
 
-/**
- * Supprime une proposition de langage
- * @param id ID de la proposition à supprimer
- * @returns true si la suppression a réussi, false sinon
- */
-export async function deleteProposal(id: number): Promise<boolean> {
-  try {
-    const supabase = createServerSupabaseClient()
-
-    const { error } = await supabase.from("language_proposals").delete().eq("id", id)
-
-    if (error) {
-      console.error(`Erreur lors de la suppression de la proposition avec l'ID ${id}:`, error)
-      return false
-    }
-
-    return true
-  } catch (error) {
-    console.error(`Erreur lors de la suppression de la proposition avec l'ID ${id}:`, error)
-    return false
-  }
+  return dbToLanguageProposal(updatedData as DbLanguageProposal)
 }

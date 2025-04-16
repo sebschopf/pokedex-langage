@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getLibraryById, updateLibrary, deleteLibrary } from "@/lib/server/api/libraries"
-import { createServerSupabaseClient } from "@/lib/server/supabase/client"
+{ createServerClient } from "@/lib/supabase"
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
@@ -20,7 +20,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   try {
     // Vérifier l'authentification et les autorisations
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
     const {
       data: { session },
     } = await supabase.auth.getSession()
@@ -53,7 +53,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   try {
     // Vérifier l'authentification et les autorisations
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
     const {
       data: { session },
     } = await supabase.auth.getSession()

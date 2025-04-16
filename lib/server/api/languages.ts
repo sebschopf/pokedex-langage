@@ -1,6 +1,6 @@
-import { createServerSupabaseClient } from "@/lib/server/supabase/client"
-import { dbToLanguage } from "@/lib/server/mapping/language-mapping"
-import type { DbLanguage } from "@/types/database/language"
+import { createServerClient } from "@/lib/supabase"
+import { dbToLanguage } from "@/lib/server/mapping"
+import type { DbLanguage } from "@/types/database"
 
 // Options pour la récupération des langages
 export interface GetLanguagesOptions {
@@ -20,7 +20,7 @@ export interface GetLanguagesOptions {
 export async function getLanguages(options: GetLanguagesOptions = {}) {
   const { page = 1, pageSize = 10, search, category, subtype, openSource, minUsage, sort = "name" } = options
 
-  const supabase = createServerSupabaseClient()
+  const supabase = createServerClient()
 
   // Calculer l'offset pour la pagination
   const offset = (page - 1) * pageSize
@@ -82,7 +82,7 @@ export async function getLanguages(options: GetLanguagesOptions = {}) {
  * Récupère un langage par son ID
  */
 export async function getLanguageById(id: number) {
-  const supabase = createServerSupabaseClient()
+  const supabase = createServerClient()
   const { data, error } = await supabase.from("languages").select("*").eq("id", id).single()
 
   if (error) {
@@ -98,7 +98,7 @@ export async function getLanguageById(id: number) {
  * Récupère un langage par son slug
  */
 export async function getLanguageBySlug(slug: string) {
-  const supabase = createServerSupabaseClient()
+  const supabase = createServerClient()
   const { data, error } = await supabase.from("languages").select("*").eq("slug", slug).single()
 
   if (error) {
@@ -114,7 +114,7 @@ export async function getLanguageBySlug(slug: string) {
  * Récupère les langages les plus populaires
  */
 export async function getPopularLanguages(limit = 5) {
-  const supabase = createServerSupabaseClient()
+  const supabase = createServerClient()
   const { data, error } = await supabase
     .from("languages")
     .select("*")
@@ -134,7 +134,7 @@ export async function getPopularLanguages(limit = 5) {
  * Récupère les langages récemment ajoutés
  */
 export async function getRecentLanguages(limit = 5) {
-  const supabase = createServerSupabaseClient()
+  const supabase = createServerClient()
   const { data, error } = await supabase
     .from("languages")
     .select("*")

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { createServerSupabaseClient } from "@/lib/server/supabase/client"
+{ createServerClient } from "@/lib/supabase"
 import { languageProposalToDb } from "@/lib/server/mapping/language-proposal-mapping"
 import type { LanguageProposal } from "@/types/models/language-proposal"
 
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic"
  */
 export async function POST(request: Request) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
 
     // Vérifier si l'utilisateur est authentifié
     const {
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
  */
 export async function GET(request: Request) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
 
     // Vérifier si l'utilisateur est authentifié
     const {

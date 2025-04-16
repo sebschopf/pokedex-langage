@@ -1,9 +1,8 @@
 "use server"
 
-import { createServerSupabaseClient } from "@/lib/server/supabase/client"
+import { createServerClient } from "@/lib/supabase/server"
 import { libraryToDb, dbToLibrary } from "@/lib/server/mapping"
 import { revalidatePath } from "next/cache"
-// Utiliser directement le type Library de models
 import type { Library } from "@/types/models/library"
 import type { DbLibrary } from "@/types/database/library"
 
@@ -25,7 +24,7 @@ export async function createFrameworkAction(formData: FormData) {
       createdAt: new Date().toISOString(),
     }
 
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
     const dbData = libraryToDb(framework)
 
     // Assurez-vous que les champs obligatoires sont présents
@@ -109,7 +108,7 @@ export async function updateFrameworkAction(id: number, formData: FormData) {
     }
     if (formData.has("isOpenSource")) framework.isOpenSource = formData.get("isOpenSource") === "true"
 
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
     const dbData = libraryToDb(framework)
 
     // Créer un objet de mise à jour qui ne contient que les champs à modifier
@@ -158,7 +157,7 @@ export async function updateFrameworkAction(id: number, formData: FormData) {
 
 export async function deleteFrameworkAction(id: number, languageSlug: string) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
 
     const { error } = await supabase.from("libraries").delete().eq("id", id)
 

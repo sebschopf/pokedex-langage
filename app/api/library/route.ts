@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getLibraries, createLibrary } from "@/lib/server/api/libraries"
-import { createServerSupabaseClient } from "@/lib/server/supabase/client"
+{ createServerClient } from "@/lib/supabase"
 
 export async function GET(request: Request) {
   try {
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
 export async function POST(request: NextRequest) {
   try {
     // Vérifier l'authentification et les autorisations
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
     const {
       data: { session },
     } = await supabase.auth.getSession()

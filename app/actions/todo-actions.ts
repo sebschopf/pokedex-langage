@@ -1,60 +1,188 @@
-// app/actions/todo-actions.ts
-'use server';
+"use server"
 
-import { createServerActionClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
-import type { Todo } from '@/types/models';
-import { todoToDb } from '@/lib/server/mapping';
+import { createServerClient } from "@/lib/supabase/server"
+import { revalidatePath } from "next/cache"
 
-export async function createOrUpdateTodo(todoData: Partial<Todo>): Promise<void> {
-  const cookieStore = cookies();
-  const supabase = createServerActionClient({ cookies: () => cookieStore });
-  
-  // Vérifier l'authentification
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    redirect('/login');
-  }
-  
+/**
+ * Action serveur pour créer une tâche
+ * @param formData FormData contenant les données de la tâche
+ * @returns Résultat de l'opération avec la tâche créée en cas de succès
+ */
+export async function createTodoAction(formData: FormData) {
   try {
-    const now = new Date().toISOString();
-    
-    // Utiliser votre fonction de mapping existante
-    const dbTodoData = todoToDb(todoData);
-    
-    // Déterminer s'il s'agit d'une création ou d'une mise à jour
-    if (todoData.id) {
-      // Mise à jour d'une tâche existante
-      const { error } = await supabase
-        .from('todos')
-        .update({
-          ...dbTodoData,
-          updated_at: now
-        })
-        .eq('id', todoData.id)
-        .eq('user_id', session.user.id);
-      
-      if (error) throw error;
-    } else {
-      // Création d'une nouvelle tâche
-      const { error } = await supabase
-        .from('todos')
-        .insert({
-          ...dbTodoData,
-          user_id: session.user.id,
-          is_completed: todoData.isCompleted ?? false,
-          created_at: now,
-          updated_at: null
-        });
-      
-      if (error) throw error;
+    const supabase = createServerClient()
+
+    // Vérifier si l'utilisateur est connecté
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      return {
+        success: false,
+        message: "Vous devez être connecté pour créer une tâche",
+      }
     }
-    
-    // Ne retourne rien (void) au lieu d'un objet de résultat
+
+    // Récupérer les données du formulaire
+    const title = formData.get("title") as string
+    const description = (formData.get("description") as string) || null
+    const categoryId = formData.get("categoryId") ? Number(formData.get("categoryId")) : null
+    const statusId = formData.get("statusId") ? Number(formData.get("statusId")) : null
+    const dueDate = (formData.get("dueDate") as string) || null
+
+    // Vérifier que le titre est fourni
+    if (!title) {
+      return {
+        success: false,
+        message: "Le titre est obligatoire",
+      }
+    }
+
+    // Créer un objet avec les données de la tâche
+    const todoData = {
+      title: title,
+      description: description,
+      category_id: categoryId,
+      status_id: statusId,
+      due_date: dueDate,
+      user_id: user.id,
+      is_completed: false,
+      created_at: new Date().toISOString(),
+      updated_at: null,
+    }
+
+    // Insérer la tâche dans la base de données
+    const { data, error } = await supabase.from("todos").insert(todoData).select().single()
+
+    if (error) {
+      console.error("Erreur lors de la création de la tâche:", error)
+      return {
+        success: false,
+        message: "Une erreur est survenue lors de la création de la tâche",
+      }
+    }
+
+    // Revalider les chemins
+    revalidatePath("/admin/todos")
+
+    return {
+      success: true,
+      message: "Tâche créée avec succès",
+      data,
+    }
   } catch (error) {
-    console.error('Erreur lors de l\'enregistrement de la tâche:', error);
-    // Lancer l'erreur pour qu'elle soit gérée par le composant TodoForm
-    throw error;
+    console.error("Erreur lors de la création de la tâche:", error)
+    return {
+      success: false,
+      message: "Une erreur est survenue lors de la création de la tâche",
+    }
+  }
+}
+
+/**
+ * Action serveur pour mettre à jour une tâche
+ * @param id ID de la tâche à mettre à jour
+ * @param formData FormData contenant les données de la tâche
+ * @returns Résultat de l'opération
+ */
+export async function updateTodoAction(id: number, formData: FormData) {
+  try {
+    const supabase = createServerClient()
+
+    // Vérifier si l'utilisateur est connecté
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      return {
+        success: false,
+        message: "Vous devez être connecté pour mettre à jour une tâche",
+      }
+    }
+
+    // Créer un objet pour stocker les données à mettre à jour
+    const updateData: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+    }
+
+    // Ne mettre à jour que les champs qui sont présents dans le formulaire
+    if (formData.has("title")) updateData.title = formData.get("title") as string
+    if (formData.has("description")) updateData.description = formData.get("description") as string
+    if (formData.has("categoryId")) updateData.category_id = Number(formData.get("categoryId"))
+    if (formData.has("statusId")) updateData.status_id = Number(formData.get("statusId"))
+    if (formData.has("dueDate")) updateData.due_date = formData.get("dueDate") as string
+    if (formData.has("isCompleted")) updateData.is_completed = formData.get("isCompleted") === "true"
+
+    // Mettre à jour la tâche
+    const { error } = await supabase.from("todos").update(updateData).eq("id", id).eq("user_id", user.id)
+
+    if (error) {
+      console.error("Erreur lors de la mise à jour de la tâche:", error)
+      return {
+        success: false,
+        message: "Une erreur est survenue lors de la mise à jour de la tâche",
+      }
+    }
+
+    // Revalider les chemins
+    revalidatePath("/admin/todos")
+
+    return {
+      success: true,
+      message: "Tâche mise à jour avec succès",
+    }
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour de la tâche:", error)
+    return {
+      success: false,
+      message: "Une erreur est survenue lors de la mise à jour de la tâche",
+    }
+  }
+}
+
+/**
+ * Action serveur pour supprimer une tâche
+ * @param id ID de la tâche à supprimer
+ * @returns Résultat de l'opération
+ */
+export async function deleteTodoAction(id: number) {
+  try {
+    const supabase = createServerClient()
+
+    // Vérifier si l'utilisateur est connecté
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      return {
+        success: false,
+        message: "Vous devez être connecté pour supprimer une tâche",
+      }
+    }
+
+    // Supprimer la tâche
+    const { error } = await supabase.from("todos").delete().eq("id", id).eq("user_id", user.id)
+
+    if (error) {
+      console.error("Erreur lors de la suppression de la tâche:", error)
+      return {
+        success: false,
+        message: "Une erreur est survenue lors de la suppression de la tâche",
+      }
+    }
+
+    // Revalider les chemins
+    revalidatePath("/admin/todos")
+
+    return {
+      success: true,
+      message: "Tâche supprimée avec succès",
+    }
+  } catch (error) {
+    console.error("Erreur lors de la suppression de la tâche:", error)
+    return {
+      success: false,
+      message: "Une erreur est survenue lors de la suppression de la tâche",
+    }
   }
 }

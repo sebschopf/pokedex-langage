@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createServerSupabaseClient } from "@/lib/server/supabase/client"
+{ createServerClient } from "@/lib/supabase"
 
 export const dynamic = "force-dynamic"
 
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest, { params }: { params: { bucket: 
   const filePath = path.join("/")
 
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
 
     // Vérifier si le bucket existe
     const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets()

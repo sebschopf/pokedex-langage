@@ -1,18 +1,18 @@
 "use server"
 
-import { createServerSupabaseClient } from "@/lib/server/supabase/client"
+import { createServerClient } from "@/lib/supabase/server"
 import { languageToDb, dbToLanguage } from "@/lib/server/mapping"
 import { revalidatePath } from "next/cache"
 // Corriger l'importation pour utiliser le type Language de models
 import type { Language } from "@/types/models/language"
 import type { DbLanguage } from "@/types/database/language"
-import { deleteFile } from "@/lib/storage"
+import { deleteFile } from "@/lib/server/storage"
 
 /**
  * Récupère un langage par son slug
  */
 export async function getLanguageBySlug(slug: string) {
-  const supabase = createServerSupabaseClient()
+  const supabase = createServerClient()
 
   const { data, error } = await supabase.from("languages").select("*").eq("slug", slug).single()
 
@@ -50,7 +50,7 @@ export async function createLanguageAction(formData: FormData) {
       createdAt: new Date().toISOString(),
     }
 
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
     const dbData = languageToDb(language)
 
     // Créer un objet qui respecte les contraintes de type de Supabase
@@ -153,7 +153,7 @@ export async function updateLanguageAction(id: string, formData: FormData) {
     if (formData.has("lastUpdated")) language.lastUpdated = formData.get("lastUpdated") as string
     if (formData.has("license")) language.license = formData.get("license") as string
 
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
     const dbData = languageToDb(language)
 
     // Créer un objet de mise à jour qui ne contient que les champs à modifier
@@ -225,7 +225,7 @@ export async function deleteLanguageAction(id: string, logoUrl?: string) {
       await deleteFile(logoUrl)
     }
 
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
 
     const { error } = await supabase.from("languages").delete().eq("id", Number(id))
 

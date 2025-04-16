@@ -1,7 +1,9 @@
 "use server"
 
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { createServerClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { createCorrection, updateCorrection } from "@/lib/server/api/corrections"
+import type { Correction } from "@/types/models/correction"
 
 // Interface pour les corrections soumises
 interface CorrectionSubmission {
@@ -19,7 +21,7 @@ export async function submitCorrection(correction: CorrectionSubmission) {
   }
 
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
 
     // Convertir languageId en nombre si c'est une chaîne
     const languageId =
@@ -35,15 +37,19 @@ export async function submitCorrection(correction: CorrectionSubmission) {
     // Formater le texte de correction
     const correctionText = `Champ: ${correction.field}, Suggestion: ${correction.suggestion}`
 
-    // Insérer la correction dans la base de données
-    const { error } = await supabase.from("corrections").insert({
-      language_id: languageId,
-      framework: correction.type === "framework" ? correction.frameworkName : null,
-      correction_text: correctionText,
-      status: "pending",
-    })
+    // Créer l'objet correction
+    const correctionData: Omit<Correction, "id" | "updatedAt"> = {
+      languageId,
+      correctionText,
+      field: correction.field,
+      suggestion: correction.suggestion,
+      framework: correction.type === "framework" ? correction.frameworkName || null : null,      status: "pending",
+      userId: null, // Sera défini par la fonction createCorrection
+      createdAt: new Date().toISOString(),
+    }
 
-    if (error) throw error
+    // Créer la correction via la fonction d'API
+    await createCorrection(correctionData)
 
     // Revalidate the page
     revalidatePath(`/languages/${languageData.slug}`)
@@ -57,17 +63,11 @@ export async function submitCorrection(correction: CorrectionSubmission) {
 
 export async function updateCorrectionStatus(id: number, status: string, slug: string) {
   try {
-    const supabase = createServerSupabaseClient()
-
-    const { error } = await supabase
-      .from("corrections")
-      .update({
-        status,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id)
-
-    if (error) throw error
+    // Mettre à jour le statut via la fonction d'API
+    await updateCorrection(id, {
+      status,
+      updatedAt: Date.now(), // Utiliser un timestamp numérique comme attendu par le type Correction
+    })
 
     // Revalidate the pages
     revalidatePath(`/languages/${slug}`)
@@ -82,4 +82,3 @@ export async function updateCorrectionStatus(id: number, status: string, slug: s
     throw error
   }
 }
-

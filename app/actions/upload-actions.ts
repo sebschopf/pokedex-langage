@@ -1,6 +1,6 @@
 "use server"
 
-import { uploadFile, deleteFile } from "@/lib/storage"
+import { uploadFile, deleteFile } from "@/lib/server/storage"
 
 /**
  * Action serveur pour télécharger un fichier
@@ -82,4 +82,3 @@ export async function deleteFileAction(url: string, bucket = "logos") {
     }
   }
 }
-

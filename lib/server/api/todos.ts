@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from "../supabase/client"
+import { createServerClient } from "../../supabase/"
 import { dbToTodo, dbToTodoCategory, dbToTodoStatus } from "../mapping/todo-mapping"
 import type { Todo, TodoCategory, TodoStatus } from "@/types/models"
 
@@ -8,7 +8,7 @@ import type { Todo, TodoCategory, TodoStatus } from "@/types/models"
  */
 export async function getUserTodos(): Promise<Todo[]> {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
 
     // Récupérer l'utilisateur actuel
     const {
@@ -40,7 +40,7 @@ export async function getUserTodos(): Promise<Todo[]> {
  */
 export async function getTodoCategories(): Promise<TodoCategory[]> {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
     const { data, error } = await supabase.from("todo_categories").select("*").order("name")
 
     if (error) {
@@ -61,7 +61,7 @@ export async function getTodoCategories(): Promise<TodoCategory[]> {
  */
 export async function getTodoStatuses(): Promise<TodoStatus[]> {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
     const { data, error } = await supabase.from("todo_status").select("*").order("name")
 
     if (error) {
@@ -83,7 +83,7 @@ export async function getTodoStatuses(): Promise<TodoStatus[]> {
  */
 export async function createTodo(todo: Omit<Todo, "id" | "createdAt" | "updatedAt">): Promise<Todo | null> {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
 
     // Récupérer l'utilisateur actuel
     const {
@@ -120,7 +120,7 @@ export async function createTodo(todo: Omit<Todo, "id" | "createdAt" | "updatedA
  */
 export async function updateTodo(id: number, todo: Partial<Todo>): Promise<boolean> {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
 
     const { error } = await supabase
       .from("todos")
@@ -149,7 +149,7 @@ export async function updateTodo(id: number, todo: Partial<Todo>): Promise<boole
  */
 export async function deleteTodo(id: number): Promise<boolean> {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
 
     const { error } = await supabase.from("todos").delete().eq("id", id)
 
