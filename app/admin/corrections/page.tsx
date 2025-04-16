@@ -1,5 +1,5 @@
 import { getCorrections, updateCorrection } from "@/lib/server/api/corrections"
-import RoleProtected from "@/components/auth/role-protected"
+import { RoleProtected } from "@/components/auth/role-protected"
 import { Button } from "@/components/ui/button"
 import { formatDate } from "@/utils/date"
 import type { Correction } from "@/types/models/correction"
@@ -31,7 +31,7 @@ export default async function AdminCorrectionsPage() {
   }
 
   return (
-    <RoleProtected roles={["admin", "validator"]}>
+    <RoleProtected userRole={["admin", "validator"]}>
       <div className="container mx-auto py-8">
         <h1 className="text-3xl font-bold mb-8">Gestion des Corrections</h1>
 

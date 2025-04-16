@@ -3,14 +3,14 @@
 import { getLanguages } from "@/lib/server/api/languages"
 import { createCorrection } from "@/lib/server/api/corrections"
 import { getUserRole } from "@/lib/server/api/users"
-import { createServerComponentSupabaseClient } from "@/lib/supabase-app-router"
+import { createServerClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import CorrectionForm from "./correction-form"
 import type { Correction } from "@/types/models/correction"
 
 export default async function SuggestionsPage() {
   // Vérifier si l'utilisateur est connecté
-  const supabase = createServerComponentSupabaseClient()
+  const supabase = createServerClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -33,7 +33,7 @@ export default async function SuggestionsPage() {
 
     try {
       // Vérifier à nouveau la session côté serveur
-      const supabase = createServerComponentSupabaseClient()
+      const supabase = createServerClient()
       const { data: sessionData } = await supabase.auth.getSession()
       const currentSession = sessionData.session
 

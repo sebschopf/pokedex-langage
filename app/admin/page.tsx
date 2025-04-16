@@ -12,7 +12,7 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <AdminSidebar
+      <AdminHeader
         title="Tableau de bord d'administration"
         description={`Bienvenue, ${profile?.fullName || profile?.username || "Administrateur"}`}
       />

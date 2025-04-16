@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { toast } from "@/components/ui/use-toast"
-import { createClientSupabaseClient } from "@/lib/client/supabase"
+import { createBrowserClient } from "@/lib/client/supabase"
 
 const formSchema = z.object({
   language: z.string().min(2, {
@@ -44,8 +44,8 @@ export function LanguageSuggestionForm() {
         return
       }
 
-      const { error } = await supabase.from("language_suggestions").insert({
-        language: values.language,
+      const { error } = await supabase.from("language_proposals").insert({
+        proposals: values.language,
         user_id: user.id,
       })
 
