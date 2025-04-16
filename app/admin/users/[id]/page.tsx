@@ -42,7 +42,7 @@ export default async function EditUserPage({ params }: { params: { id: string } 
     redirect("/")
   }
 
-  const supabase = createServerSupabaseClient()
+  const supabase = createServerClient()
 
   // Récupérer l'utilisateur avec son rôle et son profil
   const { data, error } = await supabase

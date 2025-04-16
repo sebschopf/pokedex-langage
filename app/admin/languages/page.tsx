@@ -1,5 +1,5 @@
-import { createServerComponentSupabaseClient } from "@/lib/supabase-app-router"
-import { dbToLanguage } from "@/lib/database-mapping"
+import { createServerComponentSupabaseClient } from "@/lib/auth/supabase-server"
+import { dbToLanguage } from "@/lib/serveur/mapping"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { PlusCircle, Edit, Trash } from "lucide-react"

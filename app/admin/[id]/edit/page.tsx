@@ -1,8 +1,8 @@
-import { createServerSupabaseClient } from "@/lib/supabase-server"
+import { createServerClient } from "@/lib/supabase"
 import { redirect } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { hasRole } from "@/lib/permissions"
+import { hasRole } from "@/lib/client"
 import { LanguageForm } from "@/./components/admin/language-form"
 import { LanguageLogoUpload } from "@/components/language-logo-upload"
 
@@ -19,7 +19,7 @@ export default async function EditLanguagePage({ params }: { params: { id: strin
     redirect("/")
   }
   
-  const supabase = createServerSupabaseClient()
+  const supabase = createServerClient()
   
   // Récupérer le langage
   const { data: language, error } = await supabase

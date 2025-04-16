@@ -8,7 +8,7 @@ export default async function AdminRootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const supabase = createServerSupabaseClient()
+  const supabase = createServerClient()
 
   // Vérifier si l'utilisateur est connecté
   const {

@@ -50,7 +50,7 @@ export default function ProfilePage() {
   const [website, setWebsite] = useState("")
   const router = useRouter()
   const { toast } = useToast()
-  const supabase = createClientSupabaseClient()
+  const supabase = createBrowserClient()
 
   // Charger les données du profil au montage du composant
   useEffect(() => {

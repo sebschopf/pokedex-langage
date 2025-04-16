@@ -8,7 +8,7 @@ export const metadata = {
 }
 
 export default async function ProfilePage() {
-  const supabase = createServerSupabaseClient()
+  const supabase = createServerClient()
 
   // Vérifier si l'utilisateur est connecté
   const {

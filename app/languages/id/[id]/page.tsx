@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 import { createServerComponentSupabaseClient } from "@/lib/supabase-app-router"
-import { dbToLanguage } from "@/lib/database-mapping"
+import { dbToLanguage } from "@/lib/serveur/mapping"
 import type { Language } from "@/types/models/language"
 
 // Récupérer les données du langage par ID

@@ -12,7 +12,7 @@ export const metadata = {
 }
 
 export default async function AdminUsersPage() {
-  const supabase = createServerSupabaseClient()
+  const supabase = createServerClient()
 
   // Vérifier si l'utilisateur est connecté et a le rôle admin
   const {

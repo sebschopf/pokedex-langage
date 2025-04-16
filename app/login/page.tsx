@@ -18,7 +18,7 @@ export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
-  const supabase = createClientSupabaseClient()
+  const supabase = createBrowserClient()
 
   // Ajouter un log pour voir si la page est rechargée en boucle
   useEffect(() => {
