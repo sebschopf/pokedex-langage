@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-{ createServerClient } from "@/lib/supabase"
+import { createServerClient } from "@/lib/supabase"
 import { getLanguageById } from "@/lib/server/api/languages"
 
 export const dynamic = "force-dynamic"
@@ -38,7 +38,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     const { data: correction, error: correctionError } = await supabase
       .from("corrections")
       .select("*")
-      .eq("id", id)
+      .eq("id", Number.parseInt(id))
       .single()
 
     if (correctionError || !correction) {
@@ -52,7 +52,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         status,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", id)
+      .eq("id", Number.parseInt(id))
 
     if (updateError) {
       return NextResponse.json(
@@ -64,7 +64,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     // Si la correction est approuvée, mettre à jour le langage
     if (status === "approved" && correction.language_id && correction.field) {
       // Récupérer le langage
-      const language = await getLanguageById(correction.language_id)
+      const language = await getLanguageById(Number(correction.language_id))
 
       if (!language) {
         return NextResponse.json(
@@ -140,7 +140,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const { data: correction, error } = await supabase
       .from("corrections")
       .select("*, languages(name)")
-      .eq("id", id)
+      .eq("id", Number.parseInt(id))
       .single()
 
     if (error) {

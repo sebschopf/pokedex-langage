@@ -1,6 +1,6 @@
-import { createServerClient } from "@/lib/supabase"
-import { dbToLanguage } from "@/lib/server/mapping"
-import type { DbLanguage } from "@/types/database"
+import { createServerClient } from "@/lib/supabase/server"
+import { dbToLanguage } from "@/lib/server/mapping/language-mapping"
+import type { DbLanguage } from "@/types/database/language"
 
 // Options pour la récupération des langages
 export interface GetLanguagesOptions {
@@ -30,7 +30,7 @@ export async function getLanguages(options: GetLanguagesOptions = {}) {
 
   // Appliquer les filtres si nécessaire
   if (search) {
-    query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`)
+    query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%,short_description.ilike.%${search}%`)
   }
 
   if (category) {
@@ -68,7 +68,7 @@ export async function getLanguages(options: GetLanguagesOptions = {}) {
 
   // Convertir les données avec la fonction de mapping
   // Utiliser une assertion de type pour résoudre le problème de compatibilité
-  const mappedData = data ? data.map((item) => dbToLanguage(item as unknown as DbLanguage)) : []
+  const mappedData = data ? data.map((item: any) => dbToLanguage(item as unknown as DbLanguage)) : []
 
   return {
     data: mappedData,
@@ -127,7 +127,7 @@ export async function getPopularLanguages(limit = 5) {
   }
 
   // Utiliser une assertion de type pour résoudre le problème de compatibilité
-  return data ? data.map((item) => dbToLanguage(item as unknown as DbLanguage)) : []
+  return data ? data.map((item: any) => dbToLanguage(item as unknown as DbLanguage)) : []
 }
 
 /**
@@ -147,5 +147,5 @@ export async function getRecentLanguages(limit = 5) {
   }
 
   // Utiliser une assertion de type pour résoudre le problème de compatibilité
-  return data ? data.map((item) => dbToLanguage(item as unknown as DbLanguage)) : []
+  return data ? data.map((item: any) => dbToLanguage(item as unknown as DbLanguage)) : []
 }

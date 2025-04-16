@@ -1,62 +1,53 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { getLibraries, createLibrary } from "@/lib/server/api/libraries"
-{ createServerClient } from "@/lib/supabase"
+import type { Library } from "@/types/models/library"
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url)
-    const languageId = searchParams.get("languageId")
+    // Récupérer les paramètres de requête
+    const url = new URL(request.url)
+    const page = Number.parseInt(url.searchParams.get("page") || "1")
+    const pageSize = Number.parseInt(url.searchParams.get("pageSize") || "10")
+    const search = url.searchParams.get("search") || undefined
+    const languageId = url.searchParams.get("languageId")
+      ? Number.parseInt(url.searchParams.get("languageId") || "0")
+      : undefined
+    const technologyType = url.searchParams.get("technologyType") || undefined
 
-    let libraries = []
+    // Récupérer les bibliothèques avec les options
+    const result = await getLibraries({
+      page,
+      pageSize,
+      search,
+      languageId,
+      technologyType,
+    })
 
-    if (languageId) {
-      libraries = await getLibraries({ languageId: Number(languageId) })
-    } else {
-      libraries = await getLibraries()
-    }
-
-    return NextResponse.json(libraries)
-  } catch (error) {
+    // Retourner le résultat directement sans le traiter comme un tableau
+    return NextResponse.json(result)
+  } catch (error: any) {
     console.error("Erreur lors de la récupération des bibliothèques:", error)
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })
+    return NextResponse.json(
+      { message: error.message || "Erreur lors de la récupération des bibliothèques" },
+      { status: 500 },
+    )
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    // Vérifier l'authentification et les autorisations
-    const supabase = createServerClient()
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
+    const body = await request.json()
 
-    if (!session) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 })
-    }
+    // Créer la bibliothèque
+    const library = await createLibrary(body as Partial<Library>)
 
-    // Vérifier le rôle de l'utilisateur (admin ou éditeur)
-    const { data: roleData } = await supabase.from("user_roles").select("role").eq("id", session.user.id).single()
-
-    if (!roleData || !["admin", "editor"].includes(roleData.role)) {
-      return NextResponse.json({ error: "Permissions insuffisantes" }, { status: 403 })
-    }
-
-    const data = await request.json()
-    const { languageId, ...libraryData } = data
-
-    if (!languageId) {
-      return NextResponse.json({ error: "ID de langage requis" }, { status: 400 })
-    }
-
-    const newLibrary = await createLibrary(libraryData, languageId)
-
-    if (!newLibrary) {
-      return NextResponse.json({ error: "Erreur lors de la création de la bibliothèque" }, { status: 500 })
-    }
-
-    return NextResponse.json(newLibrary, { status: 201 })
-  } catch (error) {
+    // Utiliser un seul argument pour le statut 201
+    return NextResponse.json(library, { status: 201 })
+  } catch (error: any) {
     console.error("Erreur lors de la création de la bibliothèque:", error)
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })
+    return NextResponse.json(
+      { message: error.message || "Erreur lors de la création de la bibliothèque" },
+      { status: 500 },
+    )
   }
 }

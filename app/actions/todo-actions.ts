@@ -63,6 +63,7 @@ export async function createTodoAction(formData: FormData) {
     }
 
     // Revalider les chemins
+    revalidatePath("/todos")
     revalidatePath("/admin/todos")
 
     return {
@@ -125,6 +126,7 @@ export async function updateTodoAction(id: number, formData: FormData) {
     }
 
     // Revalider les chemins
+    revalidatePath("/todos")
     revalidatePath("/admin/todos")
 
     return {
@@ -172,6 +174,7 @@ export async function deleteTodoAction(id: number) {
     }
 
     // Revalider les chemins
+    revalidatePath("/todos")
     revalidatePath("/admin/todos")
 
     return {

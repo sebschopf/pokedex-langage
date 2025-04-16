@@ -17,7 +17,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { getPublicFileUrl } from "@/lib/utils/supabase-helpers"
+import { getPublicFileUrl } from "@/utils/supabase-helpers"
 
 interface LanguageLogoUploadProps {
   languageId: string

@@ -60,6 +60,36 @@ export async function getLibraries(options: GetLibrariesOptions = {}) {
 }
 
 /**
+ * Récupère les frameworks associés à un langage spécifique
+ * @param languageId ID du langage
+ * @returns Liste des frameworks
+ */
+export async function getFrameworksByLanguageId(languageId: number): Promise<Library[]> {
+  try {
+    const supabase = createServerClient()
+
+    // Récupérer les bibliothèques de type "framework" associées au langage
+    const { data, error } = await supabase
+      .from("libraries")
+      .select("*")
+      .eq("language_id", languageId)
+      .eq("technology_type", "framework")
+      .order("name")
+
+    if (error) {
+      console.error(`Erreur lors de la récupération des frameworks pour le langage ${languageId}:`, error)
+      return []
+    }
+
+    // Convertir les données avec la fonction de mapping
+    return data ? data.map((item) => dbToLibrary(item as DbLibrary)) : []
+  } catch (error) {
+    console.error(`Erreur lors de la récupération des frameworks pour le langage ${languageId}:`, error)
+    return []
+  }
+}
+
+/**
  * Récupère une bibliothèque par son ID
  */
 export async function getLibraryById(id: number): Promise<Library | null> {

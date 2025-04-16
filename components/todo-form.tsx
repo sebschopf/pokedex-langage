@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import type { Todo, TodoCategory, TodoStatus } from "@/types/models"
-import { cn } from "@/lib/utils"
+import { cn } from "@/utils"
 
 // Schéma de validation pour le formulaire
 const todoFormSchema = z.object({

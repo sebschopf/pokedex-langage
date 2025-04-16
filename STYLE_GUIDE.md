@@ -630,7 +630,7 @@ export function useLanguages() {
 
 \`\`\`tsx
 // components/ui/button.tsx
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline';

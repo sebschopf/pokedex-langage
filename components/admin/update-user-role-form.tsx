@@ -1,16 +1,11 @@
 "use client"
-
-import type React from "react"
 import type { UserRoleType } from "@/lib/client/permissions"
+import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { createBrowserClient } from "@/lib/client/supabase"
-import { withTokenRefresh } from "@/lib/client/auth-helpers"
-import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Loader2 } from "lucide-react"
 
 interface UpdateUserRoleFormProps {
   userId: string
@@ -24,72 +19,63 @@ export function UpdateUserRoleForm({ userId, currentRole }: UpdateUserRoleFormPr
   const { toast } = useToast()
   const supabase = createBrowserClient()
 
+  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setRole(e.target.value as UserRoleType)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (role === currentRole) {
-      toast({
-        title: "Aucun changement",
-        description: "Le rôle sélectionné est identique au rôle actuel.",
-      })
-      return
-    }
+    setIsSubmitting(true)
 
     try {
-      setIsSubmitting(true)
+      // Filtrer le rôle "anonymous" qui n'est pas stockable en base de données
+      const dbRole = role === "anonymous" ? "registered" : role
+      await supabase.from("user_roles").update({ role: dbRole }).eq("user_id", userId)
 
-      await withTokenRefresh(async () => {
-        const { error } = await supabase.from("user_roles").update({ role }).eq("id", userId)
-
-        if (error) throw error
-
-        toast({
-          title: "Rôle mis à jour",
-          description: `Le rôle de l'utilisateur a été mis à jour avec succès.`,
-        })
-
-        router.refresh()
+      toast({
+        title: "Role updated",
+        description: "The user role has been updated successfully.",
       })
     } catch (error: any) {
       toast({
-        title: "Erreur",
-        description: error.message,
         variant: "destructive",
+        title: "Something went wrong.",
+        description: error.message,
       })
     } finally {
       setIsSubmitting(false)
+      router.refresh()
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-2">
-        <label htmlFor="role" className="text-sm font-medium">
-          Nouveau rôle
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+          Role
         </label>
-        <Select value={role} onValueChange={(value) => setRole(value as UserRoleType)} disabled={isSubmitting}>
-          <SelectTrigger id="role">
-            <SelectValue placeholder="Sélectionner un rôle" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="admin">Administrateur</SelectItem>
-            <SelectItem value="validator">Validateur</SelectItem>
-            <SelectItem value="verified">Vérifié</SelectItem>
-            <SelectItem value="registered">Enregistré</SelectItem>
-          </SelectContent>
-        </Select>
+        <select
+          id="role"
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          value={role}
+          onChange={handleRoleChange}
+          disabled={isSubmitting}
+        >
+          <option value="anonymous">Anonymous</option>
+          <option value="registered">Registered</option>
+          <option value="moderator">Moderator</option>
+          <option value="admin">Admin</option>
+        </select>
       </div>
-
-      <Button type="submit" disabled={isSubmitting || role === currentRole}>
-        {isSubmitting ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Mise à jour...
-          </>
-        ) : (
-          "Mettre à jour le rôle"
-        )}
-      </Button>
+      <div>
+        <button
+          type="submit"
+          className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-indigo-300"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Updating..." : "Update Role"}
+        </button>
+      </div>
     </form>
   )
 }

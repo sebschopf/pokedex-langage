@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-{ createServerClient } from "@/lib/supabase"
+import { createServerClient } from "@/lib/supabase"
 import { correctionToDb } from "@/lib/server/mapping/correction-mapping"
 import type { Correction } from "@/types/models"
 
@@ -43,7 +43,19 @@ export async function POST(request: Request) {
     // Convertir en format DB et insérer dans la base de données
     const dbCorrection = correctionToDb(correction)
 
-    const { data, error } = await supabase.from("corrections").insert(dbCorrection).select()
+    // S'assurer que les champs obligatoires sont présents
+    const insertData = {
+      correction_text: dbCorrection.correction_text || "", // Champ obligatoire
+      language_id: dbCorrection.language_id || 0, // Champ obligatoire
+      status: dbCorrection.status || "pending",
+      field: dbCorrection.field,
+      framework: dbCorrection.framework,
+      suggestion: dbCorrection.suggestion,
+      user_id: dbCorrection.user_id,
+      created_at: new Date().toISOString(),
+    }
+
+    const { data, error } = await supabase.from("corrections").insert(insertData).select()
 
     if (error) {
       console.error("Erreur lors de l'insertion de la correction:", error)

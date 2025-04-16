@@ -1,75 +1,53 @@
-// app/todos/edit/[id]/page.tsx
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { redirect, notFound } from 'next/navigation';
-import { TodoForm } from '@/components/todo-form';
-import { createOrUpdateTodo } from '@/app/actions/todo-actions';
-import { dbToTodo, dbToTodoCategory, dbToTodoStatus } from '@/lib/server/mapping';
+"use client"
 
-export const dynamic = 'force-dynamic';
+import { notFound } from "next/navigation"
+import { createServerClient } from "@/lib/supabase"
+import { updateTodoAction, createTodoAction } from "@/app/actions/todo-actions"
+import TodoForm from "@/components/todo-form"
+import { dbToTodo } from "@/lib/server/mapping/todo-mapping"
+import { RoleProtected } from "@/components/auth/role-protected"
 
-interface EditTodoPageProps {
-  params: {
-    id: string;
-  };
-}
+export default async function EditTodoPage({ params }: { params: { id: string } }) {
+  // Si l'ID est "new", c'est une création, sinon c'est une modification
+  const isNew = params.id === "new"
 
-export default async function EditTodoPage({ params }: EditTodoPageProps) {
-  const todoId = parseInt(params.id, 10);
-  
-  if (isNaN(todoId)) {
-    notFound();
+  let todo = null
+
+  if (!isNew) {
+    // Récupérer la tâche existante
+    const supabase = createServerClient()
+    const { data, error } = await supabase.from("todos").select("*").eq("id", params.id).single()
+
+    if (error || !data) {
+      console.error("Erreur lors de la récupération de la tâche:", error)
+      notFound()
+    }
+
+    todo = dbToTodo(data)
   }
 
-  // Vérifier si l'utilisateur est connecté
-  const cookieStore = cookies();
-  const supabase = createServerComponentClient({ cookies: () => cookieStore });
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  // Fonction pour créer ou mettre à jour une tâche
+  async function handleSubmit(formData: FormData) {
+    "use server"
 
-  if (!session) {
-    redirect('/login');
+    if (isNew) {
+      // Créer une nouvelle tâche
+      return await createTodoAction(formData)
+    } else {
+      // Mettre à jour une tâche existante
+      return await updateTodoAction(Number(params.id), formData)
+    }
   }
-
-  // Récupérer la tâche, les catégories et les statuts
-  const { data: todoData } = await supabase
-    .from('todos')
-    .select('*')
-    .eq('id', todoId)
-    .eq('user_id', session.user.id)
-    .single();
-
-  if (!todoData) {
-    notFound();
-  }
-
-  const { data: categoriesData } = await supabase
-    .from('todo_categories')
-    .select('*')
-    .order('name');
-
-  const { data: statusesData } = await supabase
-    .from('todo_status')
-    .select('*')
-    .order('id');
-
-  // Transformer les données
-  const todo = dbToTodo(todoData);
-  const categories = (categoriesData || []).map(dbToTodoCategory);
-  const statuses = (statusesData || []).map(dbToTodoStatus);
 
   return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-8">Modifier la tâche</h1>
-      <div className="max-w-2xl mx-auto">
-        <TodoForm
-          todo={todo}
-          categories={categories}
-          statuses={statuses}
-          onSubmit={createOrUpdateTodo}
-        />
+    <RoleProtected requiredRole="registered">
+      <div className="container mx-auto py-8">
+        <h1 className="text-2xl font-bold mb-6">{isNew ? "Créer une nouvelle tâche" : "Modifier la tâche"}</h1>
+
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <TodoForm todo={todo} onSubmit={handleSubmit} />
+        </div>
       </div>
-    </div>
-  );
+    </RoleProtected>
+  )
 }

@@ -1,18 +1,19 @@
 "use client"
 
 import type React from "react"
-
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useAuth } from "@/components/providers/auth-provider"
 import { hasRole } from "@/lib/client/permissions"
 import type { UserRoleType } from "@/lib/client/permissions"
+import { Loader2 } from "lucide-react"
 
 interface RoleProtectedProps {
   children: React.ReactNode
   requiredRole: UserRoleType
   fallback?: React.ReactNode
   redirectTo?: string
+  showLoading?: boolean
 }
 
 /**
@@ -21,10 +22,18 @@ interface RoleProtectedProps {
  * @param requiredRole Rôle requis pour accéder au contenu
  * @param fallback Contenu à afficher si l'utilisateur n'a pas le rôle requis (optionnel)
  * @param redirectTo URL vers laquelle rediriger si l'utilisateur n'a pas le rôle requis (optionnel)
+ * @param showLoading Afficher un indicateur de chargement pendant la vérification (par défaut: true)
  */
-export function RoleProtected({ children, requiredRole, fallback, redirectTo }: RoleProtectedProps) {
+export function RoleProtected({
+  children,
+  requiredRole,
+  fallback,
+  redirectTo,
+  showLoading = true,
+}: RoleProtectedProps) {
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null)
   const router = useRouter()
+  const pathname = usePathname()
   const { user, userRole, isLoading } = useAuth()
 
   useEffect(() => {
@@ -36,7 +45,7 @@ export function RoleProtected({ children, requiredRole, fallback, redirectTo }: 
       if (!user && requiredRole !== "anonymous") {
         setIsAuthorized(false)
         if (redirectTo) {
-          router.push(`/login?redirectTo=${encodeURIComponent(redirectTo)}`)
+          router.push(`/login?redirectTo=${encodeURIComponent(redirectTo || pathname)}`)
         }
         return
       }
@@ -78,13 +87,14 @@ export function RoleProtected({ children, requiredRole, fallback, redirectTo }: 
     }
 
     checkAccess()
-  }, [user, userRole, isLoading, requiredRole, redirectTo, router])
+  }, [user, userRole, isLoading, requiredRole, redirectTo, router, pathname])
 
   // Afficher un indicateur de chargement pendant la vérification
-  if (isLoading || isAuthorized === null) {
+  if ((isLoading || isAuthorized === null) && showLoading) {
     return (
-      <div className="flex items-center justify-center p-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-sm text-muted-foreground">Vérification des autorisations...</span>
       </div>
     )
   }

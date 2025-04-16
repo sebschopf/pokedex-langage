@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
-import { generateLanguageSlug } from "../lib/utils/slug-generator"
+import { generateLanguageSlug } from "@/utils"
 
 // Fonction pour mettre à jour les slugs dans la base de données
 async function updateSlugs() {

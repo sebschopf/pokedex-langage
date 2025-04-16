@@ -7,10 +7,12 @@ import type { ReactNode } from "react"
 
 export default function AppProviders({ children }: { children: ReactNode }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem suppressHydrationWarning>
-      <QueryProvider>
-        <AuthProvider>{children}</AuthProvider>
-      </QueryProvider>
-    </ThemeProvider>
+    <div suppressHydrationWarning>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <QueryProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </QueryProvider>
+      </ThemeProvider>
+    </div>
   )
 }

@@ -7,7 +7,7 @@ import { Calendar, CheckCircle, Circle, Pencil, Trash2 } from "lucide-react"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
+import { cn } from "@/utils"
 import type { Todo, TodoCategory, TodoStatus } from "@/types/models"
 
 interface TodoItemProps {

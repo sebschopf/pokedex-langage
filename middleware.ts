@@ -1,24 +1,24 @@
 import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import type { UserRoleType } from "@/types/models/user-role"
+
+// Définir les routes protégées par rôle
+const ROLE_PROTECTED_ROUTES = {
+  admin: ["/admin", "/admin/languages", "/admin/frameworks", "/admin/users", "/admin/corrections"],
+  validator: ["/admin/corrections", "/admin/proposals"],
+  verified: ["/contribute", "/suggestions/create"],
+  registered: ["/profile", "/dashboard", "/suggestions"],
+}
+
+// Vérifier si une route est protégée pour un rôle spécifique
+function isRouteProtectedForRole(pathname: string, role: keyof typeof ROLE_PROTECTED_ROUTES): boolean {
+  return ROLE_PROTECTED_ROUTES[role].some((route) => pathname === route || pathname.startsWith(`${route}/`))
+}
 
 export async function middleware(req: NextRequest) {
   // Créer une réponse initiale que nous pouvons modifier
   const res = NextResponse.next()
-
-  // Vérifier si la route commence par /debug
-  if (req.nextUrl.pathname.startsWith("/debug")) {
-    // En production, bloquer l'accès aux routes de débogage
-    if (process.env.NODE_ENV === "production") {
-      // Rediriger vers la page 404 ou la page d'accueil
-      return NextResponse.redirect(new URL("/404", req.url))
-    }
-
-    // En développement, ajouter un en-tête d'avertissement
-    const debugResponse = NextResponse.next()
-    debugResponse.headers.set("X-Debug-Mode", "Enabled")
-    return debugResponse
-  }
 
   // Créer un client Supabase spécifique pour le middleware
   const supabase = createMiddlewareClient({ req, res })
@@ -28,26 +28,20 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession()
 
-  // Définir les routes protégées et publiques
-  const isAdminRoute = req.nextUrl.pathname.startsWith("/admin")
-  const isProfileRoute = req.nextUrl.pathname === "/profile" || req.nextUrl.pathname === "/dashboard"
-  const isProtectedRoute = isAdminRoute || isProfileRoute
-  const isLoginRoute = req.nextUrl.pathname === "/login"
-  // Ignorer les routes API dans l'App Router
-  const isApiRoute = req.nextUrl.pathname.startsWith("/app/api")
+  const pathname = req.nextUrl.pathname
 
-  // Ignorer le traitement pour les routes API
-  if (isApiRoute) {
+  // Ignorer les routes statiques et API
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api/") ||
+    pathname.startsWith("/static") ||
+    pathname.match(/\.(ico|png|jpg|jpeg|svg|css|js)$/)
+  ) {
     return res
   }
 
-  // Si l'utilisateur n'est pas connecté et essaie d'accéder à une route protégée
-  if (!session && isProtectedRoute) {
-    // Stocker l'URL d'origine pour la redirection après connexion
-    const redirectUrl = new URL("/login", req.url)
-    redirectUrl.searchParams.set("redirectedFrom", req.nextUrl.pathname)
-    return NextResponse.redirect(redirectUrl)
-  }
+  // Vérifier si la route est la page de login
+  const isLoginRoute = pathname === "/login"
 
   // Si l'utilisateur est connecté et essaie d'accéder à la page de login
   if (session && isLoginRoute) {
@@ -59,14 +53,27 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/", req.url))
   }
 
-  // Si l'utilisateur est connecté et essaie d'accéder à /admin
-  if (session && isAdminRoute) {
+  // Vérifier si l'utilisateur a besoin d'être authentifié pour cette route
+  const requiresAuth = Object.values(ROLE_PROTECTED_ROUTES)
+    .flat()
+    .some((route) => pathname === route || pathname.startsWith(`${route}/`))
+
+  // Si la route nécessite une authentification et que l'utilisateur n'est pas connecté
+  if (requiresAuth && !session) {
+    // Stocker l'URL d'origine pour la redirection après connexion
+    const redirectUrl = new URL("/login", req.url)
+    redirectUrl.searchParams.set("redirectedFrom", pathname)
+    return NextResponse.redirect(redirectUrl)
+  }
+
+  // Si l'utilisateur est connecté, vérifier les permissions basées sur les rôles
+  if (session) {
     try {
-      // Vérifier si l'utilisateur a le rôle admin ou validator
+      // Récupérer le rôle de l'utilisateur
       const { data: userRoleData, error } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("id", session.user.id)
+        .eq("user_id", session.user.id)
         .single()
 
       if (error) {
@@ -75,9 +82,26 @@ export async function middleware(req: NextRequest) {
         return NextResponse.redirect(new URL("/", req.url))
       }
 
-      if (!userRoleData || (userRoleData.role !== "admin" && userRoleData.role !== "validator")) {
-        // Rediriger vers la page d'accueil si l'utilisateur n'a pas les droits
-        return NextResponse.redirect(new URL("/", req.url))
+      const userRole = (userRoleData?.role as UserRoleType) || "registered"
+
+      // Vérifier les routes admin
+      if (isRouteProtectedForRole(pathname, "admin") && userRole !== "admin") {
+        return NextResponse.redirect(new URL("/unauthorized", req.url))
+      }
+
+      // Vérifier les routes validator
+      if (isRouteProtectedForRole(pathname, "validator") && userRole !== "admin" && userRole !== "validator") {
+        return NextResponse.redirect(new URL("/unauthorized", req.url))
+      }
+
+      // Vérifier les routes verified
+      if (isRouteProtectedForRole(pathname, "verified") && !["admin", "validator", "verified"].includes(userRole)) {
+        return NextResponse.redirect(new URL("/unauthorized", req.url))
+      }
+
+      // Vérifier les routes registered (toutes les routes protégées restantes)
+      if (isRouteProtectedForRole(pathname, "registered") && userRole === "anonymous") {
+        return NextResponse.redirect(new URL("/login", req.url))
       }
     } catch (error) {
       console.error("Middleware: Erreur lors de la vérification des rôles:", error)
@@ -89,15 +113,20 @@ export async function middleware(req: NextRequest) {
   return res
 }
 
-// Mettre à jour le matcher pour inclure les nouvelles routes API
+// Mettre à jour le matcher pour inclure toutes les routes pertinentes
 export const config = {
   matcher: [
+    // Routes protégées
     "/admin/:path*",
     "/profile",
     "/dashboard",
+    "/suggestions/:path*",
+    "/contribute/:path*",
+    // Routes d'authentification
     "/login",
-    "/debug/:path*",
-    // Exclure les routes API de l'App Router
-    "/((?!app/api/).)*",
+    "/register",
+    "/reset-password",
+    // Page d'erreur personnalisée
+    "/unauthorized",
   ],
 }

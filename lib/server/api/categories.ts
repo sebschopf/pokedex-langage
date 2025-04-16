@@ -2,7 +2,7 @@
 // À implémenter selon vos besoins
 
 import type { TechnologyCategory, UsageCategory } from "@/types/models"
-{ createServerClient } from "@/lib/supabase"
+import { createServerClient } from "@/lib/supabase"
 import { dbToTechnologyCategory } from "@/lib/server/mapping/technology-category-mapping"
 import { dbToUsageCategory } from "@/lib/server/mapping/usage-category-mapping"
 

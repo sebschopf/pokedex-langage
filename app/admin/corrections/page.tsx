@@ -1,5 +1,5 @@
 import { getCorrections, updateCorrection } from "@/lib/server/api/corrections"
-import RoleProtected from "@/components/role-protected"
+import RoleProtected from "@/components/auth/role-protected"
 import { Button } from "@/components/ui/button"
 import { formatDate } from "@/utils/date"
 import type { Correction } from "@/types/models/correction"

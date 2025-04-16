@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase"
+import { createServerClient } from "@/lib/supabase/"
 import { dbToProfile, profileToDb } from "@/lib/server/mapping/profile-mapping"
 import { dbToUserRole } from "@/lib/server/mapping/user-role-mapping"
 import type { Profile } from "@/types/models/profile"
@@ -123,7 +123,13 @@ export async function getUserRoleObject(userId: string): Promise<UserRole | null
 
     if (!data) return null
 
-    return dbToUserRole(data)
+    return dbToUserRole({
+      id: data.id,
+      user_id: userId, // Ajouter cette propriété manquante
+      role: data.role,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+    })
   } catch (error) {
     console.error(`Erreur lors de la récupération du rôle pour l'utilisateur ${userId}:`, error)
     return null
@@ -153,11 +159,14 @@ export async function updateUserRole(userId: string, role: UserRoleType): Promis
     }
 
     if (existingRole) {
+      // Filtrer le rôle "anonymous" qui n'est pas stockable en base de données
+      const dbRole = role === "anonymous" ? "registered" : role
+
       // Mettre à jour le rôle existant
       const { error } = await supabase
         .from("user_roles")
         .update({
-          role,
+          role: dbRole,
           updated_at: new Date().toISOString(),
         })
         .eq("user_id", userId)
@@ -167,10 +176,13 @@ export async function updateUserRole(userId: string, role: UserRoleType): Promis
         return false
       }
     } else {
+      // Filtrer le rôle "anonymous" qui n'est pas stockable en base de données
+      const dbRole = role === "anonymous" ? "registered" : role
+
       // Créer un nouveau rôle
       const { error } = await supabase.from("user_roles").insert({
-        user_id: userId,
-        role,
+        id: userId, // Utiliser id au lieu de user_id
+        role: dbRole, // Utiliser le rôle filtré
         created_at: new Date().toISOString(),
       })
 
