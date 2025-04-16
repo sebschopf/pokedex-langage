@@ -53,7 +53,7 @@ export function useSupabaseMutation<T = any>() {
     try {
       // Utiliser withTokenRefresh pour gérer automatiquement le rafraîchissement du token
       return await withTokenRefresh(async () => {
-        const supabase = createClientSupabaseClient()
+        const supabase = createBrowserClient()
 
         const { data: result, error } = await supabase.from(table).insert(data).select()
 
@@ -108,7 +108,7 @@ export function useSupabaseMutation<T = any>() {
     try {
       // Utiliser withTokenRefresh pour gérer automatiquement le rafraîchissement du token
       return await withTokenRefresh(async () => {
-        const supabase = createClientSupabaseClient()
+        const supabase = createBrowserClient()
 
         let query = supabase.from(table).update(data)
 
@@ -169,7 +169,7 @@ export function useSupabaseMutation<T = any>() {
     try {
       // Utiliser withTokenRefresh pour gérer automatiquement le rafraîchissement du token
       return await withTokenRefresh(async () => {
-        const supabase = createClientSupabaseClient()
+        const supabase = createBrowserClient()
 
         let query = supabase.from(table).delete()
 

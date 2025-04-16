@@ -14,7 +14,7 @@ export function useSupabaseSubscription<T = any>(
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
-    const supabase = createClientSupabaseClient()
+    const supabase = createBrowserClient()
 
     // Créer un canal pour les changements en temps réel
     const subscription = supabase.channel(`public:${table}`)

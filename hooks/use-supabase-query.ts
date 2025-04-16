@@ -48,7 +48,7 @@ export function useSupabaseQuery<T = any>({
     setError(null)
 
     try {
-      const supabase = createClientSupabaseClient()
+      const supabase = createBrowserClient()
 
       let query = supabase.from(table).select(columns)
 
