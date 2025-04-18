@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Edit, Eye } from "lucide-react"
 // Mettre à jour l'import de formatDate
-import { formatDate } from "@/utils/formatting"
+import { formatDate } from "@/utils"
 import { DeleteUsageCategoryButton } from "./delete-usage-category-button"
 
 interface UsageCategoryListProps {
