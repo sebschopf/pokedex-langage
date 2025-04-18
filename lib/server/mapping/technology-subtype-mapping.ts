@@ -1,32 +1,29 @@
-import type { DbTechnologySubtype } from "@/types/database"
-import type { TechnologySubtype } from "@/types/models"
+import type { DbTechnologySubtype, TechnologySubtype } from "@/types/database/technology-subtype"
 
 /**
- * Convertit un objet DbTechnologySubtype en TechnologySubtype
- * @param dbSubtype Objet de la base de données
- * @returns Objet TechnologySubtype pour l'application
+ * Convertit un sous-type de technologie de la base de données en modèle d'application
+ * @param dbSubtype Sous-type de technologie de la base de données
+ * @returns Sous-type de technologie pour l'application
  */
 export function dbToTechnologySubtype(dbSubtype: DbTechnologySubtype): TechnologySubtype {
   return {
     id: dbSubtype.id,
+    name: dbSubtype.name,
     categoryId: dbSubtype.category_id,
     createdAt: dbSubtype.created_at,
-    name: dbSubtype.name,
   }
 }
 
 /**
- * Convertit un objet TechnologySubtype en DbTechnologySubtype
- * @param subtype Objet de l'application
- * @returns Objet pour la base de données
+ * Convertit un modèle d'application en sous-type de technologie pour la base de données
+ * @param subtype Sous-type de technologie pour l'application
+ * @returns Sous-type de technologie pour la base de données
  */
-export function technologySubtypeToDb(subtype: Partial<TechnologySubtype>): Partial<DbTechnologySubtype> {
-  const dbSubtype: Partial<DbTechnologySubtype> = {}
-
-  if (subtype.id !== undefined) dbSubtype.id = subtype.id
-  if (subtype.categoryId !== undefined) dbSubtype.category_id = subtype.categoryId
-  if (subtype.createdAt !== undefined) dbSubtype.created_at = subtype.createdAt
-  if (subtype.name !== undefined) dbSubtype.name = subtype.name
-
-  return dbSubtype
+export function technologySubtypeToDb(subtype: TechnologySubtype): DbTechnologySubtype {
+  return {
+    id: subtype.id,
+    name: subtype.name,
+    category_id: subtype.categoryId,
+    created_at: subtype.createdAt,
+  }
 }

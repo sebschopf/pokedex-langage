@@ -1,61 +1,59 @@
-import { notFound } from "next/navigation"
-import { createServerClient } from "@/lib/supabase"
-import { dbToLanguage } from "@/lib/server/mapping"
-import { LanguageForm } from "@/components/admin/language-form"
-import { AdminHeader } from "@/components/admin/admin-header"
-import { RoleProtected } from "@/components/auth/role-protected"
-import LanguageLogoUpload from "@/components/language-logo-upload"
-import type { DbLanguage } from "@/types/database/language"
+import { requireAdminSC } from "@/lib/server/auth/authorize"
+import { getUserWithDetails, getAllUsersWithDetails } from "@/lib/server/api/users"
+import { getSession } from "@/lib/server/auth/session"
 
-export default async function EditLanguagePage({ params }: { params: { id: string } }) {
-  // Vérifier si l'ID est un nombre valide
-  const languageId = Number.parseInt(params.id)
-  if (isNaN(languageId)) {
-    notFound()
-  }
+export default async function AdminDashboardPage() {
+  // Vérifier que l'utilisateur est administrateur
+  await requireAdminSC()
 
-  // Récupérer les données du langage
-  const supabase = createServerClient()
-  const { data, error } = await supabase.from("languages").select("*").eq("id", languageId).single()
+  // Récupérer la session de l'utilisateur
+  const session = await getSession()
+  const userId = session?.user.id
 
-  if (error || !data) {
-    console.error("Erreur lors de la récupération du langage:", error)
-    notFound()
-  }
+  // Récupérer les détails de l'utilisateur connecté
+  const userDetails = userId ? await getUserWithDetails(userId) : null
 
-  // Convertir les données en format d'application
-  const language = dbToLanguage(data as DbLanguage)
-
-  // Fonction pour générer le chemin de l'image
-  const getImagePath = (path: string): string => {
-    if (!path) return ""
-    if (path.startsWith("http")) return path
-    return `/api/storage/logos/${path}`
-  }
+  // Récupérer tous les utilisateurs pour l'administration
+  const allUsers = await getAllUsersWithDetails()
 
   return (
-    <RoleProtected requiredRole="admin">
-      <div className="container mx-auto py-8">
-        <AdminHeader
-          title={`Modifier ${language.name}`}
-          description="Mettre à jour les informations du langage"
-          createLink="/admin/languages/create"
-          createLabel="Ajouter un langage"
-        />
+    <div className="container mx-auto py-8">
+      <h1 className="text-2xl font-bold mb-6">Tableau de bord d'administration</h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-2">
-            <LanguageForm language={language} />
-          </div>
+      {userDetails && (
+        <div className="mb-8 p-4 bg-gray-50 rounded-lg">
+          <h2 className="text-xl font-semibold mb-2">
+            Bienvenue, {userDetails.profile?.fullName || userDetails.profile?.username || "Administrateur"}
+          </h2>
+          <p>Rôle: {userDetails.role}</p>
+        </div>
+      )}
 
-          <div>
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-lg font-semibold mb-4">Logo</h2>
-              <LanguageLogoUpload languageId={String(languageId)} languageName={language.name} />
-            </div>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-lg font-semibold mb-4">Utilisateurs</h2>
+          <p className="text-3xl font-bold">{allUsers.length}</p>
+          <a href="/admin/users" className="text-blue-600 hover:underline block mt-4">
+            Gérer les utilisateurs →
+          </a>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-lg font-semibold mb-4">Langages</h2>
+          <p className="text-3xl font-bold">-</p>
+          <a href="/admin/languages" className="text-blue-600 hover:underline block mt-4">
+            Gérer les langages →
+          </a>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-lg font-semibold mb-4">Corrections</h2>
+          <p className="text-3xl font-bold">-</p>
+          <a href="/admin/corrections" className="text-blue-600 hover:underline block mt-4">
+            Gérer les corrections →
+          </a>
         </div>
       </div>
-    </RoleProtected>
+    </div>
   )
 }

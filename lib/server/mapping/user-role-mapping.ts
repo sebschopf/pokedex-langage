@@ -8,8 +8,7 @@ import type { UserRole } from "@/types/models/user-role"
  */
 export function dbToUserRole(dbUserRole: DbUserRole): UserRole {
   return {
-    id: dbUserRole.id, // Pas de conversion si id est déjà une string
-    userId: dbUserRole.user_id,
+    id: dbUserRole.id,
     role: dbUserRole.role,
     createdAt: dbUserRole.created_at,
     updatedAt: dbUserRole.updated_at,
@@ -25,7 +24,6 @@ export function userRoleToDb(userRole: Partial<UserRole>): Partial<DbUserRole> {
   const dbUserRole: Partial<DbUserRole> = {}
 
   if (userRole.id !== undefined) dbUserRole.id = userRole.id
-  if (userRole.userId !== undefined) dbUserRole.user_id = userRole.userId
   if (userRole.role !== undefined) dbUserRole.role = userRole.role
   if (userRole.createdAt !== undefined) dbUserRole.created_at = userRole.createdAt
   if (userRole.updatedAt !== undefined) dbUserRole.updated_at = userRole.updatedAt

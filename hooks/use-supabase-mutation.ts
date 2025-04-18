@@ -1,224 +1,203 @@
 "use client"
 
 import { useState } from "react"
-import { createClientSupabaseClient } from "@/lib/client/supabase"
-import { useToast } from "./use-toast"
-import { withTokenRefresh } from "@/lib/client/auth-helpers"
+import { createBrowserClient } from "@/lib/supabase/client"
+import type { PostgrestError } from "@supabase/supabase-js"
+import type { Database } from "@/types/database-types"
 
-// Type générique pour les options de mutation
-export interface MutationOptions<T> {
-  table: string
-  onSuccess?: (data: T) => void
-  onError?: (error: Error) => void
-  successMessage?: string
-  errorMessage?: string
-  showToast?: boolean
+// Type pour les noms de tables valides
+type TableName = keyof Database["public"]["Tables"]
+
+// Types pour les opérations
+type Operation = "insert" | "update" | "upsert" | "delete"
+
+// Types pour les données de table
+type TableData<T extends TableName> = Database["public"]["Tables"][T]
+type InsertData<T extends TableName> = TableData<T>["Insert"]
+type UpdateData<T extends TableName> = TableData<T>["Update"]
+type Row<T extends TableName> = TableData<T>["Row"]
+
+// Type générique pour les résultats des opérations Supabase
+type PostgrestResult = {
+  data: any
+  error: PostgrestError | null
+  count?: number
+  status?: number
+  statusText?: string
 }
 
-// Type pour les options d'insertion
-export interface InsertOptions<T> extends MutationOptions<T> {
-  data: Partial<T> | Partial<T>[]
+// Options pour useSupabaseMutation
+export interface MutationOptions<T extends TableName> {
+  table: T
+  operation: Operation
+  onSuccess?: (data: any) => void
+  onError?: (error: PostgrestError) => void
 }
 
-// Type pour les options de mise à jour
-export interface UpdateOptions<T> extends MutationOptions<T> {
-  data: Partial<T>
-  match: Record<string, any>
+export interface InsertOptions<T extends TableName> extends Omit<MutationOptions<T>, "operation"> {}
+export interface UpdateOptions<T extends TableName> extends Omit<MutationOptions<T>, "operation"> {}
+export interface DeleteOptions<T extends TableName> extends Omit<MutationOptions<T>, "operation"> {}
+
+// Paramètres pour les mutations
+interface InsertParams<T extends TableName> {
+  data: InsertData<T>
+  filters?: never
 }
 
-// Type pour les options de suppression
-export interface DeleteOptions<T> extends MutationOptions<T> {
-  match: Record<string, any>
+interface UpdateParams<T extends TableName> {
+  data: UpdateData<T>
+  filters: Record<string, any>
 }
 
-// Hook pour les mutations Supabase avec gestion des toasts
-export function useSupabaseMutation<T = any>() {
+interface UpsertParams<T extends TableName> {
+  data: InsertData<T>
+  filters?: never
+}
+
+interface DeleteParams {
+  data?: never
+  filters: Record<string, any>
+}
+
+type MutationParams<T extends TableName, O extends Operation> = O extends "insert"
+  ? InsertParams<T>
+  : O extends "update"
+    ? UpdateParams<T>
+    : O extends "upsert"
+      ? UpsertParams<T>
+      : O extends "delete"
+        ? DeleteParams
+        : never
+
+// Fonctions d'aide typées pour les opérations Supabase
+function insertData<T extends TableName>(
+  supabase: ReturnType<typeof createBrowserClient>,
+  table: T,
+  data: InsertData<T>,
+) {
+  return supabase.from(table).insert(data as any)
+}
+
+function updateData<T extends TableName>(
+  supabase: ReturnType<typeof createBrowserClient>,
+  table: T,
+  data: UpdateData<T>,
+) {
+  return supabase.from(table).update(data as any)
+}
+
+function upsertData<T extends TableName>(
+  supabase: ReturnType<typeof createBrowserClient>,
+  table: T,
+  data: InsertData<T>,
+) {
+  return supabase.from(table).upsert(data as any)
+}
+
+// Hook useSupabaseMutation
+export function useSupabaseMutation<T extends TableName, O extends Operation = Operation>({
+  table,
+  operation,
+  onSuccess,
+  onError,
+}: MutationOptions<T> & { operation: O }) {
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<Error | null>(null)
-  const { toast } = useToast()
+  const [error, setError] = useState<PostgrestError | null>(null)
 
-  // Fonction pour insérer des données
-  const insert = async ({
-    table,
-    data,
-    onSuccess,
-    onError,
-    successMessage,
-    errorMessage,
-    showToast = true,
-  }: InsertOptions<T>) => {
+  const mutate = async (params: MutationParams<T, O>) => {
     setIsLoading(true)
     setError(null)
 
     try {
-      // Utiliser withTokenRefresh pour gérer automatiquement le rafraîchissement du token
-      return await withTokenRefresh(async () => {
-        const supabase = createBrowserClient()
+      const supabase = createBrowserClient()
+      let query: any
 
-        const { data: result, error } = await supabase.from(table).insert(data).select()
+      switch (operation) {
+        case "insert":
+          query = insertData(supabase, table, (params as InsertParams<T>).data)
+          break
+        case "update":
+          if (!params.filters) {
+            throw new Error("Filters are required for update operations")
+          }
+          query = updateData(supabase, table, (params as UpdateParams<T>).data)
 
-        if (error) throw error
-
-        if (showToast && successMessage) {
-          toast({
-            title: "Succès",
-            description: successMessage,
-            variant: "default",
+          // Appliquer les filtres
+          Object.entries(params.filters).forEach(([key, value]) => {
+            query = query.eq(key, value)
           })
-        }
+          break
+        case "upsert":
+          query = upsertData(supabase, table, (params as UpsertParams<T>).data)
+          break
+        case "delete":
+          if (!params.filters) {
+            throw new Error("Filters are required for delete operations")
+          }
+          query = supabase.from(table).delete()
 
-        if (onSuccess) onSuccess(result as unknown as T)
-
-        return result
-      })
-    } catch (err) {
-      const error = err as Error
-      setError(error)
-
-      if (showToast) {
-        toast({
-          title: "Erreur",
-          description: errorMessage || error.message,
-          variant: "destructive",
-        })
+          // Appliquer les filtres
+          Object.entries(params.filters).forEach(([key, value]) => {
+            query = query.eq(key, value)
+          })
+          break
+        default:
+          throw new Error(`Unsupported operation: ${operation}`)
       }
 
-      if (onError) onError(error)
+      const { data: result, error: supabaseError } = await query.select()
 
-      throw error
+      if (supabaseError) {
+        setError(supabaseError)
+        if (onError) onError(supabaseError)
+        return null
+      }
+
+      if (onSuccess) onSuccess(result)
+      return result
+    } catch (err) {
+      const postgrestError = err as PostgrestError
+      setError(postgrestError)
+      if (onError) onError(postgrestError)
+      return null
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Fonction pour mettre à jour des données
-  const update = async ({
-    table,
-    data,
-    match,
-    onSuccess,
-    onError,
-    successMessage,
-    errorMessage,
-    showToast = true,
-  }: UpdateOptions<T>) => {
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      // Utiliser withTokenRefresh pour gérer automatiquement le rafraîchissement du token
-      return await withTokenRefresh(async () => {
-        const supabase = createBrowserClient()
-
-        let query = supabase.from(table).update(data)
-
-        // Appliquer les conditions de correspondance
-        Object.entries(match).forEach(([key, value]) => {
-          query = query.eq(key, value)
-        })
-
-        const { data: result, error } = await query.select()
-
-        if (error) throw error
-
-        if (showToast && successMessage) {
-          toast({
-            title: "Succès",
-            description: successMessage,
-            variant: "default",
-          })
-        }
-
-        if (onSuccess) onSuccess(result as unknown as T)
-
-        return result
-      })
-    } catch (err) {
-      const error = err as Error
-      setError(error)
-
-      if (showToast) {
-        toast({
-          title: "Erreur",
-          description: errorMessage || error.message,
-          variant: "destructive",
-        })
-      }
-
-      if (onError) onError(error)
-
-      throw error
-    } finally {
-      setIsLoading(false)
-    }
+  // Pour la compatibilité avec le code existant
+  // Ces méthodes sont typées de manière plus spécifique
+  const insert = async (data: InsertData<T>) => {
+    return mutate({ data } as MutationParams<T, O>)
   }
 
-  // Fonction pour supprimer des données
-  const remove = async ({
-    table,
-    match,
-    onSuccess,
-    onError,
-    successMessage,
-    errorMessage,
-    showToast = true,
-  }: DeleteOptions<T>) => {
-    setIsLoading(true)
-    setError(null)
+  const update = async (data: UpdateData<T>, filters: Record<string, any>) => {
+    return mutate({ data, filters } as MutationParams<T, O>)
+  }
 
-    try {
-      // Utiliser withTokenRefresh pour gérer automatiquement le rafraîchissement du token
-      return await withTokenRefresh(async () => {
-        const supabase = createBrowserClient()
-
-        let query = supabase.from(table).delete()
-
-        // Appliquer les conditions de correspondance
-        Object.entries(match).forEach(([key, value]) => {
-          query = query.eq(key, value)
-        })
-
-        const { data: result, error } = await query.select()
-
-        if (error) throw error
-
-        if (showToast && successMessage) {
-          toast({
-            title: "Succès",
-            description: successMessage,
-            variant: "default",
-          })
-        }
-
-        if (onSuccess) onSuccess(result as unknown as T)
-
-        return result
-      })
-    } catch (err) {
-      const error = err as Error
-      setError(error)
-
-      if (showToast) {
-        toast({
-          title: "Erreur",
-          description: errorMessage || error.message,
-          variant: "destructive",
-        })
-      }
-
-      if (onError) onError(error)
-
-      throw error
-    } finally {
-      setIsLoading(false)
-    }
+  const remove = async (filters: Record<string, any>) => {
+    return mutate({ filters } as MutationParams<T, O>)
   }
 
   return {
-    isLoading,
-    error,
+    mutate,
     insert,
     update,
     remove,
+    isLoading,
+    error,
   }
+}
+
+// Hooks spécialisés pour la compatibilité avec le code existant
+export function useInsertMutation<T extends TableName>(options: InsertOptions<T>) {
+  return useSupabaseMutation<T, "insert">({ ...options, operation: "insert" })
+}
+
+export function useUpdateMutation<T extends TableName>(options: UpdateOptions<T>) {
+  return useSupabaseMutation<T, "update">({ ...options, operation: "update" })
+}
+
+export function useDeleteMutation<T extends TableName>(options: DeleteOptions<T>) {
+  return useSupabaseMutation<T, "delete">({ ...options, operation: "delete" })
 }

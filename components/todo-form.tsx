@@ -1,219 +1,162 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { format } from "date-fns"
-import { fr } from "date-fns/locale" // Import the French locale
-import { CalendarIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import type { Todo, TodoCategory, TodoStatus } from "@/types/models"
-import { cn } from "@/utils"
+import { useSupabaseMutation } from "@/hooks/use-supabase-mutation"
 
-// Schéma de validation pour le formulaire
-const todoFormSchema = z.object({
-  title: z.string().min(1, "Le titre est requis"),
-  description: z.string().optional(),
-  statusId: z.number().int().positive(),
-  categoryId: z.number().int().positive(),
-  dueDate: z.date().optional().nullable(),
-})
-
-type TodoFormSchema = z.infer<typeof todoFormSchema>
-
+// Types pour le formulaire
 interface TodoFormProps {
   todo?: Todo
-  categories: TodoCategory[]
-  statuses: TodoStatus[]
-  onSubmit: (data: Partial<Todo>) => Promise<void>
+  onSubmit?: (data: Todo) => void
 }
 
-export function TodoForm({ todo, categories, statuses, onSubmit }: TodoFormProps) {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
+interface Todo {
+  id?: number
+  title: string
+  description?: string | null
+  status_id?: number | null
+  category_id?: number | null
+  user_id?: string | null
+  due_date?: string | null
+  priority?: number | null
+}
 
-  // Initialiser le formulaire avec les valeurs par défaut
-  const form = useForm<TodoFormSchema>({
-    resolver: zodResolver(todoFormSchema),
-    defaultValues: {
-      title: todo?.title || "",
-      description: todo?.description || "",
-      statusId: todo?.statusId || 1,
-      categoryId: todo?.categoryId || 1,
-      dueDate: todo?.dueDate ? new Date(todo.dueDate) : null,
+export default function TodoForm({ todo, onSubmit }: TodoFormProps) {
+  const router = useRouter()
+  const [formData, setFormData] = useState<Todo>(
+    todo || {
+      title: "",
+      description: "",
+      status_id: null,
+      category_id: null,
+      due_date: null,
+      priority: 1,
+    },
+  )
+
+  const isEditing = !!todo?.id
+
+  // Utiliser useSupabaseMutation pour les opérations de base de données
+  const { mutate: createTodo, isLoading: isCreating } = useSupabaseMutation({
+    table: "todos",
+    operation: "insert",
+    onSuccess: (data) => {
+      router.refresh()
+      if (onSubmit) onSubmit(data[0] as Todo)
     },
   })
 
-  // Gérer la soumission du formulaire
-  const handleSubmit = async (data: TodoFormSchema) => {
-    try {
-      setIsLoading(true)
-
-      // Convertir la date en format ISO
-      const formattedData = {
-        ...data,
-        dueDate: data.dueDate ? data.dueDate.toISOString() : null,
-      }
-
-      await onSubmit({
-        ...formattedData,
-        id: todo?.id,
-        description: formattedData.description || null, // Convertir undefined en null
-        isCompleted: todo?.isCompleted || false,
-      })
-
-      // Rediriger vers la liste des tâches
-      router.push("/todos")
+  const { mutate: updateTodo, isLoading: isUpdating } = useSupabaseMutation({
+    table: "todos",
+    operation: "update",
+    onSuccess: (data) => {
       router.refresh()
+      if (onSubmit) onSubmit(data[0] as Todo)
+    },
+  })
+
+  const isLoading = isCreating || isUpdating
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    try {
+      if (isEditing && todo?.id) {
+        // Mise à jour d'une tâche existante
+        await updateTodo({
+          data: formData,
+          filters: { id: todo.id },
+        })
+      } else {
+        // Création d'une nouvelle tâche
+        await createTodo({
+          data: formData,
+        })
+      }
     } catch (error) {
-      console.error("Erreur lors de l'enregistrement de la tâche:", error)
-    } finally {
-      setIsLoading(false)
+      console.error("Erreur lors de la soumission du formulaire:", error)
+    }
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target
+
+    // Gérer les différents types de champs
+    if (type === "number") {
+      setFormData((prev) => ({ ...prev, [name]: value ? Number(value) : null }))
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }))
     }
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label htmlFor="title" className="block text-sm font-medium">
+          Titre
+        </label>
+        <input
+          type="text"
+          id="title"
           name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Titre</FormLabel>
-              <FormControl>
-                <Input placeholder="Titre de la tâche" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          value={formData.title}
+          onChange={handleChange}
+          required
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
         />
+      </div>
 
-        <FormField
-          control={form.control}
+      <div>
+        <label htmlFor="description" className="block text-sm font-medium">
+          Description
+        </label>
+        <textarea
+          id="description"
           name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Description de la tâche" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          value={formData.description || ""}
+          onChange={handleChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
         />
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="categoryId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Catégorie</FormLabel>
-                <Select
-                  onValueChange={(value) => field.onChange(Number.parseInt(value))}
-                  defaultValue={field.value?.toString()}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner une catégorie" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id.toString()}>
-                        <div className="flex items-center">
-                          <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: category.color }}></div>
-                          {category.name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="statusId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Statut</FormLabel>
-                <Select
-                  onValueChange={(value) => field.onChange(Number.parseInt(value))}
-                  defaultValue={field.value?.toString()}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner un statut" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {statuses.map((status) => (
-                      <SelectItem key={status.id} value={status.id.toString()}>
-                        {status.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name="dueDate"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Date d'échéance</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
-                    >
-                      {field.value ? format(field.value, "PPP", { locale: fr }) : <span>Sélectionner une date</span>}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value || undefined}
-                    onSelect={field.onChange}
-                    disabled={(date) => date < new Date("1900-01-01")}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormMessage />
-            </FormItem>
-          )}
+      <div>
+        <label htmlFor="due_date" className="block text-sm font-medium">
+          Date d'échéance
+        </label>
+        <input
+          type="date"
+          id="due_date"
+          name="due_date"
+          value={formData.due_date || ""}
+          onChange={handleChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
         />
+      </div>
 
-        <div className="flex justify-end gap-4">
-          <Button type="button" variant="outline" onClick={() => router.push("/todos")} disabled={isLoading}>
-            Annuler
-          </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Enregistrement..." : todo ? "Mettre à jour" : "Créer"}
-          </Button>
-        </div>
-      </form>
-    </Form>
+      <div>
+        <label htmlFor="priority" className="block text-sm font-medium">
+          Priorité
+        </label>
+        <input
+          type="number"
+          id="priority"
+          name="priority"
+          min="1"
+          max="5"
+          value={formData.priority || 1}
+          onChange={handleChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+        />
+      </div>
+
+      <div className="flex justify-end">
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Chargement..." : isEditing ? "Mettre à jour" : "Créer"}
+        </Button>
+      </div>
+    </form>
   )
 }

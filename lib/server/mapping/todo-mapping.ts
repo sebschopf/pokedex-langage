@@ -1,32 +1,29 @@
-import type { DbTodo } from "@/types/database/todo"
+import type { DbTodo, DbUser } from "@/types/database/todo"
 import type { DbTodoCategory } from "@/types/database/todo-category"
 import type { DbTodoStatus } from "@/types/database/todo-status"
-import type { Todo, TodoCategory, TodoStatus } from "@/types/models/todo"
+import type { Todo, TodoWithDetails, User } from "@/types/models/todo"
 
 /**
- * Convertit un objet DbTodo en Todo
- * @param dbTodo Objet de la base de données
- * @returns Objet Todo pour l'application
+ * Convertit un objet de tâche de la base de données en objet de tâche pour l'application
  */
 export function dbToTodo(dbTodo: DbTodo): Todo {
   return {
     id: dbTodo.id,
     title: dbTodo.title,
-    description: dbTodo.description || "",
-    isCompleted: dbTodo.is_completed || false,
-    categoryId: dbTodo.category_id || null,
-    statusId: dbTodo.status_id || null,
-    userId: dbTodo.user_id || null,
-    dueDate: dbTodo.due_date || null,
-    createdAt: dbTodo.created_at || null,
-    updatedAt: dbTodo.updated_at || null,
+    description: dbTodo.description,
+    isCompleted: dbTodo.is_completed,
+    categoryId: dbTodo.category_id,
+    statusId: dbTodo.status_id,
+    userId: dbTodo.user_id,
+    dueDate: dbTodo.due_date,
+    createdAt: dbTodo.created_at,
+    updatedAt: dbTodo.updated_at,
+    priority: dbTodo.priority,
   }
 }
 
 /**
- * Convertit un objet Todo en DbTodo
- * @param todo Objet de l'application
- * @returns Objet pour la base de données
+ * Convertit un objet de tâche de l'application en objet de tâche pour la base de données
  */
 export function todoToDb(todo: Partial<Todo>): Partial<DbTodo> {
   const dbTodo: Partial<DbTodo> = {}
@@ -41,66 +38,49 @@ export function todoToDb(todo: Partial<Todo>): Partial<DbTodo> {
   if (todo.dueDate !== undefined) dbTodo.due_date = todo.dueDate
   if (todo.createdAt !== undefined) dbTodo.created_at = todo.createdAt
   if (todo.updatedAt !== undefined) dbTodo.updated_at = todo.updatedAt
+  if (todo.priority !== undefined) dbTodo.priority = todo.priority
 
   return dbTodo
 }
 
 /**
- * Convertit un objet DbTodoCategory en TodoCategory
- * @param dbCategory Objet de la base de données
- * @returns Objet TodoCategory pour l'application
+ * Convertit un objet utilisateur de la base de données en objet utilisateur pour l'application
  */
-export function dbToTodoCategory(dbCategory: DbTodoCategory): TodoCategory {
+export function dbToUser(dbUser: DbUser): User {
   return {
-    id: dbCategory.id,
-    name: dbCategory.name,
-    color: dbCategory.color,
-    createdAt: dbCategory.created_at || null,
+    id: dbUser.id,
+    username: dbUser.username,
+    avatarUrl: dbUser.avatar_url,
   }
 }
 
 /**
- * Convertit un objet TodoCategory en DbTodoCategory
- * @param category Objet de l'application
- * @returns Objet pour la base de données
+ * Convertit un objet de tâche de la base de données avec des relations en objet de tâche détaillé pour l'application
  */
-export function todoCategoryToDb(category: Partial<TodoCategory>): Partial<DbTodoCategory> {
-  const dbCategory: Partial<DbTodoCategory> = {}
+export function dbToTodoWithDetails(
+  dbTodo: DbTodo,
+  dbCategory?: DbTodoCategory,
+  dbStatus?: DbTodoStatus,
+  dbUser?: DbUser,
+): TodoWithDetails {
+  const todo = dbToTodo(dbTodo)
 
-  if (category.id !== undefined) dbCategory.id = category.id
-  if (category.name !== undefined) dbCategory.name = category.name
-  if (category.color !== undefined) dbCategory.color = category.color
-  if (category.createdAt !== undefined) dbCategory.created_at = category.createdAt
-
-  return dbCategory
-}
-
-/**
- * Convertit un objet DbTodoStatus en TodoStatus
- * @param dbStatus Objet de la base de données
- * @returns Objet TodoStatus pour l'application
- */
-export function dbToTodoStatus(dbStatus: DbTodoStatus): TodoStatus {
   return {
-    id: dbStatus.id,
-    name: dbStatus.name,
-    description: dbStatus.description || null,
-    createdAt: dbStatus.created_at || null,
+    ...todo,
+    category: dbCategory
+      ? {
+          id: dbCategory.id,
+          name: dbCategory.name,
+          createdAt: dbCategory.created_at,
+        }
+      : null,
+    status: dbStatus
+      ? {
+          id: dbStatus.id,
+          name: dbStatus.name,
+          createdAt: dbStatus.created_at,
+        }
+      : null,
+    user: dbUser ? dbToUser(dbUser) : null,
   }
-}
-
-/**
- * Convertit un objet TodoStatus en DbTodoStatus
- * @param status Objet de l'application
- * @returns Objet pour la base de données
- */
-export function todoStatusToDb(status: Partial<TodoStatus>): Partial<DbTodoStatus> {
-  const dbStatus: Partial<DbTodoStatus> = {}
-
-  if (status.id !== undefined) dbStatus.id = status.id
-  if (status.name !== undefined) dbStatus.name = status.name
-  if (status.description !== undefined) dbStatus.description = status.description
-  if (status.createdAt !== undefined) dbStatus.created_at = status.createdAt
-
-  return dbStatus
 }

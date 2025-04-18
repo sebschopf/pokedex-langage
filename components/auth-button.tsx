@@ -1,14 +1,19 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { Loader2, LogOut, User, LayoutDashboard } from 'lucide-react'
+import { Loader2, LogOut, User, LayoutDashboard } from "lucide-react"
 import Link from "next/link"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/components/providers/auth-provider"
 
 export function AuthButton() {
-  const { user, userRole, avatarUrl, isLoading, signOut } = useAuth()
+  // Retirer avatarUrl de la destructuration
+  const { user, userRole, isLoading, signOut } = useAuth()
   const router = useRouter()
+
+  // Récupérer avatarUrl depuis les métadonnées utilisateur ou d'autres sources possibles
+  // Utiliser une assertion de type pour éviter l'erreur TypeScript
+  const avatarUrl = user?.user_metadata?.avatar_url || (user as any)?.profile?.avatar_url || null
 
   const handleSignOut = async () => {
     await signOut()
@@ -30,7 +35,11 @@ export function AuthButton() {
         <DropdownMenuTrigger asChild>
           <button className="relative h-12 w-12 rounded-none border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-yellow-300 hover:-translate-y-1 transition-all hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
             {avatarUrl ? (
-              <img src={avatarUrl || "/placeholder.svg"} alt={user.email || ""} className="h-full w-full object-cover" />
+              <img
+                src={avatarUrl || "/placeholder.svg"}
+                alt={user.email || ""}
+                className="h-full w-full object-cover"
+              />
             ) : (
               <div className="h-full w-full flex items-center justify-center bg-blue-300 font-black text-xl">
                 {user.email?.charAt(0).toUpperCase() || "U"}

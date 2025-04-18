@@ -1,99 +1,166 @@
 /**
- * Convertit une valeur en nombre
- * @param value Valeur à convertir
- * @returns Nombre converti
+ * Utilitaires pour la conversion de types
  */
-export function toNumber(value: any): number {
-  if (typeof value === "number") return value
-  if (typeof value === "string") {
-    const parsed = Number(value)
-    return isNaN(parsed) ? 0 : parsed
+
+/**
+ * Convertit une valeur en nombre
+ * @param value - Valeur à convertir (peut être un nombre, une chaîne, null ou undefined)
+ * @returns Le nombre converti ou 0 si la valeur est invalide
+ */
+export function toNumber(value: string | number | null | undefined): number {
+  if (value === null || value === undefined || value === "") {
+    return 0
   }
-  return 0
+
+  const num = typeof value === "number" ? value : Number(value)
+  return isNaN(num) ? 0 : num
 }
 
 /**
  * Convertit une valeur en nombre ou null
- * @param value Valeur à convertir
- * @returns Nombre converti ou null
+ * @param value - Valeur à convertir
+ * @returns Le nombre converti ou null si la valeur est invalide
  */
-export function toNumberOrNull(value: any): number | null {
-  if (value === null || value === undefined) return null
-  if (typeof value === "number") return value
-  if (typeof value === "string") {
-    const parsed = Number(value)
-    return isNaN(parsed) ? null : parsed
+export function toNumberOrNull(value: string | number | null | undefined): number | null {
+  if (value === null || value === undefined || value === "") {
+    return null
   }
-  return null
+
+  const num = typeof value === "number" ? value : Number(value)
+  return isNaN(num) ? null : num
 }
 
 /**
- * Convertit une valeur en chaîne de caractères
- * @param value Valeur à convertir
- * @returns Chaîne de caractères convertie
+ * Convertit une valeur en chaîne ou null
+ * @param value - Valeur à convertir
+ * @returns La chaîne convertie ou null si la valeur est invalide
  */
-export function toString(value: any): string {
-  if (typeof value === "string") return value
-  if (value === null || value === undefined) return ""
+export function toStringOrNull(value: string | number | null | undefined): string | null {
+  if (value === null || value === undefined) {
+    return null
+  }
+
   return String(value)
 }
 
 /**
- * Convertit une valeur en chaîne de caractères ou null
- * @param value Valeur à convertir
- * @returns Chaîne de caractères convertie ou null
+ * Convertit une valeur en booléen ou null
+ * @param value - Valeur à convertir
+ * @returns Le booléen converti ou null si la valeur est invalide
  */
-export function toStringOrNull(value: any): string | null {
-  if (value === null || value === undefined) return null
-  if (typeof value === "string") return value
+export function toBooleanOrNull(value: string | number | boolean | null | undefined): boolean | null {
+  if (value === null || value === undefined) {
+    return null
+  }
+
+  if (typeof value === "boolean") {
+    return value
+  }
+
+  if (typeof value === "number") {
+    return value !== 0
+  }
+
+  if (typeof value === "string") {
+    const lowerCaseValue = value.toLowerCase()
+    if (lowerCaseValue === "true" || lowerCaseValue === "1") {
+      return true
+    } else if (lowerCaseValue === "false" || lowerCaseValue === "0") {
+      return false
+    } else {
+      return null
+    }
+  }
+
+  return null
+}
+
+/**
+ * Convertit une valeur en tableau ou null
+ * @param value - Valeur à convertir
+ * @returns Le tableau converti ou null si la valeur est invalide
+ */
+export function toArrayOrNull<T>(value: T | T[] | null | undefined): T[] | null {
+  if (value === null || value === undefined) {
+    return null
+  }
+
+  if (Array.isArray(value)) {
+    return value
+  }
+
+  return [value]
+}
+
+/**
+ * Convertit une valeur en chaîne
+ * @param value - Valeur à convertir (peut être un nombre, une chaîne, null ou undefined)
+ * @returns La chaîne convertie
+ */
+export function toString(value: string | number | null | undefined): string {
+  if (value === null || value === undefined) {
+    return ""
+  }
+
   return String(value)
 }
 
 /**
  * Convertit une valeur en booléen
- * @param value Valeur à convertir
- * @returns Booléen converti
+ * @param value - Valeur à convertir
+ * @returns Le booléen converti
  */
-export function toBoolean(value: any): boolean {
-  if (typeof value === "boolean") return value
-  if (typeof value === "string") return value.toLowerCase() === "true"
-  return Boolean(value)
-}
-
-/**
- * Convertit une valeur en booléen ou null
- * @param value Valeur à convertir
- * @returns Booléen converti ou null
- */
-export function toBooleanOrNull(value: any): boolean | null {
-  if (value === null || value === undefined) return null
-  if (typeof value === "boolean") return value
-  if (typeof value === "string") {
-    if (value.toLowerCase() === "true") return true
-    if (value.toLowerCase() === "false") return false
-    return null
+export function toBoolean(value: string | number | boolean | null | undefined): boolean {
+  if (value === null || value === undefined) {
+    return false
   }
-  return null
+
+  if (typeof value === "boolean") {
+    return value
+  }
+
+  if (typeof value === "number") {
+    return value !== 0
+  }
+
+  if (typeof value === "string") {
+    const lowerCaseValue = value.toLowerCase()
+    return lowerCaseValue === "true" || lowerCaseValue === "1"
+  }
+
+  return false
 }
 
 /**
  * Convertit une valeur en tableau
- * @param value Valeur à convertir
- * @returns Tableau converti
+ * @param value - Valeur à convertir
+ * @returns Le tableau converti
  */
-export function toArray<T>(value: any): T[] {
-  if (Array.isArray(value)) return value
-  if (value === null || value === undefined) return []
-  return [value] as T[]
+export function toArray<T>(value: T | T[] | null | undefined): T[] {
+  if (value === null || value === undefined) {
+    return []
+  }
+
+  if (Array.isArray(value)) {
+    return value
+  }
+
+  return [value]
 }
 
 /**
- * Convertit une valeur en tableau ou null
- * @param value Valeur à convertir
- * @returns Tableau converti ou null
+ * Vérifie si un ID est valide (non null, non undefined, non vide)
+ * @param id - ID à vérifier
+ * @returns true si l'ID est valide, false sinon
  */
-export function toArrayOrNull<T>(value: any): T[] | null {
-  if (value === null || value === undefined) return null
-  if (Array.isArray(value)) return value
-  return [value] as T[]
+export function isValidId(id: string | number | null | undefined): boolean {
+  if (id === null || id === undefined || id === "") {
+    return false
+  }
+
+  if (typeof id === "number") {
+    return !isNaN(id)
+  }
+
+  return id.trim() !== ""
 }

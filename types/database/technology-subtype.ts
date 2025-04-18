@@ -8,3 +8,14 @@ export type DbTechnologySubtype = {
   id: number
   name: string
 }
+
+/**
+ * Interface représentant un sous-type de technologie dans l'application
+ * Version avec des noms de propriétés en camelCase
+ */
+export interface TechnologySubtype {
+  id: number
+  name: string
+  categoryId: number | null
+  createdAt: string | null
+}

@@ -3,7 +3,6 @@
  */
 export interface UserRole {
   id: string
-  userId: string
   role: string
   createdAt: string | null
   updatedAt: string | null

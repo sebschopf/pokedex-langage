@@ -1,30 +1,26 @@
-import type { DbUsageCategory } from "@/types/database"
-import type { UsageCategory } from "@/types/models"
+import type { DbUsageCategory } from "@/types/database/usage-category"
+import type { UsageCategory } from "@/types/models/usage-category"
 
 /**
- * Convertit un objet DbUsageCategory en UsageCategory
- * @param dbCategory Objet de la base de données
- * @returns Objet UsageCategory pour l'application
+ * Convertit un objet de catégorie d'usage de la base de données en objet de catégorie d'usage pour l'application
  */
-export function dbToUsageCategory(dbCategory: DbUsageCategory): UsageCategory {
+export function dbToUsageCategory(dbUsageCategory: DbUsageCategory): UsageCategory {
   return {
-    id: dbCategory.id,
-    name: dbCategory.name,
-    createdAt: dbCategory.created_at,
+    id: dbUsageCategory.id,
+    name: dbUsageCategory.name,
+    createdAt: dbUsageCategory.created_at,
   }
 }
 
 /**
- * Convertit un objet UsageCategory en DbUsageCategory
- * @param category Objet de l'application
- * @returns Objet pour la base de données
+ * Convertit un objet de catégorie d'usage de l'application en objet de catégorie d'usage pour la base de données
  */
-export function usageCategoryToDb(category: Partial<UsageCategory>): Partial<DbUsageCategory> {
-  const dbCategory: Partial<DbUsageCategory> = {}
+export function usageCategoryToDb(usageCategory: Partial<UsageCategory>): Partial<DbUsageCategory> {
+  const dbUsageCategory: Partial<DbUsageCategory> = {}
 
-  if (category.id !== undefined) dbCategory.id = category.id
-  if (category.name !== undefined) dbCategory.name = category.name
-  if (category.createdAt !== undefined) dbCategory.created_at = category.createdAt
+  if (usageCategory.id !== undefined) dbUsageCategory.id = usageCategory.id
+  if (usageCategory.name !== undefined) dbUsageCategory.name = usageCategory.name
+  if (usageCategory.createdAt !== undefined) dbUsageCategory.created_at = usageCategory.createdAt
 
-  return dbCategory
+  return dbUsageCategory
 }

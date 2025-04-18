@@ -1,276 +1,226 @@
 "use client"
 
 import type React from "react"
+import type { DbLanguage } from "@/types/database/language"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
-import { useToast } from "@/hooks/use-toast"
 import { useSupabaseMutation } from "@/hooks/use-supabase-mutation"
-import { Loader2 } from "lucide-react"
-// Mettre à jour l'import pour utiliser le nouveau chemin
-import { generateLanguageSlug, isValidSlug } from "@/utils/slug"
+import { toNumberOrNull, isValidId } from "@/utils/conversion/type-conversion"
 
-interface Language {
-  id: string
+// Types pour le formulaire
+export interface LanguageFormProps {
+  id?: string | number | null // Accepte à la fois string et number
+  initialData?: LanguageFormData
+  language?: DbLanguage // Utiliser DbLanguage au lieu de Language
+  onSuccess?: () => void
+  mode?: "direct" | "suggestion" // Prop pour le mode
+}
+
+interface LanguageFormData {
   name: string
   slug: string
-  year_created?: number | null
-  creator?: string | null
   short_description?: string | null
   description?: string | null
   type?: string | null
   used_for?: string | null
+  year_created?: number | null
+  usage_rate?: number | null
   is_open_source?: boolean | null
-  logo_path?: string | null
-  [key: string]: any
+  // Ajoutez d'autres champs selon vos besoins
 }
 
-interface LanguageFormProps {
-  language?: Language
-  isNew?: boolean
-}
-
-export function LanguageForm({ language, isNew = false }: LanguageFormProps) {
-  const [formData, setFormData] = useState<Language>(
-    language || {
-      id: "",
-      name: "",
-      slug: "",
-      year_created: null,
-      creator: "",
-      short_description: "",
-      description: "",
-      type: "",
-      used_for: "",
-      is_open_source: false,
-      logo_path: null,
-    },
-  )
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [slugError, setSlugError] = useState<string | null>(null)
+export function LanguageForm({ id, initialData, language, onSuccess, mode = "direct" }: LanguageFormProps) {
   const router = useRouter()
-  const { toast } = useToast()
-  const { insert, update } = useSupabaseMutation()
+  const [formData, setFormData] = useState<LanguageFormData>(
+    initialData ||
+      language || {
+        name: "",
+        slug: "",
+        short_description: null,
+        description: null,
+        type: null,
+        used_for: null,
+        year_created: null,
+        usage_rate: null,
+        is_open_source: null,
+      },
+  )
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-
-    // Réinitialiser l'erreur de slug si l'utilisateur modifie le slug manuellement
-    if (name === "slug") {
-      setSlugError(null)
+  // Utiliser language pour initialiser formData si fourni
+  useEffect(() => {
+    if (language) {
+      setFormData({
+        name: language.name,
+        slug: language.slug,
+        short_description: language.short_description,
+        description: language.description,
+        type: language.type,
+        used_for: language.used_for,
+        year_created: language.year_created,
+        usage_rate: language.usage_rate,
+        is_open_source: language.is_open_source,
+      })
     }
-  }
+  }, [language])
 
-  const handleCheckboxChange = (name: string, checked: boolean) => {
-    setFormData((prev) => ({ ...prev, [name]: checked }))
-  }
+  // Convertir l'ID en nombre pour la base de données
+  const numericId = toNumberOrNull(id || (language?.id ?? null))
+  const isEditing = isValidId(numericId)
 
-  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value ? Number.parseInt(value) : null }))
-  }
+  // Utiliser useSupabaseMutation pour les opérations de base de données
+  const { mutate: createLanguage, isLoading: isCreating } = useSupabaseMutation({
+    table: mode === "direct" ? "languages" : "language_proposals",
+    operation: "insert",
+    onSuccess: () => {
+      router.refresh()
+      if (onSuccess) onSuccess()
+    },
+  })
 
-  const generateSlug = () => {
-    if (!formData.name) {
-      setSlugError("Le nom du langage est requis pour générer un slug")
-      return
-    }
+  const { mutate: updateLanguage, isLoading: isUpdating } = useSupabaseMutation({
+    table: mode === "direct" ? "languages" : "language_proposals",
+    operation: "update",
+    onSuccess: () => {
+      router.refresh()
+      if (onSuccess) onSuccess()
+    },
+  })
 
-    const slug = generateLanguageSlug(formData.name)
-
-    if (!isValidSlug(slug)) {
-      setSlugError("Le slug généré n'est pas valide. Veuillez le modifier manuellement.")
-      return
-    }
-
-    setFormData((prev) => ({ ...prev, slug }))
-    setSlugError(null)
-  }
+  const isLoading = isCreating || isUpdating
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     try {
-      // Validation du slug
-      if (!formData.slug) {
-        setSlugError("Le slug est requis")
-        return
+      // Préparer les données en fonction du mode
+      const dataToSubmit = { ...formData } as any
+
+      // Si c'est une suggestion, ajouter le statut
+      if (mode === "suggestion") {
+        dataToSubmit["status"] = "pending"
       }
 
-      if (!isValidSlug(formData.slug)) {
-        setSlugError(
-          "Le slug n'est pas valide. Il ne doit contenir que des lettres minuscules, des chiffres et des tirets.",
-        )
-        return
-      }
-
-      setIsSubmitting(true)
-
-      if (isNew) {
-        // Créer un nouveau langage
-        await insert({
-          table: "languages",
-          data: formData,
-          successMessage: "Le langage a été créé avec succès.",
-          errorMessage: "Erreur lors de la création du langage.",
-          onSuccess: () => {
-            router.push("/admin/languages")
-          },
+      if (isEditing && numericId) {
+        // Mise à jour d'un langage existant
+        await updateLanguage({
+          data: dataToSubmit,
+          filters: { id: numericId },
         })
       } else {
-        // Mettre à jour un langage existant
-        await update({
-          table: "languages",
-          data: formData,
-          match: { id: formData.id },
-          successMessage: "Le langage a été mis à jour avec succès.",
-          errorMessage: "Erreur lors de la mise à jour du langage.",
-          onSuccess: () => {
-            router.refresh()
-          },
+        // Création d'un nouveau langage
+        await createLanguage({
+          data: dataToSubmit,
         })
       }
-    } catch (error: any) {
-      toast({
-        title: "Erreur",
-        description: error.message,
-        variant: "destructive",
-      })
-    } finally {
-      setIsSubmitting(false)
+    } catch (error) {
+      console.error("Erreur lors de la soumission du formulaire:", error)
+    }
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target
+
+    // Gérer les différents types de champs
+    if (type === "checkbox") {
+      const checked = (e.target as HTMLInputElement).checked
+      setFormData((prev) => ({ ...prev, [name]: checked }))
+    } else if (type === "number") {
+      setFormData((prev) => ({ ...prev, [name]: value ? Number(value) : null }))
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value || null }))
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <label htmlFor="name" className="text-sm font-medium">
-            Nom du langage *
-          </label>
-          <Input id="name" name="name" value={formData.name} onChange={handleChange} required />
-        </div>
-
-        <div className="space-y-2">
-          <label htmlFor="slug" className="text-sm font-medium">
-            Slug *
-          </label>
-          <div className="flex space-x-2">
-            <div className="flex-1">
-              <Input
-                id="slug"
-                name="slug"
-                value={formData.slug}
-                onChange={handleChange}
-                required
-                className={slugError ? "border-red-500" : ""}
-              />
-              {slugError && <p className="text-red-500 text-sm mt-1">{slugError}</p>}
-            </div>
-            <Button type="button" variant="outline" onClick={generateSlug} disabled={!formData.name}>
-              Générer
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Le slug est utilisé dans l'URL. Pour C#, utilisez "csharp", pour C++, utilisez "cpp", etc.
-          </p>
-        </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label htmlFor="name" className="block text-sm font-medium">
+          Nom
+        </label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          required
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+        />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <label htmlFor="year_created" className="text-sm font-medium">
-            Année de création
-          </label>
-          <Input
-            id="year_created"
-            name="year_created"
-            type="number"
-            value={formData.year_created || ""}
-            onChange={handleNumberChange}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label htmlFor="creator" className="text-sm font-medium">
-            Créateur
-          </label>
-          <Input id="creator" name="creator" value={formData.creator || ""} onChange={handleChange} />
-        </div>
+      <div>
+        <label htmlFor="slug" className="block text-sm font-medium">
+          Slug
+        </label>
+        <input
+          type="text"
+          id="slug"
+          name="slug"
+          value={formData.slug}
+          onChange={handleChange}
+          required
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+        />
       </div>
 
-      <div className="space-y-2">
-        <label htmlFor="short_description" className="text-sm font-medium">
+      <div>
+        <label htmlFor="short_description" className="block text-sm font-medium">
           Description courte
         </label>
-        <Input
+        <textarea
           id="short_description"
           name="short_description"
           value={formData.short_description || ""}
           onChange={handleChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
         />
       </div>
 
-      <div className="space-y-2">
-        <label htmlFor="description" className="text-sm font-medium">
-          Description complète
+      <div>
+        <label htmlFor="year_created" className="block text-sm font-medium">
+          Année de création
         </label>
-        <Textarea
-          id="description"
-          name="description"
-          value={formData.description || ""}
+        <input
+          type="number"
+          id="year_created"
+          name="year_created"
+          value={formData.year_created || ""}
           onChange={handleChange}
-          rows={6}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
         />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <label htmlFor="type" className="text-sm font-medium">
-            Type de langage
-          </label>
-          <Input id="type" name="type" value={formData.type || ""} onChange={handleChange} />
-        </div>
-
-        <div className="space-y-2">
-          <label htmlFor="used_for" className="text-sm font-medium">
-            Utilisations principales
-          </label>
-          <Input id="used_for" name="used_for" value={formData.used_for || ""} onChange={handleChange} />
-        </div>
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id="is_open_source"
-          checked={formData.is_open_source || false}
-          onCheckedChange={(checked) => handleCheckboxChange("is_open_source", checked as boolean)}
-        />
-        <label
-          htmlFor="is_open_source"
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-        >
-          Open Source
+      <div>
+        <label htmlFor="is_open_source" className="flex items-center">
+          <input
+            type="checkbox"
+            id="is_open_source"
+            name="is_open_source"
+            checked={formData.is_open_source || false}
+            onChange={handleChange}
+            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+          />
+          <span className="ml-2 text-sm">Open Source</span>
         </label>
       </div>
 
-      <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            {isNew ? "Création..." : "Mise à jour..."}
-          </>
-        ) : isNew ? (
-          "Créer le langage"
-        ) : (
-          "Mettre à jour le langage"
-        )}
-      </Button>
+      {/* Ajoutez d'autres champs selon vos besoins */}
+
+      <div className="flex justify-end">
+        <Button type="submit" disabled={isLoading}>
+          {isLoading
+            ? "Chargement..."
+            : mode === "direct"
+              ? isEditing
+                ? "Mettre à jour"
+                : "Créer"
+              : isEditing
+                ? "Mettre à jour la suggestion"
+                : "Soumettre la suggestion"}
+        </Button>
+      </div>
     </form>
   )
 }

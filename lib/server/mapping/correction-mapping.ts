@@ -1,45 +1,58 @@
 import type { DbCorrection } from "@/types/database/correction"
-import type { Correction } from "@/types/models/correction"
-import { toNumber, toString } from "@/utils/conversion/type-conversion"
+import type { Correction, CorrectionWithLanguage } from "@/types/models/correction"
 
 /**
- * Convertit un objet DbCorrection en Correction
- * @param dbCorrection Objet de la base de données
- * @returns Objet Correction pour l'application
+ * Convertit une correction de la base de données en modèle d'application
+ * @param dbCorrection Correction de la base de données
+ * @returns Correction pour l'application
  */
-export function dbToCorrection(dbCorrection: DbCorrection): Correction {
-  return {
-    id: toNumber(dbCorrection.id),
-    correctionText: toString(dbCorrection.correction_text),
-    createdAt: dbCorrection.created_at,
+export function dbToCorrection(dbCorrection: DbCorrection & { languages?: { name: string } }): Correction {
+  const correction: Correction = {
+    id: dbCorrection.id,
+    languageId: dbCorrection.language_id,
+    correctionText: dbCorrection.correction_text,
+    suggestion: dbCorrection.suggestion,
     field: dbCorrection.field,
     framework: dbCorrection.framework,
-    languageId: toNumber(dbCorrection.language_id),
-    status: toString(dbCorrection.status),
-    suggestion: dbCorrection.suggestion,
-    updatedAt: dbCorrection.updated_at ? toNumber(new Date(dbCorrection.updated_at).getTime()) : 0,
+    status: dbCorrection.status,
     userId: dbCorrection.user_id,
+    createdAt: dbCorrection.created_at,
+    updatedAt: dbCorrection.updated_at,
+  }
+
+  return correction
+}
+
+/**
+ * Convertit un modèle d'application en correction pour la base de données
+ * @param correction Correction pour l'application
+ * @returns Correction pour la base de données
+ */
+export function correctionToDb(correction: Correction): DbCorrection {
+  return {
+    id: correction.id,
+    language_id: correction.languageId,
+    correction_text: correction.correctionText,
+    suggestion: correction.suggestion,
+    field: correction.field,
+    framework: correction.framework,
+    status: correction.status,
+    user_id: correction.userId,
+    created_at: correction.createdAt,
+    updated_at: correction.updatedAt,
   }
 }
 
 /**
- * Convertit un objet Correction en DbCorrection
- * @param correction Objet de l'application
- * @returns Objet pour la base de données
+ * Crée une correction avec le nom du langage
+ * @param dbCorrection Correction de la base de données
+ * @param languageName Nom du langage
+ * @returns Correction avec le nom du langage
  */
-export function correctionToDb(correction: Partial<Correction>): Partial<DbCorrection> {
-  const dbCorrection: Partial<DbCorrection> = {}
-
-  if (correction.id !== undefined) dbCorrection.id = correction.id
-  if (correction.correctionText !== undefined) dbCorrection.correction_text = correction.correctionText
-  if (correction.createdAt !== null) dbCorrection.created_at = correction.createdAt
-  if (correction.field !== undefined) dbCorrection.field = correction.field
-  if (correction.framework !== undefined) dbCorrection.framework = correction.framework
-  if (correction.languageId !== undefined) dbCorrection.language_id = correction.languageId
-  if (correction.status !== undefined) dbCorrection.status = correction.status
-  if (correction.suggestion !== undefined) dbCorrection.suggestion = correction.suggestion
-  if (correction.updatedAt !== undefined) dbCorrection.updated_at = new Date(correction.updatedAt).toISOString()
-  if (correction.userId !== undefined) dbCorrection.user_id = correction.userId
-
-  return dbCorrection
+export function dbToCorrectionWithLanguage(dbCorrection: DbCorrection, languageName: string): CorrectionWithLanguage {
+  const correction = dbToCorrection(dbCorrection)
+  return {
+    ...correction,
+    languageName,
+  }
 }

@@ -1,9 +1,9 @@
 /**
  * Interface représentant un rôle utilisateur dans la base de données
+ * Correspond exactement à la structure de la table user_roles dans Supabase
  */
 export interface DbUserRole {
   id: string
-  user_id: string
   role: string
   created_at: string | null
   updated_at: string | null

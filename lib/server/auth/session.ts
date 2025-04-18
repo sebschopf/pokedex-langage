@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase"
+import { createServerClient } from "@/lib/supabase/server"
 import { getUserRole } from "@/lib/server/api/users"
 import type { UserRoleType } from "@/types/models/user-role"
 
@@ -52,8 +52,14 @@ export async function requireRole(requiredRole: UserRoleType) {
     anonymous: 0,
   }
 
+  // Vérifier que userRole est une clé valide de roleHierarchy
+  const validRoles: UserRoleType[] = ["admin", "validator", "verified", "registered", "anonymous"]
+  if (!validRoles.includes(userRole as UserRoleType)) {
+    throw new Error(`Rôle invalide: ${userRole}`)
+  }
+
   // Vérifier si l'utilisateur a le rôle requis ou supérieur
-  if (roleHierarchy[userRole] < roleHierarchy[requiredRole]) {
+  if (roleHierarchy[userRole as UserRoleType] < roleHierarchy[requiredRole]) {
     throw new Error("Accès non autorisé")
   }
 

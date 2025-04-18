@@ -1,10 +1,10 @@
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { createServerClient } from "@/lib/supabase"
 import { redirect } from "next/navigation"
 import { UserRoleBadge } from "@/components/user-role-badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { hasRole } from "@/lib/permissions"
+import { hasRole } from "@/lib/supabase/"
 import { UpdateUserRoleForm } from "@/components/admin/update-user-role-form"
 import { formatDate } from "@/utils" // Utilisation de votre fonction formatDate existante
 import type { UserRoleType } from "@/types/database/user-role" // Importation du type UserRoleType

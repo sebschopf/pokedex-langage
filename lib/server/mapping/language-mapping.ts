@@ -1,13 +1,68 @@
-import type { DbLanguage } from "@/types/database/language"
+import type { Database } from "@/types/database-types"
 import type { Language } from "@/types/models/language"
+import type { DbLanguage } from "@/types/database/language"
+import { toBoolean } from "@/utils/conversion/type-conversion"
 
 /**
- * Convertit un objet DbLanguage en Language
- * @param dbLanguage Objet de la base de données
- * @returns Objet Language pour l'application
+ * Convertit un langage de la base de données (snake_case) en modèle d'application (camelCase)
+ * @param dbLanguage Langage de la base de données
+ * @returns Langage pour l'application
  */
-export function dbToLanguage(dbLanguage: DbLanguage): Language {
-  // Utiliser une approche défensive pour gérer les propriétés potentiellement manquantes
+export function dbToLanguage(dbLanguage: Database["public"]["Tables"]["languages"]["Row"]): Language {
+  return {
+    id: dbLanguage.id,
+    name: dbLanguage.name,
+    slug: dbLanguage.slug,
+    shortDescription: dbLanguage.short_description,
+    description: dbLanguage.description,
+    type: dbLanguage.type,
+    usedFor: dbLanguage.used_for,
+    yearCreated: dbLanguage.year_created,
+    usageRate: dbLanguage.usage_rate,
+    isOpenSource: toBoolean(dbLanguage.is_open_source),
+    createdAt: dbLanguage.created_at,
+    updatedAt: dbLanguage.updated_at,
+    creator: dbLanguage.creator,
+    logoPath: dbLanguage.logo_path,
+    popularFrameworks: dbLanguage.popular_frameworks,
+    strengths: dbLanguage.strengths,
+    tools: dbLanguage.tools,
+  }
+}
+
+/**
+ * Convertit un modèle d'application (camelCase) en langage pour la base de données (snake_case)
+ * @param language Langage pour l'application
+ * @returns Langage pour la base de données
+ */
+export function languageToDb(language: Language): Database["public"]["Tables"]["languages"]["Insert"] {
+  return {
+    id: language.id,
+    name: language.name,
+    slug: language.slug,
+    short_description: language.shortDescription,
+    description: language.description,
+    type: language.type,
+    used_for: language.usedFor,
+    year_created: language.yearCreated,
+    usage_rate: language.usageRate,
+    is_open_source: language.isOpenSource,
+    created_at: language.createdAt,
+    updated_at: language.updatedAt,
+    creator: language.creator,
+    logo_path: language.logoPath,
+    popular_frameworks: language.popularFrameworks,
+    strengths: language.strengths,
+    tools: language.tools,
+  }
+}
+
+/**
+ * Convertit un DbLanguage (snake_case) en Language (camelCase)
+ * @param dbLanguage Langage de la base de données
+ * @returns Langage avec propriétés en camelCase
+ */
+export function dbLanguageToLanguage(dbLanguage: DbLanguage): Language {
   return {
     id: dbLanguage.id,
     name: dbLanguage.name,
@@ -17,55 +72,41 @@ export function dbToLanguage(dbLanguage: DbLanguage): Language {
     usedFor: dbLanguage.used_for,
     usageRate: dbLanguage.usage_rate,
     yearCreated: dbLanguage.year_created,
-    popularFrameworks: dbLanguage.popular_frameworks || [],
-    strengths: dbLanguage.strengths || [],
+    popularFrameworks: dbLanguage.popular_frameworks,
+    strengths: dbLanguage.strengths,
     isOpenSource: dbLanguage.is_open_source,
     createdAt: dbLanguage.created_at,
     updatedAt: dbLanguage.updated_at,
     creator: dbLanguage.creator,
     description: dbLanguage.description,
     logoPath: dbLanguage.logo_path,
-    githubUrl: dbLanguage.github_url || null,
-    websiteUrl: dbLanguage.website_url || null,
-    currentVersion: dbLanguage.current_version || null,
-    lastUpdated: dbLanguage.last_updated || null,
-    license: dbLanguage.license || null,
-    difficulty: dbLanguage.difficulty,
     tools: dbLanguage.tools,
   }
 }
 
 /**
- * Convertit un objet Language en DbLanguage
- * @param language Objet de l'application
- * @returns Objet pour la base de données
+ * Convertit un Language (camelCase) en DbLanguage (snake_case)
+ * @param language Langage avec propriétés en camelCase
+ * @returns Langage pour la base de données
  */
-export function languageToDb(language: Partial<Language>): Partial<DbLanguage> {
-  const dbLanguage: Partial<DbLanguage> = {}
-
-  if (language.id !== undefined) dbLanguage.id = language.id
-  if (language.name !== undefined) dbLanguage.name = language.name
-  if (language.slug !== undefined) dbLanguage.slug = language.slug
-  if (language.shortDescription !== undefined) dbLanguage.short_description = language.shortDescription
-  if (language.type !== undefined) dbLanguage.type = language.type
-  if (language.usedFor !== undefined) dbLanguage.used_for = language.usedFor
-  if (language.usageRate !== undefined) dbLanguage.usage_rate = language.usageRate
-  if (language.yearCreated !== undefined) dbLanguage.year_created = language.yearCreated
-  if (language.popularFrameworks !== undefined) dbLanguage.popular_frameworks = language.popularFrameworks
-  if (language.strengths !== undefined) dbLanguage.strengths = language.strengths
-  if (language.isOpenSource !== undefined) dbLanguage.is_open_source = language.isOpenSource
-  if (language.createdAt !== undefined) dbLanguage.created_at = language.createdAt
-  if (language.updatedAt !== undefined) dbLanguage.updated_at = language.updatedAt
-  if (language.creator !== undefined) dbLanguage.creator = language.creator
-  if (language.description !== undefined) dbLanguage.description = language.description
-  if (language.logoPath !== undefined) dbLanguage.logo_path = language.logoPath
-  if (language.githubUrl !== undefined) dbLanguage.github_url = language.githubUrl
-  if (language.websiteUrl !== undefined) dbLanguage.website_url = language.websiteUrl
-  if (language.currentVersion !== undefined) dbLanguage.current_version = language.currentVersion
-  if (language.lastUpdated !== undefined) dbLanguage.last_updated = language.lastUpdated
-  if (language.license !== undefined) dbLanguage.license = language.license
-  if (language.difficulty !== undefined) dbLanguage.difficulty = language.difficulty
-  if (language.tools !== undefined) dbLanguage.tools = language.tools
-
-  return dbLanguage
+export function languageToDbLanguage(language: Language): DbLanguage {
+  return {
+    id: language.id,
+    name: language.name,
+    slug: language.slug,
+    short_description: language.shortDescription,
+    type: language.type,
+    used_for: language.usedFor,
+    usage_rate: language.usageRate,
+    year_created: language.yearCreated,
+    popular_frameworks: language.popularFrameworks,
+    strengths: language.strengths,
+    is_open_source: language.isOpenSource,
+    created_at: language.createdAt,
+    updated_at: language.updatedAt,
+    creator: language.creator,
+    description: language.description,
+    logo_path: language.logoPath,
+    tools: language.tools,
+  }
 }

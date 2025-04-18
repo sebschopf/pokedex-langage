@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
       // Revalider la page du langage associé
       if (record?.language_id) {
         // Récupérer le slug du langage à partir de l'ID
-        const { createServerSupabaseClient } = await import("@/lib/server/supabase/client")
-        const supabase = createServerClient()
+        const { createBrowserClient } = await import("@/lib/supabase/client")
+        const supabase = createBrowserClient()
 
         const { data: language } = await supabase.from("languages").select("slug").eq("id", record.language_id).single()
 

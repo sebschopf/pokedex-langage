@@ -49,8 +49,14 @@ export async function requireRoleSC(requiredRole: UserRoleType, redirectTo = "/u
     anonymous: 0,
   }
 
+  // Vérifier que userRole est une clé valide de roleHierarchy
+  const validRoles: UserRoleType[] = ["admin", "validator", "verified", "registered", "anonymous"]
+  if (!validRoles.includes(userRole as UserRoleType)) {
+    redirect(redirectTo)
+  }
+
   // Vérifier si l'utilisateur a le rôle requis ou supérieur
-  if (roleHierarchy[userRole] < roleHierarchy[requiredRole]) {
+  if (roleHierarchy[userRole as UserRoleType] < roleHierarchy[requiredRole]) {
     redirect(redirectTo)
   }
 

@@ -1,54 +1,51 @@
 import type { DbLanguageProposal } from "@/types/database/language-proposal"
 import type { LanguageProposal } from "@/types/models/language-proposal"
-import { toNumber, } from "@/utils/conversion/type-conversion"
 
 /**
- * Convertit un objet DbLanguageProposal en LanguageProposal
- * @param dbProposal Objet de la base de données
- * @returns Objet LanguageProposal pour l'application
+ * Convertit un objet de proposition de langage de la base de données en objet pour l'application
+ * @param dbLanguageProposal Proposition de langage de la base de données
+ * @returns Proposition de langage pour l'application
  */
-export function dbToLanguageProposal(dbProposal: DbLanguageProposal): LanguageProposal {
+export function dbToLanguageProposal(dbLanguageProposal: DbLanguageProposal): LanguageProposal {
   return {
-    id: toNumber(dbProposal.id),
-    name: dbProposal.name,
-    description: dbProposal.description || null,
-    type: dbProposal.type || null,
-    userId: dbProposal.user_id|| "",
-    status: dbProposal.status || "pending",
-    createdAt: dbProposal.created_at || null,
-    updatedAt: dbProposal.updated_at || null,
-    createdYear: dbProposal.created_year || null,
-    creator: dbProposal.creator || null,
-    popularFrameworks: dbProposal.popular_frameworks || [],
-    strengths: dbProposal.strengths || [],
-    usedFor: dbProposal.used_for || null,
-    // Ajoutez d'autres propriétés selon vos besoins
+    id: dbLanguageProposal.id,
+    name: dbLanguageProposal.name,
+    description: dbLanguageProposal.description,
+    userId: dbLanguageProposal.user_id,
+    createdAt: dbLanguageProposal.created_at,
+    updatedAt: dbLanguageProposal.updated_at,
+    status: dbLanguageProposal.status,
+    type: dbLanguageProposal.type,
+    createdYear: dbLanguageProposal.created_year,
+    creator: dbLanguageProposal.creator,
+    usedFor: dbLanguageProposal.used_for,
+    strengths: dbLanguageProposal.strengths,
+    popularFrameworks: dbLanguageProposal.popular_frameworks,
   }
 }
 
 /**
- * Convertit un objet LanguageProposal en DbLanguageProposal
- * @param proposal Objet de l'application
- * @returns Objet pour la base de données
+ * Convertit un objet de proposition de langage de l'application en objet pour la base de données
+ * @param languageProposal Proposition de langage de l'application
+ * @returns Proposition de langage pour la base de données
  */
-export function languageProposalToDb(proposal: Partial<LanguageProposal>): Partial<DbLanguageProposal> {
-  const dbProposal: Partial<DbLanguageProposal> = {}
+export function languageProposalToDb(languageProposal: Partial<LanguageProposal>): Partial<DbLanguageProposal> {
+  const dbLanguageProposal: Partial<DbLanguageProposal> = {}
 
-  if (proposal.id !== undefined) dbProposal.id = (proposal.id)
-  if (proposal.name !== undefined) dbProposal.name = proposal.name
-  if (proposal.description !== undefined) dbProposal.description = proposal.description
-  if (proposal.type !== undefined) dbProposal.type = proposal.type
-  if (proposal.userId !== undefined) dbProposal.user_id = proposal.userId
-  if (proposal.status !== undefined) dbProposal.status = proposal.status
-  if (proposal.createdAt !== undefined) dbProposal.created_at = proposal.createdAt
-  if (proposal.updatedAt !== undefined) dbProposal.updated_at = proposal.updatedAt
-  // Propriétés supplémentaires
-  if (proposal.createdYear !== undefined) dbProposal.created_year = proposal.createdYear
-  if (proposal.creator !== undefined) dbProposal.creator = proposal.creator
-  if (proposal.popularFrameworks !== undefined) dbProposal.popular_frameworks = proposal.popularFrameworks
-  if (proposal.strengths !== undefined) dbProposal.strengths = proposal.strengths
-  if (proposal.usedFor !== undefined) dbProposal.used_for = proposal.usedFor
-  // Ajoutez d'autres propriétés selon vos besoins
+  if (languageProposal.id !== undefined) dbLanguageProposal.id = languageProposal.id
+  if (languageProposal.name !== undefined) dbLanguageProposal.name = languageProposal.name
+  if (languageProposal.description !== undefined) dbLanguageProposal.description = languageProposal.description
+  if (languageProposal.userId !== undefined) dbLanguageProposal.user_id = languageProposal.userId
+  if (languageProposal.createdAt !== undefined) dbLanguageProposal.created_at = languageProposal.createdAt
+  if (languageProposal.updatedAt !== undefined) dbLanguageProposal.updated_at = languageProposal.updatedAt
+  if (languageProposal.status !== undefined) dbLanguageProposal.status = languageProposal.status
+  if (languageProposal.type !== undefined) dbLanguageProposal.type = languageProposal.type
+  if (languageProposal.createdYear !== undefined) dbLanguageProposal.created_year = languageProposal.createdYear
+  if (languageProposal.creator !== undefined) dbLanguageProposal.creator = languageProposal.creator
+  if (languageProposal.usedFor !== undefined) dbLanguageProposal.used_for = languageProposal.usedFor
+  if (languageProposal.strengths !== undefined) dbLanguageProposal.strengths = languageProposal.strengths
+  if (languageProposal.popularFrameworks !== undefined)
+    dbLanguageProposal.popular_frameworks = languageProposal.popularFrameworks
 
-  return dbProposal
+  return dbLanguageProposal
 }

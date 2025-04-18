@@ -1,6 +1,5 @@
 import { getLanguageBySlug } from "@/lib/server/api/languages"
 import { getFrameworksByLanguageId } from "@/lib/server/api/libraries"
-import type { Library } from "@/types/models"
 import { notFound } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
@@ -12,28 +11,33 @@ import { getImageName } from "@/utils/image"
 import { getTypeBadgeColor } from "@/utils/theme"
 import ScrollToTop from "@/components/scroll-to-top"
 import TechnologyNavigation from "@/components/technology-navigation"
+import type { Library } from "@/types/models/library"
 
 // Revalider la page toutes les heures
 export const revalidate = 3600
 
-interface LanguagePageProps {
-  params: { slug: string }
+// Définir les types de paramètres selon les conventions Next.js
+interface PageParams {
+  slug: string
 }
 
-export default async function LanguagePage({ params }: LanguagePageProps) {
+interface PageProps {
+  params: PageParams
+  searchParams?: { [key: string]: string | string[] | undefined }
+}
+
+export default async function LanguagePage({ params }: PageProps) {
   const { slug } = params
 
-  // Ajoutons des logs de débogage pour voir ce qui se passe
+  // Logs de débogage
   console.log("Slug reçu dans page.tsx:", slug)
 
   try {
-    // Convertir le slug en minuscules pour éviter les problèmes de casse
+    // Normaliser le slug
     const normalizedSlug = slug.toLowerCase()
     console.log("Slug normalisé:", normalizedSlug)
 
-    // Ajouter un délai pour éviter les problèmes de rate limiting
-    await new Promise((resolve) => setTimeout(resolve, 100))
-
+    // Récupérer le langage
     const language = await getLanguageBySlug(normalizedSlug)
     console.log("Langage trouvé:", language ? language.name : "Non trouvé")
 
@@ -46,9 +50,6 @@ export default async function LanguagePage({ params }: LanguagePageProps) {
     let frameworks: Library[] = []
     try {
       if (language && language.id) {
-        // Ajouter un délai pour éviter les problèmes de rate limiting
-        await new Promise((resolve) => setTimeout(resolve, 100))
-
         frameworks = await getFrameworksByLanguageId(language.id)
         console.log("Frameworks trouvés:", frameworks.length)
       }
@@ -57,9 +58,6 @@ export default async function LanguagePage({ params }: LanguagePageProps) {
       // Continuer avec un tableau vide
       frameworks = []
     }
-
-    // Le reste du code reste inchangé...
-    // ...
 
     // Regrouper les frameworks par catégorie
     const frameworksByCategory: Record<string, Library[]> = {}
@@ -73,7 +71,7 @@ export default async function LanguagePage({ params }: LanguagePageProps) {
       frameworksByCategory[category].push(framework)
     })
 
-    // Trier les catégories pour avoir un ordre cohérent
+    // Trier les catégories
     const sortedCategories = Object.keys(frameworksByCategory).sort((a, b) => {
       // Mettre 'Autre' à la fin
       if (a === "Autre") return 1
@@ -84,16 +82,13 @@ export default async function LanguagePage({ params }: LanguagePageProps) {
     // Préparer l'URL de l'image
     const imageSrc = language.logoPath || `/images/${getImageName(language.name)}.svg`
 
-    // Assurez-vous que la transformation des données est correcte
+    // Transformer les données pour les frameworks
     const frameworksData: { [key: string]: any } = {}
     frameworks.forEach((framework) => {
-      // Utilisez l'ID comme clé pour éviter les problèmes de noms dupliqués
       frameworksData[framework.name] = {
         name: framework.name,
         description: framework.description || `Framework pour ${language.name}`,
-        // Convertir les tableaux en chaînes si nécessaire
         usedFor: framework.usedFor || `Développement avec ${language.name}`,
-        // S'assurer que features est toujours un tableau
         features: Array.isArray(framework.features)
           ? framework.features
           : framework.features
@@ -153,20 +148,17 @@ export default async function LanguagePage({ params }: LanguagePageProps) {
                 <h4 className="font-bold text-xl border-b-2 border-black pb-1">Utilisé pour:</h4>
                 <div className="text-lg mt-2 space-y-2">
                   {language.usedFor ? (
-                    // Si usedFor est une chaîne, on la divise en tableau
-                    language.usedFor
-                      .split(",")
-                      .map((use: string, index: number) => (
-                        <p key={index} className="flex items-start">
-                          <span
-                            className="inline-block bg-red-600 text-white font-black px-2 py-0 mr-3 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transform -rotate-3"
-                            aria-hidden="true"
-                          >
-                            ▶
-                          </span>
-                          <span>{use.trim()}</span>
-                        </p>
-                      ))
+                    language.usedFor.split(",").map((use: string, index: number) => (
+                      <p key={index} className="flex items-start">
+                        <span
+                          className="inline-block bg-red-600 text-white font-black px-2 py-0 mr-3 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transform -rotate-3"
+                          aria-hidden="true"
+                        >
+                          ▶
+                        </span>
+                        <span>{use.trim()}</span>
+                      </p>
+                    ))
                   ) : (
                     <p>Information non disponible</p>
                   )}
@@ -177,7 +169,6 @@ export default async function LanguagePage({ params }: LanguagePageProps) {
                 <h4 className="font-bold text-xl border-b-2 border-black pb-1">Forces:</h4>
                 <ul className="mt-2 space-y-2">
                   {language.strengths && Array.isArray(language.strengths) ? (
-                    // Si strengths est déjà un tableau, on l'utilise directement
                     language.strengths.map((strength: string, index: number) => (
                       <li key={index} className="flex items-start">
                         <span
@@ -196,7 +187,7 @@ export default async function LanguagePage({ params }: LanguagePageProps) {
               </div>
             </div>
 
-            {/* Ajout du composant de navigation des technologies */}
+            {/* Navigation des technologies */}
             {frameworks.length > 0 && (
               <TechnologyNavigation categories={sortedCategories} languageName={language.name} />
             )}

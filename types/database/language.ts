@@ -21,11 +21,29 @@ export interface DbLanguage {
   creator: string | null
   description: string | null
   logo_path: string | null
-  github_url: string | null
-  website_url: string | null
-  current_version: string | null
-  last_updated: string | null
-  license: string | null
-  difficulty: number | null
+  tools: Json | null
+}
+
+/**
+ * Interface représentant un langage de programmation dans l'application
+ * Version avec des noms de propriétés en camelCase
+ */
+export interface Language {
+  id: number
+  name: string
+  slug: string
+  shortDescription: string | null
+  type: string | null
+  usedFor: string | null
+  usageRate: number | null
+  yearCreated: number | null
+  popularFrameworks: string[] | null
+  strengths: string[] | null
+  isOpenSource: boolean | null
+  createdAt: string | null
+  updatedAt: string | null
+  creator: string | null
+  description: string | null
+  logoPath: string | null
   tools: Json | null
 }

@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createServerClient } from "@/lib/supabase"
+import { createServerClient } from "@/lib/supabase/server"
 import { getLanguageById } from "@/lib/server/api/languages"
+import { dbToCorrection } from "@/lib/server/mapping/correction-mapping"
 
 export const dynamic = "force-dynamic"
 
@@ -161,11 +162,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     }
 
     // Convertir en format d'application
-    const { dbToCorrection } = await import("@/lib/server/mapping/correction-mapping")
     const formattedCorrection = dbToCorrection(correction)
-
-    // Ajouter le nom du langage qui vient de la jointure
-    formattedCorrection.languageName = correction.languages?.name
 
     return NextResponse.json({ success: true, data: formattedCorrection })
   } catch (error) {

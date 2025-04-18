@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useRef } from "react"
-import { createClientSupabaseClient } from "@/lib/client/supabase"
+import { createBrowserClient } from "@/lib/client/supabase"
 import { Upload, X, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"

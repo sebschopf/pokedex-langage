@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from "@/lib/supabase-server"
+import { createServerClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import StorageManager from "@/components/storage-manager"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"

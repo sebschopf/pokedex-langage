@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { createServerSupabaseClient } from "@/lib/supabase-server"
+import { createServerClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { AdminLayout } from "@/components/admin/layout"
 import { UserManagement } from "@/components/admin/user-management"

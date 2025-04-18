@@ -2,7 +2,7 @@ import type { Json } from "@/types/database-types"
 
 /**
  * Interface représentant un langage de programmation dans l'application
- * Version transformée et normalisée de DbLanguage
+ * Utilise la convention camelCase pour les noms de propriétés
  */
 export interface Language {
   id: number
@@ -21,11 +21,5 @@ export interface Language {
   creator: string | null
   description: string | null
   logoPath: string | null
-  githubUrl: string | null
-  websiteUrl: string | null
-  currentVersion: string | null
-  lastUpdated: string | null
-  license: string | null
-  difficulty: number | null
   tools: Json | null
 }

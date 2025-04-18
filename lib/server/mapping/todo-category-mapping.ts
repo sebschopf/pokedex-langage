@@ -1,32 +1,28 @@
-import type { DbTodoCategory } from "@/types/database"
-import type { TodoCategory } from "@/types/models"
+import type { DbTodoCategory } from "@/types/database/todo-category"
+import type { TodoCategory } from "@/types/models/todo-category"
 
 /**
- * Convertit un objet DbTodoCategory en TodoCategory
- * @param dbCategory Objet de la base de données
- * @returns Objet TodoCategory pour l'application
+ * Convertit un objet de catégorie de tâche de la base de données en objet de catégorie de tâche pour l'application
  */
-export function dbToTodoCategory(dbCategory: DbTodoCategory): TodoCategory {
+export function dbToTodoCategory(dbTodoCategory: DbTodoCategory): TodoCategory {
   return {
-    id: dbCategory.id,
-    name: dbCategory.name,
-    color: dbCategory.color,
-    createdAt: dbCategory.created_at,
+    id: dbTodoCategory.id,
+    name: dbTodoCategory.name,
+    color: dbTodoCategory.color,
+    createdAt: dbTodoCategory.created_at,
   }
 }
 
 /**
- * Convertit un objet TodoCategory en DbTodoCategory
- * @param category Objet de l'application
- * @returns Objet pour la base de données
+ * Convertit un objet de catégorie de tâche de l'application en objet de catégorie de tâche pour la base de données
  */
-export function todoCategoryToDb(category: Partial<TodoCategory>): Partial<DbTodoCategory> {
-  const dbCategory: Partial<DbTodoCategory> = {}
+export function todoCategoryToDb(todoCategory: Partial<TodoCategory>): Partial<DbTodoCategory> {
+  const dbTodoCategory: Partial<DbTodoCategory> = {}
 
-  if (category.id !== undefined) dbCategory.id = category.id
-  if (category.name !== undefined) dbCategory.name = category.name
-  if (category.color !== undefined) dbCategory.color = category.color
-  if (category.createdAt !== undefined) dbCategory.created_at = category.createdAt
+  if (todoCategory.id !== undefined) dbTodoCategory.id = todoCategory.id
+  if (todoCategory.name !== undefined) dbTodoCategory.name = todoCategory.name
+  if (todoCategory.color !== undefined) dbTodoCategory.color = todoCategory.color
+  if (todoCategory.createdAt !== undefined) dbTodoCategory.created_at = todoCategory.createdAt
 
-  return dbCategory
+  return dbTodoCategory
 }

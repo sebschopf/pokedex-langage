@@ -6,14 +6,34 @@ export interface DbLanguageProposal {
   id: number
   name: string
   description: string | null
-  type: string | null
   user_id: string | null
-  status: string
   created_at: string | null
   updated_at: string | null
+  status: string
+  type: string | null
   created_year: number | null
   creator: string | null
-  popular_frameworks: string[] | null
-  strengths: string[] | null
   used_for: string | null
+  strengths: string[] | null
+  popular_frameworks: string[] | null
+}
+
+/**
+ * Interface représentant une proposition de langage dans l'application
+ * Version avec des noms de propriétés en camelCase
+ */
+export interface DbLanguageProposalModel {
+  id: number
+  name: string
+  description: string | null
+  userId: string | null
+  createdAt: string | null
+  updatedAt: string | null
+  status: string
+  type: string | null
+  createdYear: number | null
+  creator: string | null
+  usedFor: string | null
+  strengths: string[] | null
+  popularFrameworks: string[] | null
 }

@@ -1,123 +1,101 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { createClientSupabaseClient } from "@/lib/client/supabase"
-import { useToast } from "./use-toast"
-import { useIsMobile } from "./use-mobile"
+import { createBrowserClient } from "@/lib/supabase/client"
+import type { PostgrestError } from "@supabase/supabase-js"
+import type { Database } from "@/types/database-types"
 
-// Options pour la requête
-export interface QueryOptions<T> {
-  table: string
+// Type pour les noms de tables valides
+type TableName = keyof Database["public"]["Tables"]
+
+// Options pour useSupabaseQuery
+interface UseSupabaseQueryOptions<T> {
+  table: TableName
   columns?: string
-  filter?: Record<string, any>
-  order?: { column: string; ascending?: boolean }
+  filters?: Record<string, any>
+  orderBy?: string
+  ascending?: boolean
   limit?: number
   single?: boolean
   enabled?: boolean
-  onSuccess?: (data: T) => void
-  onError?: (error: Error) => void
-  errorMessage?: string
-  showToast?: boolean
 }
 
-// Hook pour les requêtes Supabase avec gestion des toasts et optimisations mobiles
+// Hook useSupabaseQuery
 export function useSupabaseQuery<T = any>({
   table,
   columns = "*",
-  filter,
-  order,
+  filters = {},
+  orderBy,
+  ascending = true,
   limit,
   single = false,
   enabled = true,
-  onSuccess,
-  onError,
-  errorMessage,
-  showToast = true,
-}: QueryOptions<T>) {
+}: UseSupabaseQueryOptions<T>) {
   const [data, setData] = useState<T | null>(null)
-  const [isLoading, setIsLoading] = useState(enabled)
-  const [error, setError] = useState<Error | null>(null)
-  const { toast } = useToast()
-  const isMobile = useIsMobile()
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<PostgrestError | null>(null)
 
-  // Fonction pour exécuter la requête
-  const fetchData = async () => {
-    if (!enabled) return
+  useEffect(() => {
+    let isMounted = true
 
-    setIsLoading(true)
-    setError(null)
+    const fetchData = async () => {
+      if (!enabled) {
+        setIsLoading(false)
+        return
+      }
 
-    try {
-      const supabase = createBrowserClient()
+      setIsLoading(true)
+      setError(null)
 
-      let query = supabase.from(table).select(columns)
+      try {
+        const supabase = createBrowserClient()
+        let query = supabase.from(table).select(columns)
 
-      // Appliquer les filtres
-      if (filter) {
-        Object.entries(filter).forEach(([key, value]) => {
+        // Appliquer les filtres
+        Object.entries(filters).forEach(([key, value]) => {
           if (value !== undefined && value !== null) {
             query = query.eq(key, value)
           }
         })
+
+        // Appliquer le tri
+        if (orderBy) {
+          query = query.order(orderBy, { ascending })
+        }
+
+        // Appliquer la limite
+        if (limit) {
+          query = query.limit(limit)
+        }
+
+        // Récupérer un seul élément ou plusieurs
+        const { data: result, error: supabaseError } = single ? await query.single() : await query
+
+        if (isMounted) {
+          if (supabaseError) {
+            setError(supabaseError)
+            setData(null)
+          } else {
+            setData(result as T)
+            setError(null)
+          }
+          setIsLoading(false)
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err as PostgrestError)
+          setData(null)
+          setIsLoading(false)
+        }
       }
-
-      // Appliquer le tri
-      if (order) {
-        query = query.order(order.column, { ascending: order.ascending })
-      }
-
-      // Limiter le nombre de résultats
-      if (limit) {
-        query = query.limit(limit)
-      }
-
-      // Récupérer un seul résultat ou plusieurs
-      const { data: result, error } = single ? await query.single() : await query
-
-      if (error) throw error
-
-      setData(result as unknown as T)
-
-      if (onSuccess) onSuccess(result as unknown as T)
-
-      return result
-    } catch (err) {
-      const error = err as Error
-      setError(error)
-
-      if (showToast) {
-        toast({
-          title: "Erreur",
-          description: errorMessage || error.message,
-          variant: "destructive",
-        })
-      }
-
-      if (onError) onError(error)
-    } finally {
-      setIsLoading(false)
     }
-  }
 
-  // Exécuter la requête au chargement du composant
-  useEffect(() => {
-    if (enabled) {
-      fetchData()
+    fetchData()
+
+    return () => {
+      isMounted = false
     }
-  }, [enabled, table, columns, JSON.stringify(filter), JSON.stringify(order), limit, single])
+  }, [table, columns, JSON.stringify(filters), orderBy, ascending, limit, single, enabled])
 
-  // Optimisation pour les appareils mobiles
-  useEffect(() => {
-    if (isMobile && limit && !single && Array.isArray(data) && data.length > 10) {
-      // Limiter le nombre de résultats sur mobile pour améliorer les performances
-      setData(data.slice(0, 10) as unknown as T)
-    }
-  }, [isMobile, data, limit, single])
-
-  return {
-    data,
-    isLoading,
-    error,
-    refetch: fetchData,
-  }
+  return { data, isLoading, error }
 }
