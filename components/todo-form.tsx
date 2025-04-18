@@ -21,7 +21,6 @@ interface Todo {
   category_id?: number | null
   user_id?: string | null
   due_date?: string | null
-  priority?: number | null
 }
 
 export default function TodoForm({ todo, onSubmit }: TodoFormProps) {
@@ -33,7 +32,6 @@ export default function TodoForm({ todo, onSubmit }: TodoFormProps) {
       status_id: null,
       category_id: null,
       due_date: null,
-      priority: 1,
     },
   )
 
@@ -131,22 +129,6 @@ export default function TodoForm({ todo, onSubmit }: TodoFormProps) {
           id="due_date"
           name="due_date"
           value={formData.due_date || ""}
-          onChange={handleChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-        />
-      </div>
-
-      <div>
-        <label htmlFor="priority" className="block text-sm font-medium">
-          Priorité
-        </label>
-        <input
-          type="number"
-          id="priority"
-          name="priority"
-          min="1"
-          max="5"
-          value={formData.priority || 1}
           onChange={handleChange}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
         />
