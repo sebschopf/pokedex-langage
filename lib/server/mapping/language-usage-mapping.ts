@@ -1,4 +1,5 @@
-import type { DbLanguageUsage, LanguageUsage } from "@/types/database/language-usage"
+import type { DbLanguageUsage, } from "@/types/database/language-usage"
+import type { LanguageUsage, } from "@/types/models/language-usage"
 
 /**
  * Convertit un usage de langage de la base de données en modèle d'application

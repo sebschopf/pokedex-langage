@@ -1,5 +1,5 @@
 import type { DbProfile, DbUser, DbUserWithProfile } from "@/types/database/profile"
-import type { Profile, User, UserWithProfile } from "@/types/models/profile"
+import type { Profile, ProfileWithAuth, User, UserWithProfile } from "@/types/models/profile"
 
 /**
  * Convertit un profil de la base de données (snake_case) en profil pour l'application (camelCase)
@@ -92,5 +92,22 @@ export function userWithProfileToDbUserWithProfile(userWithProfile: UserWithProf
     ...dbUser,
     profile: userWithProfile.profile ? profileToDbProfile(userWithProfile.profile) : undefined,
     role: userWithProfile.role,
+  }
+}
+
+/**
+ * Crée un ProfileWithAuth en combinant un profil et les données d'authentification
+ * @param profile Profil utilisateur
+ * @param authData Données d'authentification de Supabase
+ * @returns Profil avec informations d'authentification
+ */
+export function createProfileWithAuth(
+  profile: Profile,
+  authData: { email: string | null; email_confirmed_at?: string | null },
+): ProfileWithAuth {
+  return {
+    ...profile,
+    email: authData.email,
+    isVerified: !!authData.email_confirmed_at,
   }
 }

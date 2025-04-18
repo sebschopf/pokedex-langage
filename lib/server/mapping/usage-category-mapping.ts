@@ -8,7 +8,9 @@ export function dbToUsageCategory(dbUsageCategory: DbUsageCategory): UsageCatego
   return {
     id: dbUsageCategory.id,
     name: dbUsageCategory.name,
+    description: dbUsageCategory.description,
     createdAt: dbUsageCategory.created_at,
+    updatedAt: dbUsageCategory.updated_at,
   }
 }
 
@@ -20,7 +22,9 @@ export function usageCategoryToDb(usageCategory: Partial<UsageCategory>): Partia
 
   if (usageCategory.id !== undefined) dbUsageCategory.id = usageCategory.id
   if (usageCategory.name !== undefined) dbUsageCategory.name = usageCategory.name
+  if (usageCategory.description !== undefined) dbUsageCategory.description = usageCategory.description
   if (usageCategory.createdAt !== undefined) dbUsageCategory.created_at = usageCategory.createdAt
+  if (usageCategory.updatedAt !== undefined) dbUsageCategory.updated_at = usageCategory.updatedAt
 
   return dbUsageCategory
 }

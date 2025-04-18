@@ -1,5 +1,5 @@
-import type { DbTechnologyCategory, TechnologyCategory } from "@/types/database/technology-category"
-
+import type { DbTechnologyCategory, } from "@/types/database/technology-category"
+import type { TechnologyCategory, } from "@/types/models/technology-category"
 /**
  * Convertit une catégorie de technologie de la base de données en modèle d'application
  * @param dbCategory Catégorie de technologie de la base de données

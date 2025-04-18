@@ -18,7 +18,6 @@ export function dbToTodo(dbTodo: DbTodo): Todo {
     dueDate: dbTodo.due_date,
     createdAt: dbTodo.created_at,
     updatedAt: dbTodo.updated_at,
-    priority: dbTodo.priority,
   }
 }
 
@@ -38,7 +37,6 @@ export function todoToDb(todo: Partial<Todo>): Partial<DbTodo> {
   if (todo.dueDate !== undefined) dbTodo.due_date = todo.dueDate
   if (todo.createdAt !== undefined) dbTodo.created_at = todo.createdAt
   if (todo.updatedAt !== undefined) dbTodo.updated_at = todo.updatedAt
-  if (todo.priority !== undefined) dbTodo.priority = todo.priority
 
   return dbTodo
 }
@@ -78,6 +76,7 @@ export function dbToTodoWithDetails(
       ? {
           id: dbStatus.id,
           name: dbStatus.name,
+          description: dbStatus.description,
           createdAt: dbStatus.created_at,
         }
       : null,

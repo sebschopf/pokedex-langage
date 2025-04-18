@@ -1,7 +1,7 @@
 import { dbToLibraryLanguage, libraryLanguageToDb } from "@/lib/server/mapping/library-languages-mapping"
 import type { DbLibraryLanguage } from "@/types/database/library-languages"
 import type { LibraryLanguage } from "@/types/models/library-languages"
-import { describe, test, expect } from "vitest"
+import { describe, test, expect } from "@jest/globals"
 
 describe("LibraryLanguage mapping", () => {
   // Données de test pour DbLibraryLanguage
