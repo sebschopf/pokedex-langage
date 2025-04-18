@@ -3,18 +3,18 @@ import { notFound } from "next/navigation"
 import { getLanguageBySlug } from "@/lib/server/api/languages"
 import { LanguageDetail } from "@/components/language-detail"
 
-// Définir les types selon les conventions de Next.js App Router
-type PageParams = {
+// Définir les types spécifiques à cette page
+type LanguagePageParams = {
   slug: string
 }
 
-type PageProps = {
-  params: PageParams
+type LanguagePageProps = {
+  params: LanguagePageParams
   searchParams: { [key: string]: string | string[] | undefined }
 }
 
 // Générer les métadonnées de la page
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: LanguagePageProps): Promise<Metadata> {
   const { slug } = params
   const language = await getLanguageBySlug(slug)
 
@@ -27,12 +27,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   return {
     title: `${language.name} - Pokedex des Langages de Programmation`,
-    description: language.short_description || `Découvrez tout sur ${language.name}`,
+    description: language.shortDescription || `Découvrez tout sur ${language.name}`,
   }
 }
 
 // Fonction principale de la page
-export default async function LanguagePage({ params }: PageProps) {
+export default async function LanguagePage({ params }: LanguagePageProps) {
   const { slug } = params
   const language = await getLanguageBySlug(slug)
 

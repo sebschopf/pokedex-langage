@@ -1,7 +1,7 @@
-import type { Language } from "@/types/database/language"
+import type { DbLanguage } from "@/types/database/language"
 
 interface LanguageDetailProps {
-  language: Language
+  language: DbLanguage
 }
 
 export function LanguageDetail({ language }: LanguageDetailProps) {

@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation"
-import { createServerComponentSupabaseClient } from "@/lib/supabase-app-router"
-import { dbToLanguage } from "@/lib/serveur/mapping"
+import { createServerClient } from "@/lib/supabase/server"
+import { dbToLanguage } from "@/lib/server/mapping/language-mapping"
 import type { Language } from "@/types/models/language"
 
 // Récupérer les données du langage par ID
 async function getLanguageById(id: string): Promise<Language | null> {
-  const supabase = createServerComponentSupabaseClient()
+  const supabase = createServerClient()
   const { data, error } = await supabase.from("languages").select("*").eq("id", Number.parseInt(id)).single()
 
   if (error || !data) {
