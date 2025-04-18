@@ -5,12 +5,12 @@
 export interface DbProfile {
   id: string
   username: string | null
-  created_at: string | null
-  updated_at: string | null
-  avatar_url: string | null
   full_name: string | null
+  avatar_url: string | null
   bio: string | null
   website: string | null
+  created_at: string | null
+  updated_at: string | null
 }
 
 /**

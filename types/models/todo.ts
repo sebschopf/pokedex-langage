@@ -12,7 +12,6 @@ export interface Todo {
   dueDate: string | null
   createdAt: string | null
   updatedAt: string | null
-  priority: number | null
 }
 
 /**
@@ -39,6 +38,7 @@ export interface TodoCategory {
 export interface TodoStatus {
   id: number
   name: string
+  description: string | null
   createdAt?: string | null
 }
 

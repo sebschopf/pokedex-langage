@@ -13,7 +13,6 @@ export interface DbTodo {
   due_date: string | null
   created_at: string | null
   updated_at: string | null
-  priority: number | null
 }
 
 /**

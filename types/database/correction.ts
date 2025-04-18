@@ -15,19 +15,3 @@ export interface DbCorrection {
   updated_at: string | null
 }
 
-/**
- * Interface représentant une correction dans l'application
- * Version avec des noms de propriétés en camelCase
- */
-export interface Correction {
-  id: number
-  languageId: number
-  correctionText: string
-  suggestion: string | null
-  field: string | null
-  framework: string | null
-  status: string
-  userId: string | null
-  createdAt: string | null
-  updatedAt: string | null
-}
