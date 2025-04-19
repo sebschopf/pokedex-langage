@@ -1,8 +1,12 @@
 "use client"
 
+import type React from "react"
+
 import { createContext, useContext, useEffect, useState } from "react"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
-import type { ThemeProviderProps } from "next-themes"
+
+// Utiliser React.ComponentProps pour inférer le type des props à partir du composant
+type ThemeProviderProps = React.ComponentProps<typeof NextThemesProvider>
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
   const [mounted, setMounted] = useState(false)
