@@ -1,30 +1,26 @@
 import { createServerClient } from "@/lib/supabase/server"
-import { dbToLibrary, libraryToDb } from "@/lib/server/mapping/library-mapping"
+import { dbToLibrary, libraryToDb, hasRequiredLibraryFields } from "@/lib/server/mapping/library-mapping"
 import type { Library } from "@/types/models/library"
-import type { Database } from "@/types/database-types"
-
-// Type pour les données de bibliothèque retournées par Supabase
-type DbLibraryRow = Database["public"]["Tables"]["libraries"]["Row"]
+import { filterNonNullable } from "@/utils/array"
 
 /**
  * Récupère toutes les bibliothèques
- * @returns Une liste de bibliothèques
+ * @returns Liste des bibliothèques
  */
-export async function getLibraries() {
+export async function getAllLibraries(): Promise<Library[]> {
   try {
     const supabase = createServerClient()
     const { data, error } = await supabase.from("libraries").select("*").order("name")
 
     if (error) {
       console.error("Erreur lors de la récupération des bibliothèques:", error)
-      return { data: [], error }
+      return []
     }
 
-    // Utiliser la fonction de mappage pour convertir les données de la base de données en modèles d'application
-    return { data: data.map((item) => dbToLibrary(item)), error: null }
+    return data.map(dbToLibrary)
   } catch (error) {
     console.error("Exception lors de la récupération des bibliothèques:", error)
-    return { data: [], error }
+    return []
   }
 }
 
@@ -34,66 +30,56 @@ export async function getLibraries() {
  * @returns La bibliothèque ou null si non trouvée
  */
 export async function getLibraryById(id: number): Promise<Library | null> {
-  const supabase = createServerClient()
-  const { data, error } = await supabase.from("libraries").select("*").eq("id", id).single()
+  try {
+    const supabase = createServerClient()
+    const { data, error } = await supabase.from("libraries").select("*").eq("id", id).single()
 
-  if (error) {
-    if (error.code === "PGRST116") {
-      // Code d'erreur pour "No rows found"
-      return null
+    if (error) {
+      if (error.code === "PGRST116") {
+        // Code d'erreur pour "No rows found"
+        return null
+      }
+      console.error(`Erreur lors de la récupération de la bibliothèque avec l'ID ${id}:`, error)
+      throw error
     }
-    console.error(`Erreur lors de la récupération de la bibliothèque avec l'ID ${id}:`, error)
-    throw error
+
+    return dbToLibrary(data)
+  } catch (error) {
+    console.error(`Exception lors de la récupération de la bibliothèque avec l'ID ${id}:`, error)
+    return null
   }
-
-  // Utiliser la fonction de mappage pour convertir les données de la base de données en modèle d'application
-  return dbToLibrary(data)
-}
-
-/**
- * Récupère une bibliothèque par son slug
- * @param slug Slug de la bibliothèque
- * @returns La bibliothèque ou null si non trouvée
- */
-export async function getLibraryBySlug(slug: string): Promise<Library | null> {
-  const supabase = createServerClient()
-  const { data, error } = await supabase.from("libraries").select("*").eq("slug", slug).single()
-
-  if (error) {
-    if (error.code === "PGRST116") {
-      // Code d'erreur pour "No rows found"
-      return null
-    }
-    console.error(`Erreur lors de la récupération de la bibliothèque avec le slug ${slug}:`, error)
-    throw error
-  }
-
-  // Utiliser la fonction de mappage pour convertir les données de la base de données en modèle d'application
-  return dbToLibrary(data)
 }
 
 /**
  * Crée une nouvelle bibliothèque
  * @param library Données de la bibliothèque à créer
  * @returns La bibliothèque créée
+ * @throws {Error} Si les champs obligatoires sont manquants ou si une erreur survient
  */
 export async function createLibrary(library: Omit<Library, "id">): Promise<Library> {
-  const supabase = createServerClient()
-
-  // Convertir le modèle d'application en modèle de base de données
-  const dbLibrary = libraryToDb(library as Library)
-
-  // Supprimer l'ID pour permettre à Supabase de générer un nouvel ID
-  delete dbLibrary.id
-
-  const { data, error } = await supabase.from("libraries").insert(dbLibrary).select().single()
-
-  if (error) {
-    console.error("Erreur lors de la création de la bibliothèque:", error)
-    throw error
+  // Vérifier les champs obligatoires
+  if (!hasRequiredLibraryFields(library)) {
+    throw new Error("Les champs 'name' et 'slug' sont obligatoires pour créer une bibliothèque")
   }
 
-  return dbToLibrary(data)
+  try {
+    const supabase = createServerClient()
+    
+    // Convertir en format DB
+    const dbLibrary = libraryToDb(library)
+    
+    const { data, error } = await supabase.from("libraries").insert(dbLibrary).select().single()
+    
+    if (error) {
+      console.error("Erreur lors de la création de la bibliothèque:", error)
+      throw error
+    }
+    
+    return dbToLibrary(data)
+  } catch (error) {
+    console.error("Exception lors de la création de la bibliothèque:", error)
+    throw error
+  }
 }
 
 /**
@@ -101,107 +87,105 @@ export async function createLibrary(library: Omit<Library, "id">): Promise<Libra
  * @param id ID de la bibliothèque à mettre à jour
  * @param library Données partielles de la bibliothèque à mettre à jour
  * @returns La bibliothèque mise à jour
+ * @throws {Error} Si aucune donnée n'est fournie ou si une erreur survient
  */
 export async function updateLibrary(id: number, library: Partial<Library>): Promise<Library> {
-  const supabase = createServerClient()
-
-  // Récupérer la bibliothèque existante
-  const existingLibrary = await getLibraryById(id)
-
-  if (!existingLibrary) {
-    throw new Error(`Bibliothèque avec l'ID ${id} non trouvée`)
-  }
-
-  // Fusionner les données existantes avec les nouvelles données
-  const mergedLibrary = { ...existingLibrary, ...library }
-
-  // Convertir le modèle d'application en modèle de base de données
-  const dbLibrary = libraryToDb(mergedLibrary)
-
-  const { data, error } = await supabase.from("libraries").update(dbLibrary).eq("id", id).select().single()
-
-  if (error) {
-    console.error(`Erreur lors de la mise à jour de la bibliothèque avec l'ID ${id}:`, error)
+  try {
+    const supabase = createServerClient()
+    
+    // Convertir en format DB
+    const dbLibrary = libraryToDb(library)
+    
+    // Vérifier qu'il y a des données à mettre à jour
+    if (Object.keys(dbLibrary).length === 0) {
+      throw new Error("Aucune donnée fournie pour la mise à jour")
+    }
+    
+    const { data, error } = await supabase.from("libraries").update(dbLibrary).eq("id", id).select().single()
+    
+    if (error) {
+      console.error(`Erreur lors de la mise à jour de la bibliothèque avec l'ID ${id}:`, error)
+      throw error
+    }
+    
+    return dbToLibrary(data)
+  } catch (error) {
+    console.error(`Exception lors de la mise à jour de la bibliothèque avec l'ID ${id}:`, error)
     throw error
   }
-
-  return dbToLibrary(data)
 }
 
 /**
  * Supprime une bibliothèque
  * @param id ID de la bibliothèque à supprimer
+ * @returns true si la suppression a réussi
+ * @throws {Error} Si une erreur survient lors de la suppression
  */
-export async function deleteLibrary(id: number): Promise<void> {
-  const supabase = createServerClient()
-
-  const { error } = await supabase.from("libraries").delete().eq("id", id)
-
-  if (error) {
-    console.error(`Erreur lors de la suppression de la bibliothèque avec l'ID ${id}:`, error)
+export async function deleteLibrary(id: number): Promise<boolean> {
+  try {
+    const supabase = createServerClient()
+    const { error } = await supabase.from("libraries").delete().eq("id", id)
+    
+    if (error) {
+      console.error(`Erreur lors de la suppression de la bibliothèque avec l'ID ${id}:`, error)
+      throw error
+    }
+    
+    return true
+  } catch (error) {
+    console.error(`Exception lors de la suppression de la bibliothèque avec l'ID ${id}:`, error)
     throw error
   }
 }
 
 /**
- * Récupère les frameworks associés à un langage
+ * Récupère les bibliothèques associées à un langage
  * @param languageId ID du langage
- * @returns Une liste de frameworks
+ * @returns Liste des bibliothèques associées au langage
  */
-export async function getFrameworksByLanguageId(languageId: number): Promise<Library[]> {
+export async function getLibrariesByLanguageId(languageId: number): Promise<Library[]> {
   try {
     const supabase = createServerClient()
-
-    // Vérifier d'abord si la relation est directe via language_id
-    const { data: directData, error: directError } = await supabase
+    const { data, error } = await supabase
       .from("libraries")
       .select("*")
       .eq("language_id", languageId)
       .order("name")
 
-    // Si la requête directe a réussi et retourné des données
-    if (!directError && directData && directData.length > 0) {
-      console.log(`Frameworks trouvés directement pour le langage ${languageId}:`, directData.length)
-      return directData.map((item) => dbToLibrary(item))
-    }
-
-    // Si la requête directe a échoué ou n'a pas retourné de données, essayer avec la table de jointure
-    console.log(`Tentative avec la table de jointure pour le langage ${languageId}`)
-
-    const { data: joinData, error: joinError } = await supabase
-      .from("library_languages")
-      .select("library_id")
-      .eq("language_id", languageId)
-
-    if (joinError) {
-      console.error(`Erreur lors de la récupération des relations pour le langage ${languageId}:`, joinError)
+    if (error) {
+      console.error(`Erreur lors de la récupération des bibliothèques pour le langage ${languageId}:`, error)
       return []
     }
 
-    if (!joinData || joinData.length === 0) {
-      console.log(`Aucun framework trouvé pour le langage ${languageId}`)
-      return []
-    }
-
-    // Récupérer les bibliothèques correspondant aux IDs trouvés
-    const libraryIds = joinData.map((item) => item.library_id)
-    const { data: librariesData, error: librariesError } = await supabase
-      .from("libraries")
-      .select("*")
-      .in("id", libraryIds)
-      .order("name")
-
-    if (librariesError) {
-      console.error(`Erreur lors de la récupération des bibliothèques pour les IDs ${libraryIds}:`, librariesError)
-      return []
-    }
-
-    console.log(`Frameworks trouvés via jointure pour le langage ${languageId}:`, librariesData?.length || 0)
-
-    // Utiliser la fonction de mappage pour convertir les données de la base de données en modèles d'application
-    return librariesData ? librariesData.map((item) => dbToLibrary(item)) : []
+    return data.map(dbToLibrary)
   } catch (error) {
-    console.error(`Exception lors de la récupération des frameworks pour le langage ${languageId}:`, error)
+    console.error(`Exception lors de la récupération des bibliothèques pour le langage ${languageId}:`, error)
+    return []
+  }
+}
+
+/**
+ * Recherche des bibliothèques par nom
+ * @param query Terme de recherche
+ * @returns Liste des bibliothèques correspondant à la recherche
+ */
+export async function searchLibraries(query: string): Promise<Library[]> {
+  try {
+    const supabase = createServerClient()
+    const { data, error } = await supabase
+      .from("libraries")
+      .select("*")
+      .ilike("name", `%${query}%`)
+      .order("name")
+
+    if (error) {
+      console.error(`Erreur lors de la recherche de bibliothèques avec le terme "${query}":`, error)
+      return []
+    }
+
+    return data.map(dbToLibrary)
+  } catch (error) {
+    console.error(`Exception lors de la recherche de bibliothèques avec le terme "${query}":`, error)
     return []
   }
 }
