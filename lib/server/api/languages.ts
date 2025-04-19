@@ -1,5 +1,5 @@
 import { createServerClient } from "@/lib/supabase/server"
-import { dbToLanguage } from "@/lib/server/mapping/language-mapping"
+import { dbToLanguage } from "@/lib/server/mapping/language-mapping/language-mapping"
 import type { DbLanguage } from "@/types/database/language"
 
 // Options pour la récupération des langages
