@@ -72,7 +72,8 @@ export function filterNonNullable<T>(array: Array<T | null | undefined>): Array<
    */
   export function unique<T>(array: Array<T>, keyFn?: (item: T) => any): Array<T> {
     if (!keyFn) {
-      return [...new Set(array)]
+      // Utiliser Array.from au lieu de l'opérateur de décomposition
+      return Array.from(new Set(array))
     }
   
     const seen = new Set()
