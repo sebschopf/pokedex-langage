@@ -1,26 +1,24 @@
-import type { Json } from "@/types/database-types"
-
-/**
- * Interface représentant un langage de programmation dans la base de données
- * Correspond exactement à la structure de la table languages dans Supabase
- */
-export interface DbLanguage {
+// Mise à jour du type DbLanguage pour correspondre au type Language
+export type DbLanguage = {
   id: number
   name: string
   slug: string
-  short_description: string | null
-  type: string | null
-  used_for: string | null
-  usage_rate: number | null
-  year_created: number | null
-  popular_frameworks: string[] | null
-  strengths: string[] | null
-  is_open_source: boolean | null
-  created_at: string | null
-  updated_at: string | null
-  creator: string | null
-  description: string | null
-  logo_path: string | null
-  tools: Json | null
+  description?: string | null
+  short_description?: string | null
+  type?: string | null
+  creator?: string | null
+  year_created?: number | null
+  usage_rate?: number | null
+  is_open_source?: boolean | null
+  used_for?: string | null
+  logo_path?: string | null
+  popular_frameworks?: string[] | null
+  created_at?: string | null
+  updated_at?: string | null
+  github_url?: string | null
+  website_url?: string | null
+  current_version?: string | null
+  last_updated?: string | null
+  license?: string | null
+  difficulty?: number | null
 }
-
