@@ -3,6 +3,7 @@ import { dbToUsageCategory } from "@/lib/server/mapping/usage-category-mapping"
 import { dbToLanguage } from "@/lib/server/mapping/language-mapping"
 import type { UsageCategory } from "@/types/models/usage-category"
 import type { Language } from "@/types/models/language"
+import { filterNonNullable } from "@/utils/array"
 
 /**
  * Récupère toutes les catégories d'usage
@@ -65,7 +66,8 @@ export async function getLanguagesByUsageCategoryId(categoryId: number): Promise
       return []
     }
 
-    const languageIds = data.map((item) => item.language_id).filter(Boolean)
+    // Utiliser la fonction utilitaire filterNonNullable
+    const languageIds = filterNonNullable(data.map((item) => item.language_id))
 
     if (languageIds.length === 0) {
       return []
@@ -106,7 +108,8 @@ export async function getUsageCategoriesByLanguageId(languageId: number): Promis
       return []
     }
 
-    const categoryIds = data.map((item) => item.category_id).filter(Boolean)
+    // Utiliser la fonction utilitaire filterNonNullable
+    const categoryIds = filterNonNullable(data.map((item) => item.category_id))
 
     if (categoryIds.length === 0) {
       return []

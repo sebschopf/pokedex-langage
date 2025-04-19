@@ -15,7 +15,3 @@ export type {
   DeleteOptions,
 } from "./use-supabase-mutation"
 
-export type {
-  // Types pour useSupabaseQuery
-  QueryOptions,
-} from "./use-supabase-query"
