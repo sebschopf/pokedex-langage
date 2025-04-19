@@ -1,17 +1,16 @@
 "use client"
 
 import { getLanguages } from "@/lib/server/api/languages"
-import { createCorrection } from "@/lib/server/api/corrections"
 import { getUserRole } from "@/lib/server/api/users"
-import { createServerComponentSupabaseClient } from "@/lib/supabase-app-router"
+import { createServerClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import CorrectionForm from "../admin/suggestions/correction-form"
-import type { Correction } from "@/types/models/correction"
 import type { UserRoleType } from "@/types/models/user-role"
+import { handleCreateCorrection } from "../actions/suggestion-actions"
 
 export default async function SuggestionsPage() {
   // Vérifier si l'utilisateur est connecté
-  const supabase = createServerComponentSupabaseClient()
+  const supabase = createServerClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -28,47 +27,6 @@ export default async function SuggestionsPage() {
   const validRoles: UserRoleType[] = ["admin", "validator", "verified", "registered"]
   if (!userRole || !validRoles.includes(userRole as UserRoleType)) {
     redirect("/")
-  }
-
-  // Fonction pour créer une correction
-  async function handleCreateCorrection(formData: FormData) {
-    "use server"
-
-    try {
-      // Vérifier à nouveau la session côté serveur
-      const supabase = createServerComponentSupabaseClient()
-      const { data: sessionData } = await supabase.auth.getSession()
-      const currentSession = sessionData.session
-
-      if (!currentSession) {
-        return { success: false, message: "Vous devez être connecté pour soumettre une correction" }
-      }
-
-      const languageId = Number.parseInt(formData.get("languageId") as string)
-      const correctionText = formData.get("correctionText") as string
-      const field = formData.get("field") as string
-      const suggestion = formData.get("suggestion") as string
-
-      // Créer un objet correction
-      const correction: Omit<Correction, "id" | "updatedAt"> = {
-        languageId,
-        correctionText,
-        field: field || null,
-        suggestion: suggestion || null,
-        status: "pending",
-        userId: currentSession.user.id,
-        createdAt: new Date().toISOString(),
-        framework: null,
-      }
-
-      // Enregistrer la correction
-      await createCorrection(correction)
-
-      return { success: true }
-    } catch (error) {
-      console.error("Erreur lors de la création de la correction:", error)
-      return { success: false }
-    }
   }
 
   // Récupérer la liste des langages
