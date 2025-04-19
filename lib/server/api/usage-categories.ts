@@ -1,6 +1,6 @@
 import { createServerClient } from "@/lib/supabase/server"
 import { dbToUsageCategory } from "@/lib/server/mapping/usage-category-mapping"
-import { dbToLanguage } from "@/lib/server/mapping/language-mapping"
+import { dbToLanguage } from "@/lib/server/mapping/language-mapping/language-mapping"
 import type { UsageCategory } from "@/types/models/usage-category"
 import type { Language } from "@/types/models/language"
 import { filterNonNullable } from "@/utils/array"
