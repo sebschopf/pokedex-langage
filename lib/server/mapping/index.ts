@@ -1,6 +1,6 @@
 // Exporter tous les mappings
 export * from "./language-mapping"
-export * from "./library-mapping"
+export * from "./library-mapping" // Ceci exportera maintenant tout depuis le dossier library-mapping
 export * from "./correction-mapping"
 export * from "./language-proposal-mapping"
 export * from "./profile-mapping"
@@ -10,3 +10,4 @@ export * from "./language-usage-mapping"
 export * from "./todo-mapping"
 export * from "./todo-status-mapping"
 export * from "./todo-category-mapping"
+export * from "./usage-category-mapping"
