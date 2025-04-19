@@ -30,6 +30,12 @@ export function libraryToDb(library: Partial<Library>): Partial<DbLibrary> {
   if (library.technologyType !== undefined) dbLibrary.technology_type = library.technologyType
   if (library.subtype !== undefined) dbLibrary.subtype = library.subtype
   if (library.slug !== undefined) dbLibrary.slug = library.slug
+  if (library.websiteUrl !== undefined) dbLibrary.website_url = library.websiteUrl
+  if (library.isPopular !== undefined) dbLibrary.is_popular = library.isPopular
+  if (library.category !== undefined) dbLibrary.category = library.category
+  if (library.stars !== undefined) dbLibrary.stars = library.stars
+  if (library.lastRelease !== undefined) dbLibrary.last_release = library.lastRelease
+  if (library.license !== undefined) dbLibrary.license = library.license
 
   return dbLibrary
 }
