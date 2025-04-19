@@ -1,18 +1,29 @@
 "use client"
 
-import { ThemeProvider } from "next-themes"
-import { QueryProvider } from "@/components/providers/query-provider"
-import { AuthProvider } from "@/components/providers/auth-provider"
-import type { ReactNode } from "react"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
+import { useState, type ReactNode } from "react"
+import { ThemeProvider } from "@/components/theme-provider"
 
-export default function AppProviders({ children }: { children: ReactNode }) {
+export default function Providers({ children }: { children: ReactNode }) {
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 60 * 1000, // 1 minute par défaut
+            retry: 1,
+          },
+        },
+      }),
+  )
+
   return (
-    <div suppressHydrationWarning>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <QueryProvider>
-          <AuthProvider>{children}</AuthProvider>
-        </QueryProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        {children}
+        {process.env.NODE_ENV === "development" && <ReactQueryDevtools />}
       </ThemeProvider>
-    </div>
+    </QueryClientProvider>
   )
 }
