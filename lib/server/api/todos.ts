@@ -1,5 +1,5 @@
 import { createServerClient } from "../../supabase/"
-import { dbToTodo, dbToTodoCategory, dbToTodoStatus } from "../mapping/todo-mapping"
+import { dbToTodo, dbToTodoCategory, dbToTodoStatus } from "../mapping"
 import type { Todo, TodoCategory, TodoStatus } from "@/types/models"
 
 /**
