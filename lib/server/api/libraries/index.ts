@@ -3,6 +3,7 @@
  */
 export { getAllLibraries } from "./get-all"
 export { getLibraryById } from "./get-by-id"
+export { getLibraryBySlug } from "./get-by-slug"
 export { createLibrary } from "./create"
 export { updateLibrary } from "./update"
 export { deleteLibrary } from "./delete"
