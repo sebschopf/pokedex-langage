@@ -1,8 +1,7 @@
 "use client"
 
-import type React from "react"
-import { useState } from "react"
 import Image from "next/image"
+import { useState } from "react"
 
 interface LanguageImageProps {
   src: string
@@ -12,34 +11,20 @@ interface LanguageImageProps {
   className?: string
 }
 
-const LanguageImage: React.FC<LanguageImageProps> = ({ src, alt, width, height, className = "" }) => {
-  const [error, setError] = useState(!src)
+export default function LanguageImage({ src, alt, width, height, className }: LanguageImageProps) {
+  const [error, setError] = useState(false)
 
-  if (error) {
-    return (
-      <div
-        className={`flex items-center justify-center bg-gray-200 border-2 border-black ${className}`}
-        style={{ width, height }}
-        aria-label={`Fallback image for ${alt}`}
-      >
-        <span className="text-2xl font-bold">{alt.charAt(0).toUpperCase()}</span>
-      </div>
-    )
-  }
+  // Image de secours en cas d'erreur
+  const fallbackSrc = "/images/placeholder-language.svg"
 
   return (
     <Image
-      src={src || "/placeholder.svg"}
+      src={error ? fallbackSrc : src}
       alt={alt}
       width={width}
       height={height}
       className={className}
-      style={{ objectFit: "contain" }}
       onError={() => setError(true)}
-      priority={width > 64} // Prioritize larger images
-      quality={90}
     />
   )
 }
-
-export default LanguageImage

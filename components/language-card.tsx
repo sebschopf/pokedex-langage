@@ -3,10 +3,11 @@
 import Link from "next/link"
 import type { Language } from "@/types/models/language"
 import { getTypeBadgeColor } from "@/utils/theme"
+import { cn } from "@/utils/theme/cn"
 import { getImageName } from "@/utils/image"
 import LanguageImage from "./language-image"
 import { generateLanguageSlug } from "@/utils/slug"
-import { cn } from "@/utils/theme"
+import { routes } from "@/utils/routes/routes"
 
 interface LanguageCardProps {
   language: Language
@@ -27,13 +28,13 @@ export function LanguageCard({ language }: LanguageCardProps) {
 
   return (
     <Link
-      href={slug ? `/language/${slug}` : `/language/id/${language.id}`}
+      href={slug ? routes.languages.detail(slug) : routes.languages.detailById(language.id)}
       className={cn(
         "block h-full border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 hover:-translate-y-1",
         "dark:bg-[#2a2a20] dark:border-[#3a3a30] dark:shadow-[8px_8px_0px_0px_rgba(58,58,48,1)] dark:hover:shadow-[12px_12px_0px_0px_rgba(58,58,48,1)]",
       )}
       aria-label={`Voir les détails de ${language.name}`}
-      prefetch={false} // Ajout pour éviter le prefetching automatique de toutes les pages
+      prefetch={false}
     >
       <div className="p-4 pb-6 flex flex-col h-full">
         {/* Badges en haut */}
