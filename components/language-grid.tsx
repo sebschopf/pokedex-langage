@@ -2,14 +2,14 @@
 
 import type React from "react"
 import { LanguageCard } from "./language-card"
-import type { Language } from "@/types/models"
-import CategoryTitle from "./category-title"
+import type { Language } from "@/types/models/language"
 import { useRouter } from "next/navigation"
+import type { SearchParamsType } from "@/types/dto/search-params"
 
 interface LanguageGridProps {
   languages: Language[]
   totalCount: number
-  searchParams: { [key: string]: string | string[] | undefined }
+  searchParams: SearchParamsType
 }
 
 export const LanguageGrid: React.FC<LanguageGridProps> = ({ languages, totalCount, searchParams }) => {
@@ -38,16 +38,8 @@ export const LanguageGrid: React.FC<LanguageGridProps> = ({ languages, totalCoun
     router.push(`/languages?${params.toString()}`)
   }
 
-  const resultsText = languages.length === 1 ? "résultat trouvé" : "résultats trouvés"
-
   return (
     <div>
-      <CategoryTitle
-        title={query ? `Recherche: "${query}"` : "Tous les langages"}
-        count={languages.length}
-        subtitle={query ? `${languages.length} ${resultsText}` : undefined}
-      />
-
       {languages.length === 0 ? (
         <div className="p-8 bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
           <p className="text-xl">Aucun langage ne correspond à vos critères.</p>
