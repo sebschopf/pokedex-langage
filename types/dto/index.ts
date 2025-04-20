@@ -5,4 +5,4 @@
 export * from "./todo-form-values"
 export * from "./user-management"
 export * from "./framework-filter-options"
-export * from "./framework-filter-options"
+export * from "./search-params" // Ajout des types de paramètres de recherche

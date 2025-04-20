@@ -7,7 +7,7 @@ import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
-import { createClientSupabaseClient } from "@/lib/client/supabase"
+import { createBrowserClient } from "@/lib/client/supabase"
 import { withTokenRefresh } from "@/lib/client/auth-helpers"
 
 export default function LoginPage() {

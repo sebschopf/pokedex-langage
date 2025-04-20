@@ -7,7 +7,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { Loader2 } from "lucide-react"
 
 import { useAuth } from "@/components/providers/auth-provider"
-import { createClientSupabaseClient } from "@/lib/client/supabase"
+import { createBrowserClient } from "@/lib/client/supabase"
 import type { Profile } from "@/types/models"
 import type { UserRoleType } from "@/lib/client/permissions"
 

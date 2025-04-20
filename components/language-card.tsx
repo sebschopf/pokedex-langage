@@ -6,7 +6,7 @@ import { getTypeBadgeColor } from "@/utils/theme"
 import { cn } from "@/utils/theme/cn"
 import { getImageName } from "@/utils/image"
 import LanguageImage from "./language-image"
-import { generateLanguageSlug } from "@/utils/slug"
+import { generateLanguageSlug } from "@/utils/slugs"
 import { routes } from "@/utils/routes/routes"
 
 interface LanguageCardProps {

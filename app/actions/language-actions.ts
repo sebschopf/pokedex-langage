@@ -3,7 +3,6 @@
 import { createServerClient } from "@/lib/supabase/server"
 import { languageToDb, dbToLanguage } from "@/lib/server/mapping"
 import { revalidatePath } from "next/cache"
-// Corriger l'importation pour utiliser le type Language de models
 import type { Language } from "@/types/models/language"
 import type { DbLanguage } from "@/types/database/language"
 import { deleteFile } from "@/lib/server/storage"
@@ -42,7 +41,7 @@ export async function createLanguageAction(formData: FormData) {
       usageRate: Number(formData.get("usageRate")) || 0,
       yearCreated: Number(formData.get("createdYear")) || 0,
       popularFrameworks: (formData.get("popularFrameworks") as string)?.split(",").map((s) => s.trim()) || [],
-      strengths: (formData.get("strengths") as string)?.split(",").map((s) => s.trim()) || [],
+      // Suppression de la propriété strengths
       difficulty: Number(formData.get("difficulty")),
       isOpenSource: formData.get("isOpenSource") === "true",
       // Propriétés obligatoires
@@ -65,7 +64,7 @@ export async function createLanguageAction(formData: FormData) {
       usage_rate: dbData.usage_rate,
       year_created: dbData.year_created,
       popular_frameworks: dbData.popular_frameworks,
-      strengths: dbData.strengths,
+      // Suppression de strengths
       is_open_source: dbData.is_open_source,
       created_at: dbData.created_at || new Date().toISOString(),
       updated_at: dbData.updated_at,
@@ -78,7 +77,7 @@ export async function createLanguageAction(formData: FormData) {
       last_updated: dbData.last_updated || null,
       license: dbData.license || null,
       difficulty: dbData.difficulty,
-      tools: dbData.tools || null,
+      // Suppression de tools
     }
 
     const { data, error } = await supabase.from("languages").insert(insertData).select().single()
@@ -141,11 +140,12 @@ export async function updateLanguageAction(id: string, formData: FormData) {
     if (formData.has("createdYear")) language.yearCreated = Number(formData.get("createdYear"))
     if (formData.has("popularFrameworks"))
       language.popularFrameworks = (formData.get("popularFrameworks") as string)?.split(",").map((s) => s.trim()) || []
-    if (formData.has("strengths"))
-      language.strengths = (formData.get("strengths") as string)?.split(",").map((s) => s.trim()) || []
+
+    // Suppression des propriétés strengths et tools
+
     if (formData.has("difficulty")) language.difficulty = Number(formData.get("difficulty"))
     if (formData.has("isOpenSource")) language.isOpenSource = formData.get("isOpenSource") === "true"
-    if (formData.has("tools")) language.tools = JSON.parse((formData.get("tools") as string) || "{}")
+
     // Ajoutez d'autres champs selon vos besoins
     if (formData.has("githubUrl")) language.githubUrl = formData.get("githubUrl") as string
     if (formData.has("websiteUrl")) language.websiteUrl = formData.get("websiteUrl") as string
@@ -168,7 +168,9 @@ export async function updateLanguageAction(id: string, formData: FormData) {
     if (dbData.usage_rate !== undefined) updateData.usage_rate = dbData.usage_rate
     if (dbData.year_created !== undefined) updateData.year_created = dbData.year_created
     if (dbData.popular_frameworks !== undefined) updateData.popular_frameworks = dbData.popular_frameworks
-    if (dbData.strengths !== undefined) updateData.strengths = dbData.strengths
+
+    // Suppression des propriétés strengths et tools
+
     if (dbData.is_open_source !== undefined) updateData.is_open_source = dbData.is_open_source
     if (dbData.creator !== undefined) updateData.creator = dbData.creator
     if (dbData.description !== undefined) updateData.description = dbData.description
@@ -179,7 +181,6 @@ export async function updateLanguageAction(id: string, formData: FormData) {
     if (dbData.last_updated !== undefined) updateData.last_updated = dbData.last_updated
     if (dbData.license !== undefined) updateData.license = dbData.license
     if (dbData.difficulty !== undefined) updateData.difficulty = dbData.difficulty
-    if (dbData.tools !== undefined) updateData.tools = dbData.tools
 
     // Ajouter le timestamp de mise à jour
     updateData.updated_at = new Date().toISOString()

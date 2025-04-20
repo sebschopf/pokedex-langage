@@ -42,14 +42,19 @@ async function getHomePageData(searchParams: LanguageSearchParams) {
   }
 }
 
+// Type pour les props de page conforme à ce que Next.js attend
+type HomePageProps = {
+  params?: any
+  searchParams?: any
+}
+
 // Composant principal de la page
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams: LanguageSearchParams
-}) {
-  const { languages, languagesCount, totalCount } = await getHomePageData(searchParams)
-  const query = searchParams.query || ""
+export default async function HomePage({ searchParams = {} }: HomePageProps) {
+  // Convertir searchParams en LanguageSearchParams pour le typage fort
+  const typedSearchParams = searchParams as unknown as LanguageSearchParams
+
+  const { languages, languagesCount, totalCount } = await getHomePageData(typedSearchParams)
+  const query = typedSearchParams.query || ""
 
   return (
     <div className="space-y-8">
@@ -69,11 +74,7 @@ export default async function HomePage({
         subtitle={`${languagesCount} sur ${totalCount} langages`}
       />
 
-      <LanguageGrid
-        languages={languages}
-        totalCount={totalCount}
-        searchParams={searchParams as { [key: string]: string | string[] | undefined }}
-      />
+      <LanguageGrid languages={languages} totalCount={totalCount} searchParams={searchParams as any} />
     </div>
   )
 }
