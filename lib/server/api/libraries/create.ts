@@ -2,6 +2,8 @@ import { createServerClient } from "@/lib/supabase/server"
 import { dbToLibrary } from "@/lib/server/mapping/library-mapping/db-to-library"
 import { libraryToDbForInsert } from "@/lib/server/mapping/library-mapping/for-insert"
 import type { Library } from "@/types/models/library"
+import type { DbLibrary } from "@/types/database/library"
+import { generateSlug } from "@/utils/slugs" // Chemin d'import corrigé
 
 /**
  * Crée une nouvelle bibliothèque
@@ -13,6 +15,14 @@ export async function createLibrary(library: Omit<Library, "id">): Promise<Libra
   try {
     const supabase = createServerClient()
 
+    // Générer un slug si non fourni
+    if (!library.slug) {
+      library = {
+        ...library,
+        slug: generateSlug(library.name),
+      }
+    }
+
     // Convertir en format DB avec les champs obligatoires garantis
     const dbLibrary = libraryToDbForInsert(library)
 
@@ -23,8 +33,8 @@ export async function createLibrary(library: Omit<Library, "id">): Promise<Libra
 
     // Créer un objet avec les propriétés typées correctement pour Supabase
     const insertData = {
-      name: dbLibrary.name, // Propriété obligatoire
-      slug: dbLibrary.slug || null,
+      name: dbLibrary.name,
+      slug: dbLibrary.slug, // Maintenant obligatoire
       language_id: dbLibrary.language_id || null,
       description: dbLibrary.description || null,
       official_website: dbLibrary.official_website || null,
@@ -51,7 +61,8 @@ export async function createLibrary(library: Omit<Library, "id">): Promise<Libra
       throw error
     }
 
-    return dbToLibrary(data)
+    // Utiliser une assertion de type pour indiquer à TypeScript que data est bien de type DbLibrary
+    return dbToLibrary(data as DbLibrary)
   } catch (error) {
     console.error("Exception lors de la création de la bibliothèque:", error)
     throw error

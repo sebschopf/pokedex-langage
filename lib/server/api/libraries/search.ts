@@ -1,6 +1,7 @@
 import { createServerClient } from "@/lib/supabase/server"
-import { dbToLibrary } from "@/lib/server/mapping/library-mapping"
+import { dbToLibrary } from "@/lib/server/mapping/library-mapping/db-to-library" // Correction de l'importation
 import type { Library } from "@/types/models/library"
+import type { DbLibrary } from "@/types/database/library" // Ajout de l'importation du type
 
 /**
  * Recherche des bibliothèques par nom
@@ -17,7 +18,7 @@ export async function searchLibraries(query: string): Promise<Library[]> {
       return []
     }
 
-    return data.map(dbToLibrary)
+    return data.map((item) => dbToLibrary(item as DbLibrary)) // Ajout de l'assertion de type
   } catch (error) {
     console.error(`Exception lors de la recherche de bibliothèques avec le terme "${query}":`, error)
     return []

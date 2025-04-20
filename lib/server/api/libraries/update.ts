@@ -2,6 +2,7 @@ import { createServerClient } from "@/lib/supabase/server"
 import { dbToLibrary } from "@/lib/server/mapping/library-mapping/db-to-library"
 import { libraryToDbForUpdate } from "@/lib/server/mapping/library-mapping/for-update"
 import type { Library } from "@/types/models/library"
+import type { DbLibrary } from "@/types/database/library"
 
 /**
  * Met à jour une bibliothèque existante
@@ -24,7 +25,8 @@ export async function updateLibrary(id: number, library: Partial<Library>): Prom
       throw error
     }
 
-    return dbToLibrary(data)
+    // Utiliser une assertion de type pour indiquer à TypeScript que data est bien de type DbLibrary
+    return dbToLibrary(data as DbLibrary)
   } catch (error) {
     console.error(`Exception lors de la mise à jour de la bibliothèque avec l'ID ${id}:`, error)
     throw error

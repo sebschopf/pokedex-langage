@@ -1,6 +1,7 @@
 import { createServerClient } from "@/lib/supabase/server"
-import { dbToLibrary } from "@/lib/server/mapping/library-mapping"
+import { dbToLibrary } from "@/lib/server/mapping/library-mapping/db-to-library" // Chemin d'importation corrigé
 import type { Library } from "@/types/models/library"
+import type { DbLibrary } from "@/types/database/library"
 
 /**
  * Récupère les frameworks associés à un langage
@@ -22,7 +23,8 @@ export async function getFrameworksByLanguageId(languageId: number): Promise<Lib
       return []
     }
 
-    return data.map(dbToLibrary)
+    // Utiliser une assertion de type pour indiquer à TypeScript que data contient des objets de type DbLibrary
+    return data.map((item) => dbToLibrary(item as DbLibrary))
   } catch (error) {
     console.error(`Exception lors de la récupération des frameworks pour le langage ${languageId}:`, error)
     return []

@@ -1,6 +1,7 @@
 import { createServerClient } from "@/lib/supabase/server"
-import { dbToLibrary } from "@/lib/server/mapping/library-mapping"
+import { dbToLibrary } from "@/lib/server/mapping/library-mapping/db-to-library" // Correction de l'importation
 import type { Library } from "@/types/models/library"
+import type { DbLibrary } from "@/types/database/library" // Ajout de l'importation du type
 
 /**
  * Récupère toutes les bibliothèques
@@ -16,7 +17,7 @@ export async function getAllLibraries(): Promise<Library[]> {
       return []
     }
 
-    return data.map(dbToLibrary)
+    return data.map((item) => dbToLibrary(item as DbLibrary)) // Ajout de l'assertion de type
   } catch (error) {
     console.error("Exception lors de la récupération des bibliothèques:", error)
     return []

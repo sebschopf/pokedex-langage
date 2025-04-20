@@ -1,6 +1,7 @@
 import { createServerClient } from "@/lib/supabase/server"
-import { dbToLibrary } from "@/lib/server/mapping/library-mapping"
+import { dbToLibrary } from "@/lib/server/mapping/library-mapping/db-to-library" // Correction de l'importation
 import type { Library } from "@/types/models/library"
+import type { DbLibrary } from "@/types/database/library" // Ajout de l'importation du type
 
 /**
  * Récupère une bibliothèque par son ID
@@ -21,7 +22,7 @@ export async function getLibraryById(id: number): Promise<Library | null> {
       throw error
     }
 
-    return dbToLibrary(data)
+    return dbToLibrary(data as DbLibrary) // Ajout de l'assertion de type
   } catch (error) {
     console.error(`Exception lors de la récupération de la bibliothèque avec l'ID ${id}:`, error)
     return null
