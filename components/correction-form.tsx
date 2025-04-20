@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { X } from "lucide-react"
 import { submitCorrection } from "@/app/actions/correction-actions"
-import type { Language } from "@/types/language"
+import type { Language } from "@/types/models/language" // Importation depuis models
 
 // Mettre à jour l'interface pour inclure un paramètre optionnel pour le framework
 interface CorrectionFormProps {
@@ -50,22 +50,22 @@ export function CorrectionForm({ language, framework, onClose, onSuccess }: Corr
     setError(null)
 
     try {
-      if (correctionType === "language") {
-        await submitCorrection({
-          languageId: language.id,
-          field,
-          suggestion,
-          type: "language",
-        })
-      } else {
-        await submitCorrection({
-          languageId: language.id,
-          frameworkName: framework || frameworkName,
-          field: frameworkField,
-          suggestion,
-          type: "framework",
-        })
+      // Créer un objet FormData
+      const formData = new FormData()
+
+      // Ajouter les données au FormData
+      formData.append("languageId", language.id.toString())
+      formData.append("field", correctionType === "language" ? field : frameworkField)
+      formData.append("suggestion", suggestion)
+      formData.append("type", correctionType)
+
+      // Ajouter le nom du framework si nécessaire
+      if (correctionType === "framework") {
+        formData.append("frameworkName", framework || frameworkName)
       }
+
+      // Soumettre la correction
+      await submitCorrection(formData)
 
       setIsSubmitting(false)
       onSuccess()
@@ -209,4 +209,3 @@ export function CorrectionForm({ language, framework, onClose, onSuccess }: Corr
 
 //  permettre l'import par défaut au cas où
 export default CorrectionForm
-
