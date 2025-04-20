@@ -1,5 +1,6 @@
 import type { Library } from "@/types/models/library"
 import { libraryToDb } from "./library-to-db"
+import { generateSlug } from "@/utils/slugs" // Chemin d'import corrigé
 
 /**
  * Type pour l'insertion dans la base de données
@@ -7,7 +8,7 @@ import { libraryToDb } from "./library-to-db"
  */
 export type DbLibraryForInsert = {
   name: string // name est obligatoire
-  slug?: string | null
+  slug: string // slug est maintenant obligatoire
   language_id?: number | null
   description?: string | null
   official_website?: string | null
@@ -40,14 +41,16 @@ export function libraryToDbForInsert(library: Omit<Library, "id">): DbLibraryFor
     throw new Error("Le champ 'name' est obligatoire pour l'insertion")
   }
 
+  // Générer un slug si non fourni
+  const slug = library.slug || generateSlug(library.name)
+
   // Convertir en format DB
   const dbLibrary = libraryToDb(library)
 
   // Créer un nouvel objet avec les propriétés requises
   const result: DbLibraryForInsert = {
-    name: library.name, // Garantir que name est présent
-    // Ajouter les autres propriétés avec des valeurs par défaut nullables
-    slug: library.slug || null,
+    name: library.name,
+    slug: slug, // Garantir que slug est présent
     language_id: dbLibrary.language_id || null,
     description: dbLibrary.description || null,
     official_website: dbLibrary.official_website || null,

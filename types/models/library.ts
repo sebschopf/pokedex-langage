@@ -1,4 +1,4 @@
-// Mise à jour du type Library pour inclure toutes les propriétés nécessaires
+// Type Library corrigé pour correspondre au type DbLibrary
 export type Library = {
   id: number
   name: string
@@ -20,10 +20,4 @@ export type Library = {
   version: string | null
   technologyType: string | null
   subtype: string | null
-  websiteUrl: string | null
-  isPopular: boolean | null
-  category: string | null
-  stars: number | null
-  lastRelease: string | null
-  license: string | null
 }

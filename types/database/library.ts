@@ -1,4 +1,5 @@
-// Mise à jour du type DbLibrary pour correspondre au type Library
+// Type DbLibrary corrigé pour correspondre exactement à la structure de la table dans Supabase
+// Notez que slug est maintenant défini comme string | null pour correspondre à ce que Supabase retourne
 export type DbLibrary = {
   id: number
   name: string
@@ -20,10 +21,4 @@ export type DbLibrary = {
   version: string | null
   technology_type: string | null
   subtype: string | null
-  website_url: string | null
-  is_popular: boolean | null
-  category: string | null
-  stars: number | null
-  last_release: string | null
-  license: string | null
 }

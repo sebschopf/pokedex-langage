@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
-import { generateLanguageSlug } from "../utils/slug/slug-generator"
+import { generateLanguageSlug } from "../utils/slugs/slug-generator"
 
 // Charger les variables d'environnement
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""

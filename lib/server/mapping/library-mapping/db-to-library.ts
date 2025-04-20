@@ -10,7 +10,7 @@ export function dbToLibrary(dbLibrary: DbLibrary): Library {
   return {
     id: dbLibrary.id,
     name: dbLibrary.name,
-    slug: dbLibrary.slug,
+    slug: dbLibrary.slug, // Déjà correct car slug est string | null dans les deux types
     languageId: dbLibrary.language_id,
     description: dbLibrary.description,
     officialWebsite: dbLibrary.official_website,
@@ -28,11 +28,5 @@ export function dbToLibrary(dbLibrary: DbLibrary): Library {
     version: dbLibrary.version,
     technologyType: dbLibrary.technology_type,
     subtype: dbLibrary.subtype,
-    websiteUrl: dbLibrary.website_url,
-    isPopular: dbLibrary.is_popular,
-    category: dbLibrary.category,
-    stars: dbLibrary.stars,
-    lastRelease: dbLibrary.last_release,
-    license: dbLibrary.license,
   }
 }
