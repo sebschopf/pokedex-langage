@@ -4,6 +4,9 @@ import { isValidSlug } from "@/utils/slugs"
 import type { Library } from "@/types/models/library"
 import { generateSlug } from "@/utils/slugs"
 
+// Forcer le rendu dynamique de cette route
+export const dynamic = "force-dynamic"
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -101,6 +104,7 @@ export async function POST(request: Request) {
       version: body.version ?? null,
       technologyType: body.technologyType ?? null,
       subtype: body.subtype ?? null,
+      // Ajouter les propriétés manquantes
       license: body.license ?? null,
       websiteUrl: body.websiteUrl ?? null,
     }

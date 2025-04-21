@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
-import { getFrameworksByLanguageId } from "@/lib/server/api/frameworks" // Correction de l'importation
+import { getFrameworksByLanguageId } from "@/lib/server/api/frameworks"
 import { getLanguageById } from "@/lib/server/api/languages"
+
+// Forcer le rendu dynamique de cette route
+export const dynamic = "force-dynamic"
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
