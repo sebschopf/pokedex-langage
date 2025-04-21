@@ -5,22 +5,21 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/utils"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ChevronDown } from "lucide-react"
+import type { UserRoleTypeDB } from "@/lib/client/permissions"
 
-// Définir le type UserRoleType
-type UserRoleType = "admin" | "validator" | "verified" | "registered"
-
+// Utiliser UserRoleTypeDB pour ce composant car il ne gère que les rôles stockés en base de données
 interface UserRoleBadgeProps {
-  role: UserRoleType
+  role: UserRoleTypeDB
   className?: string
   editable?: boolean
-  onRoleChange?: (newRole: UserRoleType) => void
+  onRoleChange?: (newRole: UserRoleTypeDB) => void
 }
 
 export function UserRoleBadge({ role: initialRole, className, editable = false, onRoleChange }: UserRoleBadgeProps) {
-  const [role, setRole] = useState<UserRoleType>(initialRole)
+  const [role, setRole] = useState<UserRoleTypeDB>(initialRole)
 
   // Définir les classes Tailwind pour chaque rôle
-  const roleClasses: Record<UserRoleType, string> = {
+  const roleClasses: Record<UserRoleTypeDB, string> = {
     admin: "bg-destructive text-destructive-foreground hover:bg-destructive/80",
     validator: "bg-amber-500 text-white hover:bg-amber-600",
     verified: "bg-green-500 text-white hover:bg-green-600",
@@ -30,7 +29,7 @@ export function UserRoleBadge({ role: initialRole, className, editable = false, 
   // Déterminer la variante de base à utiliser
   const baseVariant = role === "admin" ? "destructive" : "secondary"
 
-  const handleRoleChange = (newRole: UserRoleType) => {
+  const handleRoleChange = (newRole: UserRoleTypeDB) => {
     setRole(newRole)
     if (onRoleChange) {
       onRoleChange(newRole)
@@ -66,7 +65,7 @@ export function UserRoleBadge({ role: initialRole, className, editable = false, 
         {Object.keys(roleClasses).map((roleKey) => (
           <DropdownMenuItem
             key={roleKey}
-            onClick={() => handleRoleChange(roleKey as UserRoleType)}
+            onClick={() => handleRoleChange(roleKey as UserRoleTypeDB)}
             className={cn("font-bold", role === roleKey && "bg-gray-100")}
           >
             {roleKey}
