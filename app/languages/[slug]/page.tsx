@@ -5,13 +5,14 @@ import { LanguageDetail } from "@/components/language-detail"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 
-interface LanguagePageProps {
-  params: {
-    slug: string
-  }
+// Utiliser le type correct pour les props de page Next.js
+type Props = {
+  params: { slug: string }
+  searchParams: { [key: string]: string | string[] | undefined }
 }
 
-export async function generateMetadata({ params }: LanguagePageProps): Promise<Metadata> {
+// Fonction pour générer les métadonnées
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const language = await getLanguageBySlug(params.slug)
 
   if (!language) {
@@ -26,7 +27,8 @@ export async function generateMetadata({ params }: LanguagePageProps): Promise<M
   }
 }
 
-export default async function LanguagePage({ params }: LanguagePageProps) {
+// Composant de page principal
+export default async function LanguagePage({ params }: Props) {
   const language = await getLanguageBySlug(params.slug)
 
   if (!language) {

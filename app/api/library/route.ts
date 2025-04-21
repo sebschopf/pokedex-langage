@@ -101,6 +101,8 @@ export async function POST(request: Request) {
       version: body.version ?? null,
       technologyType: body.technologyType ?? null,
       subtype: body.subtype ?? null,
+      license: body.license ?? null,
+      websiteUrl: body.websiteUrl ?? null,
     }
 
     // Créer la bibliothèque
