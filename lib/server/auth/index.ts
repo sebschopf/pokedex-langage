@@ -1,5 +1,7 @@
 import { createServerClient } from "@/lib/supabase/server"
-import type { UserRoleType, UserRoleTypeDB } from "@/lib/client/permissions"
+import { checkUserRole } from "@/utils/security/role-checks"
+import { dbRoleToAppRole } from "@/utils/security/role-conversion"
+import type { UserRoleType, UserRoleTypeDB } from "@/utils/security/role-types"
 
 /**
  * Vérifie si l'utilisateur actuel a un rôle spécifique ou supérieur
@@ -30,17 +32,35 @@ export async function hasRole(requiredRole: UserRoleType): Promise<boolean> {
     return false
   }
 
-  // Définir la hiérarchie des rôles
-  const roleHierarchy: Record<UserRoleType, number> = {
-    admin: 4,
-    validator: 3,
-    verified: 2,
-    registered: 1,
-    anonymous: 0,
+  // Utiliser la fonction centralisée pour vérifier le rôle
+  return checkUserRole(userRole.role as UserRoleTypeDB, requiredRole)
+}
+
+/**
+ * Récupère le rôle de l'utilisateur actuel
+ * @returns Le rôle de l'utilisateur ou "anonymous" si non connecté
+ */
+export async function getCurrentUserRole(): Promise<UserRoleType> {
+  const supabase = createServerClient()
+
+  // Récupérer la session
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  if (!session) {
+    return "anonymous"
   }
 
-  // Vérifier si le rôle de l'utilisateur est supérieur ou égal au rôle requis
-  return roleHierarchy[userRole.role as UserRoleTypeDB] >= roleHierarchy[requiredRole]
+  // Récupérer le rôle de l'utilisateur
+  const { data: userRole } = await supabase.from("user_roles").select("role").eq("id", session.user.id).single()
+
+  if (!userRole) {
+    return "anonymous"
+  }
+
+  // Convertir le rôle de la base de données en rôle d'application
+  return dbRoleToAppRole(userRole.role as UserRoleTypeDB)
 }
 
 export * from "./authorize"

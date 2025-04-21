@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 import { createServerClient } from "@/lib/supabase/server"
 import { getUserRole } from "@/lib/server/api/users"
-import type { UserRoleType } from "@/types/models/user-role"
+import type { UserRoleType } from "@/lib/client/permissions"
 
 /**
  * Vérifie si l'utilisateur est authentifié dans un Server Component
@@ -79,4 +79,13 @@ export async function requireAdminSC(redirectTo = "/unauthorized"): Promise<stri
  */
 export async function requireValidatorSC(redirectTo = "/unauthorized"): Promise<string> {
   return requireRoleSC("validator", redirectTo)
+}
+
+/**
+ * Vérifie si l'utilisateur est vérifié dans un Server Component
+ * @param redirectTo URL de redirection si non autorisé (par défaut: /unauthorized)
+ * @returns ID de l'utilisateur si vérifié, validateur ou administrateur
+ */
+export async function requireVerifiedSC(redirectTo = "/unauthorized"): Promise<string> {
+  return requireRoleSC("verified", redirectTo)
 }

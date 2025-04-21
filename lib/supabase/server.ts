@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
-import type { Database } from "@/types/database-types"
+import type { Database } from "@/types"
 import { cache } from "react"
 
 // Singleton pour le client côté serveur
