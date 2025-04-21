@@ -26,6 +26,8 @@ describe("Library mapping", () => {
     documentation_url: "https://docs.test-library.com",
     version: "1.0.0",
     subtype: "frontend",
+    license: "MIT",
+    website_url: "https://exemple.com",
   }
 
   // Données de test pour Library
@@ -50,6 +52,8 @@ describe("Library mapping", () => {
     documentationUrl: "https://docs.another-library.com",
     version: "2.0.0",
     subtype: "mobile",
+    license: "MIT",
+    websiteUrl: "https://example.com",
   }
 
   test("dbToLibrary converts DbLibrary to Library correctly", () => {

@@ -1,4 +1,6 @@
-// Type Library corrigé pour correspondre au type DbLibrary
+/**
+ * Type représentant une bibliothèque ou un framework dans l'application
+ */
 export type Library = {
   id: number
   name: string
@@ -20,4 +22,6 @@ export type Library = {
   version: string | null
   technologyType: string | null
   subtype: string | null
+  license: string | null
+  websiteUrl: string | null
 }

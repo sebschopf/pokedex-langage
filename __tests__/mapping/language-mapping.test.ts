@@ -26,7 +26,9 @@ describe("Language mapping", () => {
     current_version: "ES2022",
     last_updated: "2022-06-01",
     license: "MIT",
-    difficulty: 3
+    difficulty: 3,
+    strengths: null,
+    tools: null
   }
 
   // Données de test pour Language
@@ -51,7 +53,9 @@ describe("Language mapping", () => {
     currentVersion: "3.11",
     lastUpdated: "2022-10-24",
     license: "PSF",
-    difficulty: 2
+    difficulty: 2,
+    strengths: null,
+    tools: null
   }
 
   test("dbToLanguage converts DbLanguage to Language correctly", () => {
@@ -73,13 +77,14 @@ describe("Language mapping", () => {
     expect(result.creator).toBe(mockDbLanguage.creator)
     expect(result.logoPath).toBe(mockDbLanguage.logo_path)
     expect(result.popularFrameworks).toEqual(mockDbLanguage.popular_frameworks)
-    // Propriétés supplémentaires
     expect(result.githubUrl).toBe(mockDbLanguage.github_url)
     expect(result.websiteUrl).toBe(mockDbLanguage.website_url)
     expect(result.currentVersion).toBe(mockDbLanguage.current_version)
     expect(result.lastUpdated).toBe(mockDbLanguage.last_updated)
     expect(result.license).toBe(mockDbLanguage.license)
     expect(result.difficulty).toBe(mockDbLanguage.difficulty)
+    expect(result.strengths).toBe(mockDbLanguage.strengths)
+    expect(result.tools).toBe(mockDbLanguage.tools)
   })
 
   test("languageToDb converts Language to DbLanguage correctly", () => {
@@ -101,13 +106,14 @@ describe("Language mapping", () => {
     expect(result.creator).toBe(mockLanguage.creator)
     expect(result.logo_path).toBe(mockLanguage.logoPath)
     expect(result.popular_frameworks).toEqual(mockLanguage.popularFrameworks)
-    // Propriétés supplémentaires
     expect(result.github_url).toBe(mockLanguage.githubUrl)
     expect(result.website_url).toBe(mockLanguage.websiteUrl)
     expect(result.current_version).toBe(mockLanguage.currentVersion)
     expect(result.last_updated).toBe(mockLanguage.lastUpdated)
     expect(result.license).toBe(mockLanguage.license)
     expect(result.difficulty).toBe(mockLanguage.difficulty)
+    expect(result.strengths).toBe(mockLanguage.strengths)
+    expect(result.tools).toBe(mockLanguage.tools)
   })
 
   test("Round-trip conversion from DB to model and back preserves all data", () => {
@@ -148,7 +154,9 @@ describe("Language mapping", () => {
       current_version: null,
       last_updated: null,
       license: null,
-      difficulty: null
+      difficulty: null,
+      strengths: null,
+      tools: null
     }
 
     const result = dbToLanguage(dbLanguageWithNulls)
@@ -175,5 +183,7 @@ describe("Language mapping", () => {
     expect(result.lastUpdated).toBeNull()
     expect(result.license).toBeNull()
     expect(result.difficulty).toBeNull()
+    expect(result.strengths).toBeNull()
+    expect(result.tools).toBeNull()
   })
 })

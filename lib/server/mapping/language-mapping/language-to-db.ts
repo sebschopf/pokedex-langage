@@ -25,14 +25,14 @@ export function languageToDb(language: Partial<Language>): Partial<DbLanguage> {
   if (language.popularFrameworks !== undefined) dbLanguage.popular_frameworks = language.popularFrameworks
   if (language.createdAt !== undefined) dbLanguage.created_at = language.createdAt
   if (language.updatedAt !== undefined) dbLanguage.updated_at = language.updatedAt
-
-  // Mapper les propriétés supplémentaires
   if (language.githubUrl !== undefined) dbLanguage.github_url = language.githubUrl
   if (language.websiteUrl !== undefined) dbLanguage.website_url = language.websiteUrl
   if (language.currentVersion !== undefined) dbLanguage.current_version = language.currentVersion
   if (language.lastUpdated !== undefined) dbLanguage.last_updated = language.lastUpdated
   if (language.license !== undefined) dbLanguage.license = language.license
   if (language.difficulty !== undefined) dbLanguage.difficulty = language.difficulty
+  if (language.strengths !== undefined) dbLanguage.strengths = language.strengths
+  if (language.tools !== undefined) dbLanguage.tools = language.tools
 
   return dbLanguage
 }

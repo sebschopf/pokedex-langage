@@ -1,21 +1,21 @@
 import type { UserRoleTypeDB } from "@/lib/client/permissions"
 
 export interface AuthUser {
-  id: number
+  id: string // UUID dans Supabase
   email: string
   createdAt: string
   lastSignInAt: string | null
 }
 
 export interface UserRoleData {
-  id: number
+  id: string // UUID dans Supabase
   role: UserRoleTypeDB
   createdAt: string
   updatedAt: string | null
 }
 
 export interface UserProfile {
-  id: number
+  id: string // UUID dans Supabase
   avatarUrl: string | null
   fullName: string | null
   username: string | null
@@ -26,7 +26,7 @@ export interface UserProfile {
 }
 
 export interface UserWithDetails {
-  id: number
+  id: string // UUID dans Supabase
   auth: AuthUser
   role: UserRoleData
   profile: UserProfile

@@ -1,4 +1,8 @@
-// Mise à jour du type DbLanguage pour correspondre au type Language
+import type { Json } from "@/types/supabase"
+
+/**
+ * Type représentant un langage de programmation dans la base de données
+ */
 export type DbLanguage = {
   id: number
   name: string
@@ -21,4 +25,6 @@ export type DbLanguage = {
   last_updated?: string | null
   license?: string | null
   difficulty?: number | null
+  strengths?: string[] | null
+  tools?: Json | null
 }
