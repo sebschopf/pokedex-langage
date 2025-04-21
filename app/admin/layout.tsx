@@ -1,4 +1,4 @@
-import { RoleProtected } from "@/components/auth/role-protected"
+import RoleProtected from "@/components/auth/role-protected"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import type { ReactNode } from "react"
 

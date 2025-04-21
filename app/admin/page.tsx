@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { requireAdminSC } from "@/lib/server/auth/authorize"
 import { getUserWithDetails } from "@/lib/server/api/users"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"

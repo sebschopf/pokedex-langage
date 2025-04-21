@@ -23,8 +23,8 @@ interface TodoStatus {
 // Types pour le formulaire
 interface TodoFormProps {
   todo?: Todo
-  categories?: TodoCategory[] // Ajout de la propriété categories
-  statuses?: TodoStatus[] // Ajout de la propriété statuses
+  categories?: TodoCategory[]
+  statuses?: TodoStatus[] 
   onSubmit?: (data: Todo) => void
 }
 
@@ -44,7 +44,7 @@ export default function TodoForm({ todo, categories = [], statuses = [], onSubmi
     todo || {
       title: "",
       description: "",
-      status_id: statuses.length > 0 ? statuses[0].id : null, // Valeur par défaut
+      status_id: statuses.length > 0 ? statuses[0].id : null,
       category_id: null,
       due_date: null,
     },

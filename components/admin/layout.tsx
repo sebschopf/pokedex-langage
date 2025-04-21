@@ -1,6 +1,8 @@
-import { RoleProtected } from "@/components/auth/role-protected"
-import { AdminSidebar } from "@/components/admin/admin-sidebar"
+"use client"
+
 import type { ReactNode } from "react"
+import { AdminSidebar } from "./admin-sidebar"
+import RoleProtected from "@/components/auth/role-protected"
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (

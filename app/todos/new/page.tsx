@@ -1,19 +1,19 @@
-"use client"
+
 
 // app/todos/new/page.tsx
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createServerClient } from "@/lib/supabase/server"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
-import TodoForm from "@/components/todo-form" // Correction: import par défaut au lieu d'import nommé
+import TodoForm from "@/components/todo-form"
 import { dbToTodoCategory, dbToTodoStatus } from "@/lib/server/mapping"
-import { createTodo } from "@/app/actions/todo-actions" // Correction: importer la fonction correcte
+import { createTodo } from "@/app/actions/todo-actions" 
 
 export const dynamic = "force-dynamic"
 
 export default async function NewTodoPage() {
   // Vérifier si l'utilisateur est connecté
   const cookieStore = cookies()
-  const supabase = createServerComponentClient({ cookies: () => cookieStore })
+  const supabase = createServerClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()

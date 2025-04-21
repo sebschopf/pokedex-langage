@@ -1,7 +1,7 @@
 import { createServerClient } from "@/lib/supabase/server"
 import { dbToLanguage } from "@/lib/server/mapping"
 import { LanguageTable } from "@/components/admin/language-table"
-import { RoleProtected } from "@/components/auth/role-protected"
+import RoleProtected from "@/components/auth/role-protected"
 import { AdminHeader } from "@/components/admin/admin-header"
 import type { DbLanguage } from "@/types/database/language"
 

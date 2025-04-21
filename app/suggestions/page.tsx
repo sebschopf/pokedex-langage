@@ -1,4 +1,5 @@
-"use client"
+
+export const dynamic = "force-dynamic"
 
 import { getLanguages } from "@/lib/server/api/languages"
 import { getUserRole } from "@/lib/server/api/users"
@@ -23,7 +24,6 @@ export default async function SuggestionsPage() {
   const userRole = await getUserRole(session.user.id)
 
   // Vérifier si l'utilisateur a un rôle valide
-  // Utiliser une approche plus typesafe pour la vérification
   const validRoles: UserRoleType[] = ["admin", "validator", "verified", "registered"]
   if (!userRole || !validRoles.includes(userRole as UserRoleType)) {
     redirect("/")

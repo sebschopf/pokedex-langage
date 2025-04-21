@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { getLanguages } from "@/lib/server/api/languages"
 import SearchBar from "@/components/search-bar"
 import FilterBar from "@/components/filter-bar"
