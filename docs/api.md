@@ -1,479 +1,742 @@
-
-##  Updated api.md
-
-# Documentation de l'API
+# Documentation de l'API - Pokedex des Langages de Programmation
 
 ## Introduction
 
-L'API du projet Pokedex Langage de Programmation est construite sur Next.js API Routes, offrant une interface RESTful pour interagir avec la base de données Supabase. Cette documentation détaille les différents endpoints, leur fonctionnement, et les bonnes pratiques pour les utiliser.
-
-## Architecture de l'API
-
-L'API est organisée selon les principes suivants :
-
-1. **Routes API Next.js** : Endpoints serverless dans `/app/api/`
+L'API du projet Pokedex des Langages de Programmation est construite sur deux mécanismes principaux :
+1. **API Routes Next.js** : Endpoints RESTful dans `/app/api/`
 2. **Server Actions** : Fonctions côté serveur dans `/app/actions/`
-3. **Fonctions d'accès aux données** : Logique métier dans `/lib/server/api/`
-4. **Fonctions de mapping** : Conversion des données dans `/lib/server/mapping/`
-5. **Client Supabase** : Interaction avec la base de données via `/lib/server/supabase/`
 
-## Structure des Endpoints
+Cette documentation détaille les différents endpoints, leurs paramètres, les réponses attendues et des exemples d'utilisation.
+
+## Table des matières
+
+1. [Structure générale](#structure-générale)
+2. [API Routes](#api-routes)
+   - [Langages](#langages)
+   - [Bibliothèques](#bibliothèques)
+   - [Outils](#outils)
+   - [Frameworks](#frameworks)
+   - [Corrections](#corrections)
+   - [Revalidation](#revalidation)
+3. [Server Actions](#server-actions)
+   - [Actions pour les langages](#actions-pour-les-langages)
+   - [Actions pour les bibliothèques](#actions-pour-les-bibliothèques)
+   - [Actions pour les frameworks](#actions-pour-les-frameworks)
+   - [Actions pour les corrections](#actions-pour-les-corrections)
+   - [Actions pour les tâches](#actions-pour-les-tâches)
+4. [Gestion des erreurs](#gestion-des-erreurs)
+5. [Authentification et autorisation](#authentification-et-autorisation)
+6. [Bonnes pratiques](#bonnes-pratiques)
+
+## Structure générale
+
+### Organisation des API Routes
 
 \`\`\`
 /api
-  /languages            # Gestion des langages de programmation
-    /[id]               # Opérations sur un langage spécifique
-      /frameworks       # Frameworks associés à un langage
-    /slug/[slug]        # Récupération d'un langage par son slug
-  /library              # Gestion des bibliothèques et frameworks
-    /[id]               # Opérations sur une bibliothèque spécifique
-  /proposals            # Propositions de nouveaux langages
-    /[id]               # Opérations sur une proposition spécifique
-  /corrections          # Corrections pour les langages existants
-    /[id]               # Opérations sur une correction spécifique
-  /revalidate           # Revalidation du cache Next.js
-  /storage              # Gestion des fichiers stockés
-    /[bucket]/[...path] # Accès aux fichiers dans un bucket
+/languages            # Gestion des langages de programmation
+  /[id]               # Opérations sur un langage spécifique
+    /frameworks       # Frameworks associés à un langage
+  /slug/[slug]        # Récupération d'un langage par son slug
+/libraries            # Gestion des bibliothèques
+  /[id]               # Opérations sur une bibliothèque spécifique
+/tools                # Gestion des outils d'analyse
+  /[id]/languages     # Gestion des langages associés à un outil
+/proposals            # Propositions de nouveaux langages
+  /[id]               # Opérations sur une proposition spécifique
+/corrections          # Corrections pour les langages existants
+  /[id]               # Opérations sur une correction spécifique
+/revalidate           # Revalidation du cache Next.js
 \`\`\`
 
-## Server Actions
-
-En plus des routes API, l'application utilise des Server Actions pour les opérations côté serveur :
+### Organisation des Server Actions
 
 \`\`\`
 /app/actions
-  /language-actions.ts  # Actions pour les langages
-  /framework-actions.ts # Actions pour les frameworks
+/language-actions.ts  # Actions pour les langages
+/library-actions.ts   # Actions pour les bibliothèques
+/framework-actions.ts # Actions pour les frameworks
+/correction-actions.ts # Actions pour les corrections
+/todo-actions.ts      # Actions pour les tâches
 \`\`\`
 
-## Endpoints Principaux
+## API Routes
 
 ### Langages
 
 #### GET /api/languages
 
-Récupère la liste des langages de programmation.
+Récupère la liste des langages de programmation avec pagination et filtres.
 
-**Paramètres de requête :**
-- `page` (optionnel) : Numéro de page pour la pagination
-- `pageSize` (optionnel) : Nombre d'éléments par page
+**Paramètres de requête**
+- `page` (optionnel) : Numéro de page (défaut: 1)
+- `pageSize` (optionnel) : Nombre d'éléments par page (défaut: 10)
 - `search` (optionnel) : Terme de recherche
-- `category` (optionnel) : Filtrer par catégorie
-- `subtype` (optionnel) : Filtrer par sous-type
+- `type` (optionnel) : Filtrer par type de langage
+- `openSource` (optionnel) : Filtrer par statut open source (true/false)
+- `usageMin` (optionnel) : Taux d'utilisation minimum
+- `sort` (optionnel) : Tri des résultats (name, usage, year)
 
-**Réponse :**
-```json
+**Réponse**
+\`\`\`json
 {
   "data": [
     {
       "id": 1,
       "name": "JavaScript",
-      "shortDescription": "...",
-      "logoPath": "...",
       "slug": "javascript",
-      "type": "Frontend",
-      "usageRate": 85
-    }
+      "shortDescription": "Langage de programmation de scripts",
+      "type": "Dynamically typed",
+      "usageRate": 95,
+      "isOpenSource": true,
+      // autres propriétés
+    },
+    // autres langages
   ],
   "totalCount": 100,
   "page": 1,
-  "pageSize": 10
+  "pageSize": 10,
+  "totalPages": 10
 }
-```
+\`\`\`
+
+**Exemple de requête**
+\`\`\`javascript
+// Récupérer les langages open source avec un taux d'utilisation > 50
+fetch('/api/languages?openSource=true&usageMin=50&sort=usage')
+  .then(response => response.json())
+  .then(data => console.log(data));
+\`\`\`
 
 #### GET /api/languages/[id]
 
-Récupère les détails d'un langage spécifique.
+Récupère les détails d'un langage spécifique par son ID.
 
-**Paramètres de chemin :**
-
+**Paramètres de chemin**
 - `id` : ID du langage
 
-
-**Réponse :**
-
-```json
+**Réponse**
+\`\`\`json
 {
   "id": 1,
   "name": "JavaScript",
-  "description": "...",
-  "shortDescription": "...",
-  "logoPath": "...",
   "slug": "javascript",
-  "type": "Frontend",
-  "usageRate": 85,
-  "yearCreated": 1995,
-  "creator": "Brendan Eich",
-  "popularFrameworks": ["React", "Vue", "Angular"],
-  "strengths": ["Versatile", "Ubiquitous", "Easy to learn"],
+  "shortDescription": "Langage de programmation de scripts",
+  "type": "Dynamically typed",
+  "usageRate": 95,
   "isOpenSource": true,
-  "createdAt": "2023-01-01T00:00:00Z",
-  "updatedAt": "2023-01-01T00:00:00Z",
-  "githubUrl": "https://github.com/tc39/ecma262",
-  "websiteUrl": "https://developer.mozilla.org/en-US/docs/Web/JavaScript"
+  // autres propriétés
 }
-```
+\`\`\`
 
 #### GET /api/languages/slug/[slug]
 
-Récupère les détails d'un langage par son slug.
+Récupère les détails d'un langage spécifique par son slug.
 
-**Paramètres de chemin :**
-
+**Paramètres de chemin**
 - `slug` : Slug du langage
 
-
-**Réponse :**
+**Réponse**
 Identique à GET /api/languages/[id]
 
-#### GET /api/languages/[id]/frameworks
+#### POST /api/languages
 
-Récupère les frameworks associés à un langage.
+Crée un nouveau langage.
 
-**Paramètres de chemin :**
+**Corps de la requête**
+\`\`\`json
+{
+  "name": "Rust",
+  "slug": "rust",
+  "shortDescription": "Langage système performant et sûr",
+  "type": "Statically typed",
+  "usageRate": 78,
+  "isOpenSource": true,
+  // autres propriétés
+}
+\`\`\`
 
+**Réponse**
+\`\`\`json
+{
+  "id": 10,
+  "name": "Rust",
+  "slug": "rust",
+  "shortDescription": "Langage système performant et sûr",
+  "type": "Statically typed",
+  "usageRate": 78,
+  "isOpenSource": true,
+  // autres propriétés
+}
+\`\`\`
+
+**Autorisation requise** : Rôle "verified" ou supérieur
+
+#### PUT /api/languages/[id]
+
+Met à jour un langage existant.
+
+**Paramètres de chemin**
 - `id` : ID du langage
 
+**Corps de la requête**
+\`\`\`json
+{
+  "name": "Rust",
+  "shortDescription": "Langage système performant, sûr et concurrent",
+  // propriétés à mettre à jour
+}
+\`\`\`
 
-**Réponse :**
+**Réponse**
+\`\`\`json
+{
+  "id": 10,
+  "name": "Rust",
+  "slug": "rust",
+  "shortDescription": "Langage système performant, sûr et concurrent",
+  // autres propriétés
+}
+\`\`\`
 
-```json
-[
-  {
-    "id": 1,
-    "name": "React",
-    "description": "...",
-    "logoPath": "...",
-    "languageId": 1,
-    "technologyType": "framework",
-    "websiteUrl": "https://reactjs.org",
-    "githubUrl": "https://github.com/facebook/react"
-  }
-]
-```
+**Autorisation requise** : Rôle "validator" ou supérieur
+
+#### DELETE /api/languages/[id]
+
+Supprime un langage.
+
+**Paramètres de chemin**
+- `id` : ID du langage
+
+**Réponse**
+\`\`\`json
+{
+  "success": true,
+  "message": "Langage supprimé avec succès"
+}
+\`\`\`
+
+**Autorisation requise** : Rôle "admin"
 
 ### Bibliothèques
 
-#### GET /api/library
+#### GET /api/libraries
 
-Récupère la liste des bibliothèques et frameworks.
+Récupère la liste des bibliothèques avec pagination et filtres.
 
-**Paramètres de requête :**
-
-- `page` (optionnel) : Numéro de page pour la pagination
-- `pageSize` (optionnel) : Nombre d'éléments par page
+**Paramètres de requête**
+- `page` (optionnel) : Numéro de page (défaut: 1)
+- `pageSize` (optionnel) : Nombre d'éléments par page (défaut: 20)
 - `search` (optionnel) : Terme de recherche
-- `languageId` (optionnel) : Filtrer par langage
+- `languageId` (optionnel) : Filtrer par ID de langage
 - `technologyType` (optionnel) : Filtrer par type de technologie
+- `sort` (optionnel) : Tri des résultats
 
-
-**Réponse :**
-
-```json
+**Réponse**
+\`\`\`json
 {
   "data": [
     {
       "id": 1,
       "name": "React",
-      "description": "...",
+      "slug": "react",
       "languageId": 1,
-      "technologyType": "framework"
-    }
+      "description": "Bibliothèque JavaScript pour construire des interfaces utilisateur",
+      "isOpenSource": true,
+      // autres propriétés
+    },
+    // autres bibliothèques
   ],
   "totalCount": 50,
   "page": 1,
-  "pageSize": 10
+  "pageSize": 20,
+  "totalPages": 3
 }
-```
+\`\`\`
 
-#### GET /api/library/[id]
+#### POST /api/libraries
 
-Récupère les détails d'une bibliothèque spécifique.
+Crée une nouvelle bibliothèque.
 
-**Paramètres de chemin :**
-
-- `id` : ID de la bibliothèque
-
-
-**Réponse :**
-
-```json
+**Corps de la requête**
+\`\`\`json
 {
-  "id": 1,
-  "name": "React",
-  "description": "A JavaScript library for building user interfaces",
+  "name": "Vue.js",
+  "slug": "vue-js",
   "languageId": 1,
-  "technologyType": "framework",
-  "websiteUrl": "https://reactjs.org",
-  "githubUrl": "https://github.com/facebook/react",
-  "logoPath": "...",
-  "isPopular": true,
-  "createdAt": "2023-01-01T00:00:00Z",
-  "updatedAt": "2023-01-01T00:00:00Z",
-  "documentationUrl": "https://reactjs.org/docs/getting-started.html",
-  "bestFor": "Building interactive UIs",
-  "category": "UI",
-  "stars": 200000,
-  "lastRelease": "18.2.0",
-  "license": "MIT"
+  "description": "Framework JavaScript progressif pour construire des interfaces utilisateur",
+  "isOpenSource": true,
+  // autres propriétés
 }
-```
+\`\`\`
+
+**Réponse**
+\`\`\`json
+{
+  "id": 5,
+  "name": "Vue.js",
+  "slug": "vue-js",
+  "languageId": 1,
+  "description": "Framework JavaScript progressif pour construire des interfaces utilisateur",
+  "isOpenSource": true,
+  // autres propriétés
+}
+\`\`\`
+
+**Autorisation requise** : Rôle "verified" ou supérieur
+
+### Outils
+
+#### GET /api/tools/[id]/languages
+
+Récupère les langages associés à un outil spécifique.
+
+**Paramètres de chemin**
+- `id` : ID de l'outil
+
+**Réponse**
+\`\`\`json
+[
+  {
+    "language_id": 1,
+    "primary_language": true,
+    "languages": {
+      "id": 1,
+      "name": "JavaScript",
+      "slug": "javascript",
+      "logo_path": "/images/javascript.png"
+    }
+  },
+  // autres langages associés
+]
+\`\`\`
+
+#### POST /api/tools/[id]/languages
+
+Ajoute ou met à jour une association entre un outil et un langage.
+
+**Paramètres de chemin**
+- `id` : ID de l'outil
+
+**Corps de la requête**
+\`\`\`json
+{
+  "languageId": 2,
+  "isPrimary": true
+}
+\`\`\`
+
+**Réponse**
+\`\`\`json
+{
+  "message": "Association mise à jour avec succès"
+}
+\`\`\`
+
+**Autorisation requise** : Rôle "validator" ou supérieur
+
+#### DELETE /api/tools/[id]/languages
+
+Supprime une association entre un outil et un langage.
+
+**Paramètres de chemin**
+- `id` : ID de l'outil
+
+**Paramètres de requête**
+- `languageId` : ID du langage à dissocier
+
+**Réponse**
+\`\`\`json
+{
+  "message": "Association supprimée avec succès"
+}
+\`\`\`
+
+**Autorisation requise** : Rôle "validator" ou supérieur
+
+### Frameworks
+
+#### GET /api/frameworks
+
+Récupère la liste des frameworks associés à un langage.
+
+**Paramètres de requête**
+- `languageId` : ID du langage
+
+**Réponse**
+\`\`\`json
+[
+  {
+    "id": 1,
+    "name": "React",
+    "slug": "react",
+    "description": "Bibliothèque JavaScript pour construire des interfaces utilisateur",
+    // autres propriétés
+  },
+  // autres frameworks
+]
+\`\`\`
 
 ### Corrections
 
-#### POST /api/corrections
-
-Soumet une correction pour un langage existant.
-
-**Corps de la requête :**
-
-```json
-{
-  "languageId": 1,
-  "field": "description",
-  "correctionText": "La description actuelle contient une erreur...",
-  "suggestion": "Voici la description corrigée..."
-}
-```
-
-**Réponse :**
-
-```json
-{
-  "id": 456,
-  "status": "pending",
-  "message": "Correction soumise avec succès"
-}
-```
-
 #### GET /api/corrections
 
-Récupère la liste des corrections (admin uniquement).
+Récupère la liste des corrections proposées.
 
-**Réponse :**
+**Paramètres de requête**
+- `status` (optionnel) : Filtrer par statut (pending, approved, rejected)
+- `languageId` (optionnel) : Filtrer par ID de langage
+- `userId` (optionnel) : Filtrer par ID d'utilisateur
 
-```json
+**Réponse**
+\`\`\`json
+[
+  {
+    "id": 1,
+    "languageId": 1,
+    "field": "shortDescription",
+    "suggestion": "Langage de programmation de scripts côté client et serveur",
+    "type": "language",
+    "status": "pending",
+    "createdAt": "2023-01-01T00:00:00Z",
+    // autres propriétés
+  },
+  // autres corrections
+]
+\`\`\`
+
+**Autorisation requise** : Rôle "registered" pour voir ses propres corrections, "validator" pour voir toutes les corrections
+
+#### POST /api/corrections
+
+Soumet une nouvelle correction.
+
+**Corps de la requête**
+\`\`\`json
 {
-  "data": [
-    {
-      "id": 456,
-      "languageId": 1,
-      "field": "description",
-      "correctionText": "...",
-      "suggestion": "...",
-      "status": "pending",
-      "createdAt": "2023-01-01T00:00:00Z",
-      "userId": "user-123"
-    }
-  ],
-  "totalCount": 20,
-  "page": 1,
-  "pageSize": 10
+  "languageId": 1,
+  "field": "shortDescription",
+  "suggestion": "Langage de programmation de scripts côté client et serveur",
+  "type": "language"
 }
-```
+\`\`\`
+
+**Réponse**
+\`\`\`json
+{
+  "id": 1,
+  "languageId": 1,
+  "field": "shortDescription",
+  "suggestion": "Langage de programmation de scripts côté client et serveur",
+  "type": "language",
+  "status": "pending",
+  "createdAt": "2023-01-01T00:00:00Z",
+  // autres propriétés
+}
+\`\`\`
+
+**Autorisation requise** : Rôle "registered" ou supérieur
+
+### Revalidation
+
+#### POST /api/revalidate
+
+Revalide le cache Next.js pour les chemins spécifiés.
+
+**Corps de la requête**
+\`\`\`json
+{
+  "paths": ["/", "/languages/javascript"],
+  "secret": "REVALIDATE_SECRET"
+}
+\`\`\`
+
+**Réponse**
+\`\`\`json
+{
+  "revalidated": true,
+  "message": "Chemins revalidés avec succès"
+}
+\`\`\`
+
+**Autorisation requise** : Secret de revalidation valide
 
 ## Server Actions
 
-### Langages
+Les Server Actions sont des fonctions côté serveur qui peuvent être appelées directement depuis les composants React. Elles sont définies avec la directive `"use server"` et permettent de réaliser des mutations de données de manière sécurisée.
+
+### Actions pour les langages
 
 #### createLanguageAction
 
 Crée un nouveau langage.
 
-**Paramètres :**
+**Signature**
+\`\`\`typescript
+export async function createLanguageAction(formData: FormData): Promise<{
+  success: boolean;
+  message: string;
+  data?: Language;
+}>
+\`\`\`
 
-- `formData` : FormData contenant les données du langage
+**Paramètres**
+- `formData` : Données du formulaire contenant les informations du langage
 
+**Exemple d'utilisation**
+\`\`\`typescript
+// Dans un composant client
+"use client";
+import { createLanguageAction } from "@/app/actions/language-actions";
 
-**Exemple d'utilisation :**
-
-```typescriptreact
-<form action={createLanguageAction}>
-  <input name="name" />
-  <input name="type" />
-  <input name="shortDescription" />
-  {/* Autres champs */}
-  <button type="submit">Créer</button>
-</form>
-```
-
-**Réponse :**
-
-```json
-{
-  "success": true,
-  "message": "Langage créé avec succès",
-  "data": {
-    "id": 123,
-    "name": "Nouveau Langage",
-    "slug": "nouveau-langage",
-    "type": "Programming"
-  }
+export default function CreateLanguageForm() {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const result = await createLanguageAction(formData);
+    
+    if (result.success) {
+      // Traitement en cas de succès
+    } else {
+      // Traitement en cas d'erreur
+    }
+  };
+  
+  return (
+    <form onSubmit={handleSubmit}>
+      {/* Champs du formulaire */}
+    </form>
+  );
 }
-```
+\`\`\`
 
 #### updateLanguageAction
 
 Met à jour un langage existant.
 
-**Paramètres :**
+**Signature**
+\`\`\`typescript
+export async function updateLanguageAction(id: string, formData: FormData): Promise<{
+  success: boolean;
+  message: string;
+}>
+\`\`\`
 
-- `id` : ID du langage
-- `formData` : FormData contenant les données à mettre à jour
-
-
-**Exemple d'utilisation :**
-
-```typescriptreact
-<form action={async (formData) => {
-  await updateLanguageAction("123", formData);
-}}>
-  <input name="name" />
-  <input name="type" />
-  {/* Autres champs */}
-  <button type="submit">Mettre à jour</button>
-</form>
-```
-
-**Réponse :**
-
-```json
-{
-  "success": true,
-  "message": "Langage mis à jour avec succès"
-}
-```
+**Paramètres**
+- `id` : ID du langage à mettre à jour
+- `formData` : Données du formulaire contenant les informations à mettre à jour
 
 #### deleteLanguageAction
 
 Supprime un langage.
 
-**Paramètres :**
+**Signature**
+\`\`\`typescript
+export async function deleteLanguageAction(id: string, logoUrl?: string): Promise<{
+  success: boolean;
+  message: string;
+}>
+\`\`\`
 
-- `id` : ID du langage
-- `logoUrl` (optionnel) : URL du logo à supprimer
+**Paramètres**
+- `id` : ID du langage à supprimer
+- `logoUrl` (optionnel) : URL du logo à supprimer du stockage
 
+### Actions pour les bibliothèques
 
-**Exemple d'utilisation :**
+#### createLibraryAction
 
-```typescriptreact
-<form action={async () => {
-  await deleteLanguageAction("123", "https://example.com/logo.png");
-}}>
-  <button type="submit">Supprimer</button>
-</form>
-```
+Crée une nouvelle bibliothèque.
 
-**Réponse :**
+**Signature**
+\`\`\`typescript
+export async function createLibraryAction(formData: FormData): Promise<{
+  success: boolean;
+  message: string;
+  data?: Library;
+}>
+\`\`\`
 
-```json
-{
-  "success": true,
-  "message": "Langage supprimé avec succès"
-}
-```
+**Paramètres**
+- `formData` : Données du formulaire contenant les informations de la bibliothèque
 
-### Frameworks
+#### updateLibraryAction
+
+Met à jour une bibliothèque existante.
+
+**Signature**
+\`\`\`typescript
+export async function updateLibraryAction(id: string, formData: FormData): Promise<{
+  success: boolean;
+  message: string;
+}>
+\`\`\`
+
+**Paramètres**
+- `id` : ID de la bibliothèque à mettre à jour
+- `formData` : Données du formulaire contenant les informations à mettre à jour
+
+#### deleteLibraryAction
+
+Supprime une bibliothèque.
+
+**Signature**
+\`\`\`typescript
+export async function deleteLibraryAction(id: string, logoUrl?: string): Promise<{
+  success: boolean;
+  message: string;
+}>
+\`\`\`
+
+**Paramètres**
+- `id` : ID de la bibliothèque à supprimer
+- `logoUrl` (optionnel) : URL du logo à supprimer du stockage
+
+### Actions pour les frameworks
 
 #### createFrameworkAction
 
 Crée un nouveau framework.
 
-**Paramètres :**
+**Signature**
+\`\`\`typescript
+export async function createFrameworkAction(formData: FormData): Promise<{
+  success: boolean;
+  message: string;
+  data?: Library;
+}>
+\`\`\`
 
-- `formData` : FormData contenant les données du framework
+**Paramètres**
+- `formData` : Données du formulaire contenant les informations du framework
 
+#### updateFrameworkAction
 
-**Exemple d'utilisation :**
+Met à jour un framework existant.
 
-```typescriptreact
-<form action={createFrameworkAction}>
-  <input name="name" />
-  <input name="languageId" />
-  <input name="description" />
-  {/* Autres champs */}
-  <button type="submit">Créer</button>
-</form>
-```
+**Signature**
+\`\`\`typescript
+export async function updateFrameworkAction(id: number, formData: FormData): Promise<{
+  success: boolean;
+  message: string;
+}>
+\`\`\`
 
-**Réponse :**
+**Paramètres**
+- `id` : ID du framework à mettre à jour
+- `formData` : Données du formulaire contenant les informations à mettre à jour
 
-```json
-{
-  "success": true,
-  "message": "Framework créé avec succès",
-  "data": {
-    "id": 456,
-    "name": "Nouveau Framework",
-    "languageId": 123
-  }
+#### deleteFrameworkAction
+
+Supprime un framework.
+
+**Signature**
+\`\`\`typescript
+export async function deleteFrameworkAction(id: number, languageSlug: string): Promise<{
+  success: boolean;
+  message: string;
+}>
+\`\`\`
+
+**Paramètres**
+- `id` : ID du framework à supprimer
+- `languageSlug` : Slug du langage associé (pour la revalidation)
+
+### Actions pour les corrections
+
+#### submitCorrection
+
+Soumet une nouvelle correction.
+
+**Signature**
+\`\`\`typescript
+export async function submitCorrection(params: CorrectionParams): Promise<{
+  success: boolean;
+}>
+\`\`\`
+
+**Paramètres**
+\`\`\`typescript
+type CorrectionParams = {
+  languageId: number;
+  field: string;
+  suggestion: string;
+  type: "language" | "framework";
+  frameworkName?: string;
 }
-```
+\`\`\`
 
-## Implémentation Côté Serveur
+### Actions pour les tâches
 
-Les endpoints API s'appuient sur des fonctions d'accès aux données dans `/lib/server/api/`. Voici quelques exemples :
+#### createTodo
 
-### Exemple : Récupération des langages
+Crée une nouvelle tâche.
 
-```typescript
-// lib/server/api/languages.ts
-import { createServerSupabaseClient } from '@/lib/server/supabase/client';
-import { dbToLanguage } from '@/lib/server/mapping/language-mapping';
-import type { DbLanguage } from '@/types/database/language';
-import type { Language } from '@/types/models/language';
+**Signature**
+\`\`\`typescript
+export async function createTodo(todo: Todo): Promise<{
+  success: boolean;
+  message: string;
+  data?: Todo;
+}>
+\`\`\`
 
-export async function getLanguages(options = {}) {
-  const { page = 1, pageSize = 10, search, category, subtype } = options;
+**Paramètres**
+- `todo` : Données de la tâche à créer
 
-  const supabase = createServerClient();
+#### updateTodo
 
-  // Calculer l'offset pour la pagination
-  const offset = (page - 1) * pageSize;
+Met à jour une tâche existante.
 
-  // Construire la requête de base
-  let query = supabase.from("languages").select("*", { count: "exact" });
+**Signature**
+\`\`\`typescript
+export async function updateTodo(id: number, todo: Partial<Todo>): Promise<{
+  success: boolean;
+  message: string;
+  data?: Todo;
+}>
+\`\`\`
 
-  // Appliquer les filtres si nécessaire
-  if (search) {
-    query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
-  }
+**Paramètres**
+- `id` : ID de la tâche à mettre à jour
+- `todo` : Données partielles de la tâche à mettre à jour
 
-  if (category) {
-    query = query.eq("type", category);
-  }
+#### deleteTodo
 
-  if (subtype) {
-    query = query.contains("subtypes", [subtype]);
-  }
+Supprime une tâche.
 
-  // Exécuter la requête avec pagination
-  const { data, error, count } = await query
-    .range(offset, offset + pageSize - 1)
-    .order("name");
+**Signature**
+\`\`\`typescript
+export async function deleteTodo(id: number): Promise<{
+  success: boolean;
+  message: string;
+}>
+\`\`\`
 
-  if (error) {
-    console.error("Erreur lors de la récupération des langages:", error);
-    throw error;
-  }
+**Paramètres**
+- `id` : ID de la tâche à supprimer
 
-  // Convertir les données avec la fonction de mapping
-  const mappedData = data ? data.map((item) => dbToLanguage(item as DbLanguage)) : [];
+#### completeTodo
 
-  return {
-    data: mappedData,
-    totalCount: count || 0,
-    page,
-    pageSize,
-  };
-}
-```
+Marque une tâche comme terminée.
 
-## Gestion des Erreurs
+**Signature**
+\`\`\`typescript
+export async function completeTodo(id: number): Promise<{
+  success: boolean;
+  message: string;
+  data?: Todo;
+}>
+\`\`\`
+
+**Paramètres**
+- `id` : ID de la tâche à marquer comme terminée
+
+## Gestion des erreurs
 
 L'API utilise un système standardisé de gestion des erreurs :
 
-```typescript
+\`\`\`typescript
 // lib/server/api/error-handling.ts
 export class ApiError extends Error {
   statusCode: number;
@@ -500,19 +763,27 @@ export function handleApiError(error: unknown) {
     { status: 500, headers: { 'Content-Type': 'application/json' } }
   );
 }
-```
+\`\`\`
 
-## Authentification et Autorisation
+### Codes d'erreur courants
 
-L'API utilise Supabase Auth pour l'authentification et l'autorisation :
+- `400 Bad Request` : Requête invalide (paramètres manquants, format incorrect)
+- `401 Unauthorized` : Authentification requise
+- `403 Forbidden` : Authentifié mais non autorisé
+- `404 Not Found` : Ressource non trouvée
+- `409 Conflict` : Conflit (ex: slug déjà utilisé)
+- `500 Internal Server Error` : Erreur serveur
 
-```typescript
+## Authentification et autorisation
+
+L'API utilise Supabase Auth pour l'authentification et un système de rôles personnalisé pour l'autorisation.
+
+### Vérification d'authentification
+
+\`\`\`typescript
 // lib/server/auth/session.ts
-import { createServerSupabaseClient } from '@/lib/server/supabase/client';
-import { ApiError } from '@/lib/server/api/error-handling';
-
 export async function requireAuth() {
-  const supabase = createServerClient();
+  const supabase = createServerSupabaseClient();
   const { data: { session } } = await supabase.auth.getSession();
   
   if (!session) {
@@ -521,10 +792,15 @@ export async function requireAuth() {
   
   return session;
 }
+\`\`\`
 
+### Vérification de rôle
+
+\`\`\`typescript
+// lib/server/auth/session.ts
 export async function requireAdmin() {
   const session = await requireAuth();
-  const supabase = createServerClient();
+  const supabase = createServerSupabaseClient();
   
   const { data, error } = await supabase
     .from('user_roles')
@@ -538,71 +814,79 @@ export async function requireAdmin() {
   
   return session;
 }
-```
+\`\`\`
 
-## Client API
+## Bonnes pratiques
 
-Pour faciliter l'interaction avec l'API côté client, nous utilisons des fonctions dans `/lib/client/api.ts` :
+### 1. Gestion des erreurs
 
-```typescript
-// lib/client/api.ts
-import { withTokenRefresh } from './auth-helpers';
-import type { Language } from '@/types/models/language';
+Toujours gérer les erreurs dans les hooks et les composants :
 
-export async function fetchLanguages() {
-  return withTokenRefresh(async () => {
-    const response = await fetch('/api/languages');
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(error.message || 'Erreur lors de la récupération des langages');
-    }
-    return await response.json();
-  });
+\`\`\`typescript
+const { data, isLoading, error } = useLanguages()
+
+if (error) {
+  return <ErrorComponent message={error.message} />
 }
+\`\`\`
 
-export async function fetchLanguageById(id: string) {
-  return withTokenRefresh(async () => {
-    const response = await fetch(`/api/languages/${id}`);
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(error.message || 'Erreur lors de la récupération du langage');
-    }
-    return await response.json();
-  });
+### 2. États de chargement
+
+Toujours afficher un état de chargement pour améliorer l'expérience utilisateur :
+
+\`\`\`typescript
+const { isPending } = createLanguage
+
+<Button disabled={isPending}>
+  {isPending ? "Chargement..." : "Soumettre"}
+</Button>
+\`\`\`
+
+### 3. Invalidation du cache
+
+Après une mutation, invalider les requêtes concernées :
+
+\`\`\`typescript
+onSuccess: () => {
+  queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.languages] })
 }
+\`\`\`
 
-export async function createLanguageClient(languageData: Partial<Language>) {
-  return withTokenRefresh(async () => {
-    const response = await fetch('/api/languages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(languageData),
-    });
+### 4. Optimistic Updates
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(error.message || 'Erreur lors de la création du langage');
-    }
+Pour une meilleure UX, utiliser les mises à jour optimistes :
 
-    return await response.json();
-  });
+\`\`\`typescript
+onMutate: async (newTodo) => {
+  // Annuler les requêtes en cours
+  await queryClient.cancelQueries({ queryKey: ['todos'] })
+  
+  // Sauvegarder l'état précédent
+  const previousTodos = queryClient.getQueryData(['todos'])
+  
+  // Mettre à jour le cache de manière optimiste
+  queryClient.setQueryData(['todos'], old => [...old, newTodo])
+  
+  // Retourner le contexte avec l'état précédent
+  return { previousTodos }
+},
+onError: (err, newTodo, context) => {
+  // En cas d'erreur, restaurer l'état précédent
+  queryClient.setQueryData(['todos'], context.previousTodos)
 }
-```
+\`\`\`
 
-## Bonnes Pratiques
+### 5. Préchargement des données
 
-1. **Utiliser les fonctions d'accès aux données** : Ne pas appeler Supabase directement depuis les routes API.
-2. **Valider les entrées** : Toujours valider les données entrantes avant de les traiter.
-3. **Gérer les erreurs** : Utiliser try/catch et renvoyer des réponses d'erreur appropriées.
-4. **Mettre en cache** : Utiliser `cache()` pour les opérations de lecture fréquentes.
-5. **Limiter les requêtes** : Implémenter la pagination pour les listes volumineuses.
-6. **Sécuriser les endpoints** : Utiliser `requireAuth()` et `requireAdmin()` pour protéger les endpoints sensibles.
-7. **Journaliser les actions** : Enregistrer les actions importantes pour le débogage et l'audit.
-8. **Utiliser les Server Actions** : Pour les opérations de mutation, privilégier les Server Actions qui offrent une meilleure expérience utilisateur.
+Pour améliorer les performances, précharger les données qui seront probablement nécessaires :
 
+\`\`\`typescript
+// Précharger les détails d'un langage au survol
+const queryClient = useQueryClient()
 
-## Conclusion
-
-Cette API fournit une interface complète pour interagir avec la base de données du projet. Elle est conçue pour être sécurisée, performante et facile à utiliser. Pour toute question ou problème, consultez les fichiers source ou contactez l'équipe de développement.
+function handleMouseEnter(id: string) {
+  queryClient.prefetchQuery({
+    queryKey: [QUERY_KEYS.languageDetail(id)],
+    queryFn: () => fetchLanguageById(id),
+  })
+}
