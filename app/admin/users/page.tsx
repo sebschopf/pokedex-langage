@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button"
 import { createServerClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { AdminLayout } from "@/components/admin/layout"
+import AdminLayout from "@/components/admin/layout" // Import par défaut
 import { UserManagement } from "@/components/admin/user-management"
 import type { UserWithDetails } from "@/types/dto/user-management"
-import type { UserRoleType } from "@/types/database/user-role"
+import type { UserRoleTypeDB } from "@/lib/client/permissions"
 
 export const metadata = {
   title: "Gestion des utilisateurs | POKEDEX_DEV",
@@ -68,38 +68,40 @@ export default async function AdminUsersPage() {
       return {
         id: roleData.id,
         auth: {
-          email: authUser?.email || "email@inconnu.com", // Valeur par défaut si undefined
-          created_at: authUser?.created_at || roleData.created_at, // Utiliser la date de création du rôle si celle de l'auth est manquante
-          last_sign_in_at: authUser?.last_sign_in_at || null,
+          id: roleData.id,
+          email: authUser?.email || "email@inconnu.com",
+          // Utiliser une valeur par défaut pour s'assurer que createdAt n'est jamais null
+          createdAt: authUser?.created_at || roleData.created_at || new Date().toISOString(),
+          lastSignInAt: authUser?.last_sign_in_at || null,
         },
         profile: {
           id: profile.id,
           username: profile.username,
-          full_name: profile.full_name,
+          fullName: profile.full_name,
           bio: profile.bio,
           website: profile.website,
-          avatar_url: profile.avatar_url,
-          created_at: profile.created_at,
-          updated_at: profile.updated_at,
+          avatarUrl: profile.avatar_url,
+          createdAt: profile.created_at,
+          updatedAt: profile.updated_at,
         },
         role: {
           id: roleData.id,
-          role: roleData.role as UserRoleType,
-          created_at: roleData.created_at,
-          updated_at: roleData.updated_at,
+          role: roleData.role as UserRoleTypeDB,
+          createdAt: roleData.created_at || new Date().toISOString(), // Valeur par défaut
+          updatedAt: roleData.updated_at,
         },
       }
     })
 
     return (
-      <AdminLayout userRole="admin">
+      <AdminLayout>
         <UserManagement users={usersWithDetails} />
       </AdminLayout>
     )
   } catch (error) {
     console.error("Erreur lors de la récupération des données:", error)
     return (
-      <AdminLayout userRole="admin">
+      <AdminLayout>
         <div className="container mx-auto py-12">
           <h1 className="text-3xl font-bold mb-4">Erreur</h1>
           <p className="text-red-500">

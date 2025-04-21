@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
-import { createClientSupabaseClient } from "@/lib/client/supabase"
+import { createBrowserClient } from "@/lib/client/supabase"
 import { withTokenRefresh } from "@/lib/client/auth-helpers"
 import AvatarUpload from "@/components/avatar-upload"
 import { UserRoleBadge } from "@/components/user-role-badge"
 import type { UserWithDetails } from "@/types/dto/user-management"
 import type { UserRoleTypeDB } from "@/lib/client/permissions"
+import { toStringId } from "@/utils/conversion"
 
 interface UserManagementProps {
   users: UserWithDetails[]
@@ -56,10 +57,10 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
           description: `Le rôle de l'utilisateur a été mis à jour.`,
         })
 
-        // Mettre à jour l'état local
+        // Mettre à jour l'état local - Utilisation de toStringId pour la conversion
         setUsers(
           users.map((user) =>
-            user.id === userId
+            toStringId(user.id) === userId
               ? {
                   ...user,
                   role: {
@@ -72,8 +73,8 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
           ),
         )
 
-        // Mettre à jour l'utilisateur sélectionné si nécessaire
-        if (selectedUser && selectedUser.id === userId) {
+        // Mettre à jour l'utilisateur sélectionné si nécessaire - Utilisation de toStringId
+        if (selectedUser && toStringId(selectedUser.id) === userId) {
           setSelectedUser({
             ...selectedUser,
             role: {
@@ -164,13 +165,20 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
                       filteredUsers.map((user) => (
                         <tr
                           key={user.id}
-                          className={`border-b hover:bg-gray-50 cursor-pointer ${selectedUser?.id === user.id ? "bg-gray-50" : ""}`}
+                          className={`border-b hover:bg-gray-50 cursor-pointer ${
+                            selectedUser?.id === user.id ? "bg-gray-50" : ""
+                          }`}
                           onClick={() => setSelectedUser(user)}
                         >
                           <td className="py-3 px-4">
                             <div className="flex items-center">
                               <div className="flex-shrink-0 mr-3">
-                                <AvatarUpload userId={user.id} avatarUrl={user.profile.avatarUrl || null} size="sm" />
+                                {/* Utilisation de toStringId pour la conversion */}
+                                <AvatarUpload
+                                  userId={toStringId(user.id)}
+                                  avatarUrl={user.profile.avatarUrl || null}
+                                  size="sm"
+                                />
                               </div>
                               <div>
                                 {(user.profile.fullName || user.profile.username) && (
@@ -187,8 +195,8 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
                           <td className="py-3 px-4 text-right">
                             <Select
                               value={user.role.role}
-                              onValueChange={(value) => updateUserRole(user.id, value as UserRoleTypeDB)}
-                              disabled={isUpdating[user.id]}
+                              onValueChange={(value) => updateUserRole(toStringId(user.id), value as UserRoleTypeDB)}
+                              disabled={isUpdating[toStringId(user.id)]}
                             >
                               <SelectTrigger className="w-32">
                                 <SelectValue placeholder="Changer le rôle" />
@@ -226,7 +234,12 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex justify-center">
-                  <AvatarUpload userId={selectedUser.id} avatarUrl={selectedUser.profile.avatarUrl || null} size="lg" />
+                  {/* Utilisation de toStringId pour la conversion */}
+                  <AvatarUpload
+                    userId={toStringId(selectedUser.id)}
+                    avatarUrl={selectedUser.profile.avatarUrl || null}
+                    size="lg"
+                  />
                 </div>
 
                 <div className="space-y-4">
@@ -286,7 +299,7 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">Rôle</h3>
                     <Select
                       defaultValue={selectedUser.role.role}
-                      onValueChange={(value) => updateUserRole(selectedUser.id, value as UserRoleTypeDB)}
+                      onValueChange={(value) => updateUserRole(toStringId(selectedUser.id), value as UserRoleTypeDB)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionner un rôle" />

@@ -10,6 +10,24 @@ export type UserRoleTypeDB = "admin" | "validator" | "verified" | "registered"
 export type UserRoleType = UserRoleTypeDB | "anonymous"
 
 /**
+ * Vérifie si un rôle est valide pour la base de données
+ * @param role Rôle à vérifier
+ * @returns true si le rôle est valide pour la base de données
+ */
+export function isValidDBRole(role: string): role is UserRoleTypeDB {
+  return ["admin", "validator", "verified", "registered"].includes(role)
+}
+
+/**
+ * Vérifie si un rôle est valide pour l'application
+ * @param role Rôle à vérifier
+ * @returns true si le rôle est valide pour l'application
+ */
+export function isValidRole(role: string): role is UserRoleType {
+  return ["admin", "validator", "verified", "registered", "anonymous"].includes(role)
+}
+
+/**
  * Récupère le rôle de l'utilisateur connecté
  * @returns Promise<UserRoleType> Le rôle de l'utilisateur (anonymous si non connecté)
  */
@@ -39,7 +57,7 @@ export async function getUserRole(): Promise<UserRoleType> {
         const { data: roleData, error: roleError } = await supabase
           .from("user_roles")
           .select("role")
-          .eq("user_id", session.user.id)
+          .eq("id", session.user.id)
           .single()
 
         if (roleError) {
@@ -120,4 +138,139 @@ export function getRoleColor(role: UserRoleType): string {
   }
 
   return roleColors[role] || "bg-gray-100 text-gray-800 border-gray-300"
+}
+
+/**
+ * Vérifie si un utilisateur a la permission d'effectuer une action spécifique
+ * @param action Action à vérifier
+ * @param userRole Rôle de l'utilisateur
+ * @returns true si l'utilisateur a la permission, false sinon
+ */
+export function hasPermission(action: string, userRole: UserRoleType): boolean {
+  // Définir les permissions par rôle
+  const permissions: Record<UserRoleType, string[]> = {
+    admin: [
+      // Permissions administrateur
+      "manage_users",
+      "manage_roles",
+      "manage_content",
+      "validate_content",
+      "create_content",
+      "edit_content",
+      "delete_content",
+      "view_admin_dashboard",
+      "view_analytics",
+    ],
+    validator: [
+      // Permissions validateur
+      "validate_content",
+      "create_content",
+      "edit_content",
+      "view_analytics",
+    ],
+    verified: [
+      // Permissions utilisateur vérifié
+      "create_content",
+      "edit_own_content",
+    ],
+    registered: [
+      // Permissions utilisateur enregistré
+      "create_proposals",
+      "edit_profile",
+    ],
+    anonymous: [
+      // Permissions visiteur
+      "view_content",
+    ],
+  }
+
+  // Vérifier si l'action est dans les permissions du rôle
+  if (permissions[userRole].includes(action)) {
+    return true
+  }
+
+  // Vérifier si l'utilisateur a un rôle supérieur qui inclut cette action
+  const roleHierarchy: Record<UserRoleType, number> = {
+    admin: 4,
+    validator: 3,
+    verified: 2,
+    registered: 1,
+    anonymous: 0,
+  }
+
+  // Parcourir les rôles supérieurs pour vérifier si l'action est autorisée
+  for (const [role, level] of Object.entries(roleHierarchy) as [UserRoleType, number][]) {
+    if (level > roleHierarchy[userRole] && permissions[role as UserRoleType].includes(action)) {
+      return false // L'action est réservée à un rôle supérieur
+    }
+  }
+
+  return false
+}
+
+/**
+ * Obtenir toutes les permissions disponibles pour un rôle
+ * @param role Rôle utilisateur
+ * @returns Liste des permissions disponibles pour ce rôle
+ */
+export function getPermissionsForRole(role: UserRoleType): string[] {
+  const allPermissions: Record<UserRoleType, string[]> = {
+    admin: [
+      "manage_users",
+      "manage_roles",
+      "manage_content",
+      "validate_content",
+      "create_content",
+      "edit_content",
+      "delete_content",
+      "view_admin_dashboard",
+      "view_analytics",
+    ],
+    validator: ["validate_content", "create_content", "edit_content", "view_analytics"],
+    verified: ["create_content", "edit_own_content"],
+    registered: ["create_proposals", "edit_profile"],
+    anonymous: ["view_content"],
+  }
+
+  // Récupérer les permissions pour le rôle spécifié
+  const permissions = [...allPermissions[role]]
+
+  // Ajouter les permissions des rôles inférieurs (héritage)
+  const roleHierarchy: UserRoleType[] = ["anonymous", "registered", "verified", "validator", "admin"]
+  const roleIndex = roleHierarchy.indexOf(role)
+
+  for (let i = 0; i < roleIndex; i++) {
+    const lowerRole = roleHierarchy[i]
+    permissions.push(...allPermissions[lowerRole])
+  }
+
+  // Éliminer les doublons
+  return [...new Set(permissions)]
+}
+
+/**
+ * Vérifie si un utilisateur peut modifier un contenu
+ * @param contentOwnerId ID du propriétaire du contenu
+ * @param currentUserId ID de l'utilisateur actuel
+ * @param userRole Rôle de l'utilisateur actuel
+ * @returns true si l'utilisateur peut modifier le contenu, false sinon
+ */
+export function canEditContent(contentOwnerId: string, currentUserId: string, userRole: UserRoleType): boolean {
+  // Les administrateurs peuvent tout modifier
+  if (userRole === "admin") {
+    return true
+  }
+
+  // Les validateurs peuvent modifier tout le contenu
+  if (userRole === "validator") {
+    return true
+  }
+
+  // Les utilisateurs vérifiés peuvent modifier leur propre contenu
+  if (userRole === "verified" && contentOwnerId === currentUserId) {
+    return true
+  }
+
+  // Tous les autres cas ne sont pas autorisés
+  return false
 }
