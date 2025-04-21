@@ -7,9 +7,24 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useSupabaseMutation } from "@/hooks/use-supabase-mutation"
 
+// Types pour les catégories et statuts
+interface TodoCategory {
+  id: number
+  name: string
+  // Autres propriétés si nécessaire
+}
+
+interface TodoStatus {
+  id: number
+  name: string
+  // Autres propriétés si nécessaire
+}
+
 // Types pour le formulaire
 interface TodoFormProps {
   todo?: Todo
+  categories?: TodoCategory[] // Ajout de la propriété categories
+  statuses?: TodoStatus[] // Ajout de la propriété statuses
   onSubmit?: (data: Todo) => void
 }
 
@@ -23,13 +38,13 @@ interface Todo {
   due_date?: string | null
 }
 
-export default function TodoForm({ todo, onSubmit }: TodoFormProps) {
+export default function TodoForm({ todo, categories = [], statuses = [], onSubmit }: TodoFormProps) {
   const router = useRouter()
   const [formData, setFormData] = useState<Todo>(
     todo || {
       title: "",
       description: "",
-      status_id: null,
+      status_id: statuses.length > 0 ? statuses[0].id : null, // Valeur par défaut
       category_id: null,
       due_date: null,
     },
@@ -119,6 +134,52 @@ export default function TodoForm({ todo, onSubmit }: TodoFormProps) {
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
         />
       </div>
+
+      {/* Ajout du champ de sélection pour la catégorie */}
+      {categories.length > 0 && (
+        <div>
+          <label htmlFor="category_id" className="block text-sm font-medium">
+            Catégorie
+          </label>
+          <select
+            id="category_id"
+            name="category_id"
+            value={formData.category_id || ""}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          >
+            <option value="">Sélectionner une catégorie</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Ajout du champ de sélection pour le statut */}
+      {statuses.length > 0 && (
+        <div>
+          <label htmlFor="status_id" className="block text-sm font-medium">
+            Statut
+          </label>
+          <select
+            id="status_id"
+            name="status_id"
+            value={formData.status_id || ""}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          >
+            <option value="">Sélectionner un statut</option>
+            {statuses.map((status) => (
+              <option key={status.id} value={status.id}>
+                {status.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div>
         <label htmlFor="due_date" className="block text-sm font-medium">
