@@ -164,3 +164,17 @@ export function isValidId(id: string | number | null | undefined): boolean {
 
   return id.trim() !== ""
 }
+
+/**
+ * Convertit un ID en chaîne de caractères
+ * Cette fonction est utile pour garantir la cohérence des types lors des comparaisons d'IDs
+ * @param id - ID à convertir (peut être un nombre ou une chaîne)
+ * @returns L'ID sous forme de chaîne
+ * @throws {Error} Si l'ID est null ou undefined
+ */
+export function toStringId(id: string | number): string {
+  if (id === null || id === undefined) {
+    throw new Error("L'ID ne peut pas être null ou undefined")
+  }
+  return id.toString()
+}

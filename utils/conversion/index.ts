@@ -12,6 +12,8 @@ export {
   toBooleanOrNull,
   toArray,
   toArrayOrNull,
+  isValidId,
+  toStringId,
 } from "./type-conversion"
 
 // Réexporter les fonctions de gestion de null et undefined
