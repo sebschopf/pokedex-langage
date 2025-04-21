@@ -10,9 +10,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { toast } from "@/hooks"
-import { generateSlug } from "@/utils/slugs" // Chemin d'import corrigé
-import { isValidSlug } from "@/utils/slugs" // Chemin d'import corrigé
+import { customToast } from "@/components/custom-toast" // Importez customToast au lieu de toast
+import { generateSlug } from "@/utils/slugs"
+import { isValidSlug } from "@/utils/slugs"
 
 export default function CreateLibraryPage() {
   const router = useRouter()
@@ -40,31 +40,31 @@ export default function CreateLibraryPage() {
 
     // Validation
     if (!name) {
-      toast({
+      customToast({
         title: "Erreur",
         description: "Le nom est obligatoire",
-        variant: "destructive",
+        type: "error", // Utiliser type: "error" au lieu de variant: "destructive"
       })
       setIsLoading(false)
       return
     }
 
     if (!slug) {
-      toast({
+      customToast({
         title: "Erreur",
         description: "Le slug est obligatoire",
-        variant: "destructive",
+        type: "error",
       })
       setIsLoading(false)
       return
     }
 
     if (!isValidSlug(slug)) {
-      toast({
+      customToast({
         title: "Erreur",
         description:
           "Le slug n'est pas valide. Utilisez uniquement des lettres minuscules, des chiffres et des tirets.",
-        variant: "destructive",
+        type: "error",
       })
       setIsLoading(false)
       return
@@ -91,20 +91,20 @@ export default function CreateLibraryPage() {
 
       const data = await response.json()
 
-      toast({
+      customToast({
         title: "Succès",
         description: "La bibliothèque a été créée avec succès",
-        variant: "success",
+        type: "success", // Utilisez type: "success" au lieu de variant: "success"
       })
 
       // Rediriger vers la page de détail de la bibliothèque
       router.push(`/admin/libraries/${data.id}`)
     } catch (error) {
       console.error("Erreur lors de la création de la bibliothèque:", error)
-      toast({
+      customToast({
         title: "Erreur",
         description: error instanceof Error ? error.message : "Une erreur est survenue",
-        variant: "destructive",
+        type: "error",
       })
     } finally {
       setIsLoading(false)

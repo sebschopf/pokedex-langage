@@ -2,7 +2,7 @@ import { createServerClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import StorageManager from "@/components/storage-manager"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AdminLayout } from "@/components/admin/layout"
+import  AdminLayout from "@/components/admin/layout"
 
 export const metadata = {
   title: "Gestion des médias | POKEDEX_DEV",
@@ -29,7 +29,7 @@ export default async function AdminStoragePage() {
   }
 
   return (
-    <AdminLayout userRole={userRole.role}>
+    <AdminLayout>
       <div className="container mx-auto py-6">
         <h1 className="text-3xl font-bold mb-8">Gestion des médias</h1>
 

@@ -1,13 +1,14 @@
-import { createServerClient } from "@/lib/supabase"
+import { createServerClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { UserRoleBadge } from "@/components/user-role-badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { hasRole } from "@/lib/supabase/"
+import { hasRole } from "@/lib/server/auth"
 import { UpdateUserRoleForm } from "@/components/admin/update-user-role-form"
-import { formatDate } from "@/utils" // Utilisation de votre fonction formatDate existante
-import type { UserRoleType } from "@/types/database/user-role" // Importation du type UserRoleType
+import { formatDate } from "@/utils/date" 
+import { isValidDbRole, dbRoleToAppRole } from "@/utils/security"
+import type { UserRoleType, UserRoleTypeDB } from "@/lib/client/permissions"
 
 // Définition des types pour les données Supabase
 interface AuthUser {
@@ -24,7 +25,7 @@ interface Profile {
 
 interface UserData {
   id: string
-  role: UserRoleType // Changé de string à UserRoleType
+  role: UserRoleTypeDB
   auth_users: AuthUser[]
   profiles: Profile[]
 }
@@ -69,14 +70,8 @@ export default async function EditUserPage({ params }: { params: { id: string } 
     redirect("/admin/users")
   }
 
-  // Conversion du type any vers notre type défini
-  // Vérifier que le rôle est valide
-  const isValidRole = (role: string): role is UserRoleType => {
-    return ["admin", "validator", "verified", "registered", "anonymous"].includes(role)
-  }
-
-  // Utiliser un rôle par défaut si le rôle n'est pas valide
-  const userRole: UserRoleType = isValidRole(data.role) ? data.role : "registered"
+  // Utiliser la fonction importée pour valider le rôle
+  const userRole: UserRoleTypeDB = isValidDbRole(data.role) ? data.role : "registered"
 
   // Créer l'objet user avec le rôle validé
   const user: UserData = {
@@ -112,6 +107,9 @@ export default async function EditUserPage({ params }: { params: { id: string } 
   const displayName = profile.username || authUser.email || "Utilisateur"
   const userInitial = (displayName[0] || "U").toUpperCase()
 
+  // Utiliser la fonction dbRoleToAppRole pour convertir le rôle
+  const appRole: UserRoleType = dbRoleToAppRole(user.role)
+
   return (
     <div className="container py-10">
       <div className="flex justify-between items-center mb-6">
@@ -131,7 +129,7 @@ export default async function EditUserPage({ params }: { params: { id: string } 
             <div className="flex justify-center">
               <Avatar className="h-24 w-24">
                 {avatarUrl ? (
-                  <AvatarImage src={avatarUrl} alt={displayName} />
+                  <AvatarImage src={avatarUrl || "/placeholder.svg"} alt={displayName} />
                 ) : (
                   <AvatarFallback className="text-2xl">{userInitial}</AvatarFallback>
                 )}
@@ -150,7 +148,7 @@ export default async function EditUserPage({ params }: { params: { id: string } 
               <div>
                 <p className="text-sm font-medium">Rôle actuel</p>
                 <div className="mt-1">
-                  <UserRoleBadge role={user.role} />
+                  <UserRoleBadge role={appRole} />
                 </div>
               </div>
               <div>
@@ -182,4 +180,3 @@ export default async function EditUserPage({ params }: { params: { id: string } 
     </div>
   )
 }
-
