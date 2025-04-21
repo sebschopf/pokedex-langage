@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { createClientSupabaseClient } from "@/lib/client/supabase"
+import { createBrowserClient } from "@/lib/client/supabase"
 import { withTokenRefresh } from "@/lib/client/auth-helpers"
 import { Trash2, Upload, RefreshCw, FolderOpen, Plus } from "lucide-react"
 import FileUpload from "../file-upload"
