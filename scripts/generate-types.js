@@ -64,18 +64,18 @@ const tables = [];
 while ((tableMatch = tableRegex.exec(tablesContent)) !== null) {
   const tableName = tableMatch[1];
   const rowContent = tableMatch[2];
-  
+
   // Extraire les propriétés de la table
   const properties = [];
   const propRegex = /(\w+): ([^,]+),?/g;
   let propMatch;
-  
+
   while ((propMatch = propRegex.exec(rowContent)) !== null) {
     const propName = propMatch[1];
     const propType = propMatch[2].trim();
     properties.push({ name: propName, type: propType });
   }
-  
+
   tables.push({ name: tableName, properties });
 }
 
@@ -87,11 +87,11 @@ const mappingExports = [];
 tables.forEach(table => {
   // Ignorer les tables système ou non pertinentes si nécessaire
   // if (table.name === 'system_table') return;
-  
+
   // 1. Générer le type de base de données (DbType)
   const dbTypeName = `Db${capitalize(toCamelCase(table.name.slice(0, -1)))}`;
   const dbFileName = toKebabCase(table.name.slice(0, -1)) + '.ts';
-  
+
   const dbTypeContent = `/**
  * Type représentant un(e) ${table.name.slice(0, -1)} tel que stocké(e) dans la base de données
  * Correspond exactement à la structure de la table '${table.name}' dans Supabase
@@ -100,14 +100,14 @@ export type ${dbTypeName} = {
 ${table.properties.map(prop => `  ${prop.name}: ${prop.type}`).join('\n')}
 }
 `;
-  
+
   fs.writeFileSync(path.join(databaseDir, dbFileName), dbTypeContent);
   dbExports.push(`export type { ${dbTypeName} } from "./${dbFileName.replace('.ts', '')}"`);
-  
+
   // 2. Générer le type de modèle (Model)
   const modelTypeName = capitalize(toCamelCase(table.name.slice(0, -1)));
   const modelFileName = dbFileName;
-  
+
   const modelTypeContent = `/**
  * Interface représentant un(e) ${table.name.slice(0, -1)} dans l'application
  * Version transformée et normalisée de ${dbTypeName}
@@ -116,13 +116,15 @@ export interface ${modelTypeName} {
 ${table.properties.map(prop => `  ${toCamelCase(prop.name)}: ${prop.type}`).join('\n')}
 }
 `;
-  
+
   fs.writeFileSync(path.join(modelsDir, modelFileName), modelTypeContent);
-  modelExports.push(`export type { ${modelTypeName} } from "./${modelFileName.replace('.ts', '')}"`);
-  
+  modelExports.push(
+    `export type { ${modelTypeName} } from "./${modelFileName.replace('.ts', '')}"`,
+  );
+
   // 3. Générer les fonctions de mapping
   const mappingFileName = `${toKebabCase(modelTypeName)}-mapping.ts`;
-  
+
   const mappingContent = `import type { ${dbTypeName} } from "@/types/database";
 import type { ${modelTypeName} } from "@/types/models";
 
@@ -150,7 +152,7 @@ ${table.properties.map(prop => `  if (${modelTypeName.toLowerCase()}.${toCamelCa
   return db${modelTypeName};
 }
 `;
-  
+
   fs.writeFileSync(path.join(mappingDir, mappingFileName), mappingContent);
   mappingExports.push(`export * from "./${mappingFileName.replace('.ts', '')}"`);
 });
