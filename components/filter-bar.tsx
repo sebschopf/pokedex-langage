@@ -1,74 +1,74 @@
-"use client"
+'use client';
 
-import { useRouter, useSearchParams } from "next/navigation"
-import { useState, useEffect } from "react"
-import { Filter } from "lucide-react"
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { Filter } from 'lucide-react';
 
 export default function FilterBar() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   // État local pour les filtres
-  const [type, setType] = useState(searchParams.get("type") || "all")
-  const [usageMin, setUsageMin] = useState(searchParams.get("usageMin") || "0")
-  const [sort, setSort] = useState(searchParams.get("sort") || "name")
-  const [openSource, setOpenSource] = useState(searchParams.get("openSource") || "")
+  const [type, setType] = useState(searchParams.get('type') || 'all');
+  const [usageMin, setUsageMin] = useState(searchParams.get('usageMin') || '0');
+  const [sort, setSort] = useState(searchParams.get('sort') || 'name');
+  const [openSource, setOpenSource] = useState(searchParams.get('openSource') || '');
 
   // Mettre à jour les filtres lorsque les paramètres d'URL changent
   useEffect(() => {
-    setType(searchParams.get("type") || "all")
-    setUsageMin(searchParams.get("usageMin") || "0")
-    setSort(searchParams.get("sort") || "name")
-    setOpenSource(searchParams.get("openSource") || "")
-  }, [searchParams])
+    setType(searchParams.get('type') || 'all');
+    setUsageMin(searchParams.get('usageMin') || '0');
+    setSort(searchParams.get('sort') || 'name');
+    setOpenSource(searchParams.get('openSource') || '');
+  }, [searchParams]);
 
   // Appliquer les filtres
   const applyFilters = () => {
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams(searchParams.toString());
 
     // Mettre à jour les paramètres
-    if (type && type !== "all") {
-      params.set("type", type)
+    if (type && type !== 'all') {
+      params.set('type', type);
     } else {
-      params.delete("type")
+      params.delete('type');
     }
 
-    if (usageMin && usageMin !== "0") {
-      params.set("usageMin", usageMin)
+    if (usageMin && usageMin !== '0') {
+      params.set('usageMin', usageMin);
     } else {
-      params.delete("usageMin")
+      params.delete('usageMin');
     }
 
-    if (sort && sort !== "name") {
-      params.set("sort", sort)
+    if (sort && sort !== 'name') {
+      params.set('sort', sort);
     } else {
-      params.delete("sort")
+      params.delete('sort');
     }
 
     if (openSource) {
-      params.set("openSource", openSource)
+      params.set('openSource', openSource);
     } else {
-      params.delete("openSource")
+      params.delete('openSource');
     }
 
     // Réinitialiser la pagination
-    params.delete("page")
+    params.delete('page');
 
-    router.push(`/?${params.toString()}`)
-  }
+    router.push(`/?${params.toString()}`);
+  };
 
   // Réinitialiser les filtres
   const resetFilters = () => {
-    const params = new URLSearchParams()
+    const params = new URLSearchParams();
 
     // Conserver uniquement la recherche
-    const query = searchParams.get("query")
+    const query = searchParams.get('query');
     if (query) {
-      params.set("query", query)
+      params.set('query', query);
     }
 
-    router.push(`/?${params.toString()}`)
-  }
+    router.push(`/?${params.toString()}`);
+  };
 
   return (
     <div className="bg-white border-4 border-black p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] dark:bg-gray-800 dark:border-gray-600">
@@ -86,7 +86,7 @@ export default function FilterBar() {
           <select
             id="type"
             value={type}
-            onChange={(e) => setType(e.target.value)}
+            onChange={e => setType(e.target.value)}
             className="w-full p-2 border-2 border-black bg-white dark:bg-gray-700 dark:border-gray-600"
           >
             <option value="all">Tous les types</option>
@@ -106,7 +106,7 @@ export default function FilterBar() {
           <select
             id="usageMin"
             value={usageMin}
-            onChange={(e) => setUsageMin(e.target.value)}
+            onChange={e => setUsageMin(e.target.value)}
             className="w-full p-2 border-2 border-black bg-white dark:bg-gray-700 dark:border-gray-600"
           >
             <option value="0">Tous</option>
@@ -125,7 +125,7 @@ export default function FilterBar() {
           <select
             id="sort"
             value={sort}
-            onChange={(e) => setSort(e.target.value)}
+            onChange={e => setSort(e.target.value)}
             className="w-full p-2 border-2 border-black bg-white dark:bg-gray-700 dark:border-gray-600"
           >
             <option value="name">Nom (A-Z)</option>
@@ -142,7 +142,7 @@ export default function FilterBar() {
           <select
             id="openSource"
             value={openSource}
-            onChange={(e) => setOpenSource(e.target.value)}
+            onChange={e => setOpenSource(e.target.value)}
             className="w-full p-2 border-2 border-black bg-white dark:bg-gray-700 dark:border-gray-600"
           >
             <option value="">Tous</option>
@@ -167,5 +167,5 @@ export default function FilterBar() {
         </button>
       </div>
     </div>
-  )
+  );
 }

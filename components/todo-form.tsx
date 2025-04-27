@@ -1,80 +1,85 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { useSupabaseMutation } from "@/hooks/use-supabase-mutation"
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { useSupabaseMutation } from '@/hooks/use-supabase-mutation';
 
 // Types pour les catégories et statuts
 interface TodoCategory {
-  id: number
-  name: string
+  id: number;
+  name: string;
   // Autres propriétés si nécessaire
 }
 
 interface TodoStatus {
-  id: number
-  name: string
+  id: number;
+  name: string;
   // Autres propriétés si nécessaire
 }
 
 // Types pour le formulaire
 interface TodoFormProps {
-  todo?: Todo
-  categories?: TodoCategory[]
-  statuses?: TodoStatus[] 
-  onSubmit?: (data: Todo) => void
+  todo?: Todo;
+  categories?: TodoCategory[];
+  statuses?: TodoStatus[];
+  onSubmit?: (data: Todo) => void;
 }
 
 interface Todo {
-  id?: number
-  title: string
-  description?: string | null
-  status_id?: number | null
-  category_id?: number | null
-  user_id?: string | null
-  due_date?: string | null
+  id?: number;
+  title: string;
+  description?: string | null;
+  status_id?: number | null;
+  category_id?: number | null;
+  user_id?: string | null;
+  due_date?: string | null;
 }
 
-export default function TodoForm({ todo, categories = [], statuses = [], onSubmit }: TodoFormProps) {
-  const router = useRouter()
+export default function TodoForm({
+  todo,
+  categories = [],
+  statuses = [],
+  onSubmit,
+}: TodoFormProps) {
+  const router = useRouter();
   const [formData, setFormData] = useState<Todo>(
     todo || {
-      title: "",
-      description: "",
+      title: '',
+      description: '',
       status_id: statuses.length > 0 ? statuses[0].id : null,
       category_id: null,
       due_date: null,
     },
-  )
+  );
 
-  const isEditing = !!todo?.id
+  const isEditing = !!todo?.id;
 
   // Utiliser useSupabaseMutation pour les opérations de base de données
   const { mutate: createTodo, isLoading: isCreating } = useSupabaseMutation({
-    table: "todos",
-    operation: "insert",
-    onSuccess: (data) => {
-      router.refresh()
-      if (onSubmit) onSubmit(data[0] as Todo)
+    table: 'todos',
+    operation: 'insert',
+    onSuccess: data => {
+      router.refresh();
+      if (onSubmit) onSubmit(data[0] as Todo);
     },
-  })
+  });
 
   const { mutate: updateTodo, isLoading: isUpdating } = useSupabaseMutation({
-    table: "todos",
-    operation: "update",
-    onSuccess: (data) => {
-      router.refresh()
-      if (onSubmit) onSubmit(data[0] as Todo)
+    table: 'todos',
+    operation: 'update',
+    onSuccess: data => {
+      router.refresh();
+      if (onSubmit) onSubmit(data[0] as Todo);
     },
-  })
+  });
 
-  const isLoading = isCreating || isUpdating
+  const isLoading = isCreating || isUpdating;
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
       if (isEditing && todo?.id) {
@@ -82,28 +87,30 @@ export default function TodoForm({ todo, categories = [], statuses = [], onSubmi
         await updateTodo({
           data: formData,
           filters: { id: todo.id },
-        })
+        });
       } else {
         // Création d'une nouvelle tâche
         await createTodo({
           data: formData,
-        })
+        });
       }
     } catch (error) {
-      console.error("Erreur lors de la soumission du formulaire:", error)
+      console.error('Erreur lors de la soumission du formulaire:', error);
     }
-  }
+  };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => {
+    const { name, value, type } = e.target;
 
     // Gérer les différents types de champs
-    if (type === "number") {
-      setFormData((prev) => ({ ...prev, [name]: value ? Number(value) : null }))
+    if (type === 'number') {
+      setFormData(prev => ({ ...prev, [name]: value ? Number(value) : null }));
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }))
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -129,7 +136,7 @@ export default function TodoForm({ todo, categories = [], statuses = [], onSubmi
         <textarea
           id="description"
           name="description"
-          value={formData.description || ""}
+          value={formData.description || ''}
           onChange={handleChange}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
         />
@@ -144,12 +151,12 @@ export default function TodoForm({ todo, categories = [], statuses = [], onSubmi
           <select
             id="category_id"
             name="category_id"
-            value={formData.category_id || ""}
+            value={formData.category_id || ''}
             onChange={handleChange}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           >
             <option value="">Sélectionner une catégorie</option>
-            {categories.map((category) => (
+            {categories.map(category => (
               <option key={category.id} value={category.id}>
                 {category.name}
               </option>
@@ -167,12 +174,12 @@ export default function TodoForm({ todo, categories = [], statuses = [], onSubmi
           <select
             id="status_id"
             name="status_id"
-            value={formData.status_id || ""}
+            value={formData.status_id || ''}
             onChange={handleChange}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
           >
             <option value="">Sélectionner un statut</option>
-            {statuses.map((status) => (
+            {statuses.map(status => (
               <option key={status.id} value={status.id}>
                 {status.name}
               </option>
@@ -189,7 +196,7 @@ export default function TodoForm({ todo, categories = [], statuses = [], onSubmi
           type="date"
           id="due_date"
           name="due_date"
-          value={formData.due_date || ""}
+          value={formData.due_date || ''}
           onChange={handleChange}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
         />
@@ -197,9 +204,9 @@ export default function TodoForm({ todo, categories = [], statuses = [], onSubmi
 
       <div className="flex justify-end">
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Chargement..." : isEditing ? "Mettre à jour" : "Créer"}
+          {isLoading ? 'Chargement...' : isEditing ? 'Mettre à jour' : 'Créer'}
         </Button>
       </div>
     </form>
-  )
+  );
 }

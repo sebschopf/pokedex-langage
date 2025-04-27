@@ -1,83 +1,84 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Edit, Trash2, Search, Eye } from "lucide-react"
-import { deleteLanguageAction } from "@/app/actions/language-actions"
-import { useToast } from "@/hooks/use-toast"
-import { useRouter } from "next/navigation"
+import { useState } from 'react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Edit, Trash2, Search, Eye } from 'lucide-react';
+import { deleteLanguageAction } from '@/app/actions/language-actions';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 interface LanguageWithStats {
-  id: number
-  name: string
-  slug: string
-  type: string | null
-  shortDescription: string | null
-  yearCreated: number | null
-  isOpenSource: boolean | null
-  logoPath: string | null
-  createdAt: string | null
-  updatedAt: string | null
-  frameworksCount?: number
-  librariesCount?: number
-  correctionsCount?: number
+  id: number;
+  name: string;
+  slug: string;
+  type: string | null;
+  shortDescription: string | null;
+  yearCreated: number | null;
+  isOpenSource: boolean | null;
+  logoPath: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+  frameworksCount?: number;
+  librariesCount?: number;
+  correctionsCount?: number;
 }
 
 interface LanguageTableProps {
-  languages: LanguageWithStats[]
-  formatDate: (date: string) => string
+  languages: LanguageWithStats[];
+  formatDate: (date: string) => string;
 }
 
 export function LanguageTable({ languages, formatDate }: LanguageTableProps) {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [isDeleting, setIsDeleting] = useState<Record<number, boolean>>({})
-  const { toast } = useToast()
-  const router = useRouter()
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isDeleting, setIsDeleting] = useState<Record<number, boolean>>({});
+  const { toast } = useToast();
+  const router = useRouter();
 
   // Filtrer les langages en fonction du terme de recherche
   const filteredLanguages = languages.filter(
-    (language) =>
+    language =>
       language.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       language.type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       language.shortDescription?.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  );
 
   // Gérer la suppression d'un langage
   const handleDelete = async (id: number, name: string, logoUrl?: string) => {
     if (window.confirm(`Êtes-vous sûr de vouloir supprimer le langage "${name}" ?`)) {
-      setIsDeleting((prev) => ({ ...prev, [id]: true }))
+      setIsDeleting(prev => ({ ...prev, [id]: true }));
 
       try {
-        const result = await deleteLanguageAction(String(id), logoUrl || undefined)
+        const result = await deleteLanguageAction(String(id), logoUrl || undefined);
 
         if (result.success) {
           toast({
-            title: "Langage supprimé",
+            title: 'Langage supprimé',
             description: `Le langage "${name}" a été supprimé avec succès.`,
-          })
-          router.refresh()
+          });
+          router.refresh();
         } else {
           toast({
-            variant: "destructive",
-            title: "Erreur",
-            description: result.message || "Une erreur est survenue lors de la suppression du langage.",
-          })
+            variant: 'destructive',
+            title: 'Erreur',
+            description:
+              result.message || 'Une erreur est survenue lors de la suppression du langage.',
+          });
         }
       } catch (error) {
-        console.error("Erreur lors de la suppression du langage:", error)
+        console.error('Erreur lors de la suppression du langage:', error);
         toast({
-          variant: "destructive",
-          title: "Erreur",
-          description: "Une erreur est survenue lors de la suppression du langage.",
-        })
+          variant: 'destructive',
+          title: 'Erreur',
+          description: 'Une erreur est survenue lors de la suppression du langage.',
+        });
       } finally {
-        setIsDeleting((prev) => ({ ...prev, [id]: false }))
+        setIsDeleting(prev => ({ ...prev, [id]: false }));
       }
     }
-  }
+  };
 
   return (
     <div className="space-y-4">
@@ -86,7 +87,7 @@ export function LanguageTable({ languages, formatDate }: LanguageTableProps) {
         <Input
           placeholder="Rechercher un langage..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={e => setSearchTerm(e.target.value)}
           className="max-w-sm"
         />
       </div>
@@ -99,7 +100,9 @@ export function LanguageTable({ languages, formatDate }: LanguageTableProps) {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Langage
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Type
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Année
                 </th>
@@ -119,13 +122,13 @@ export function LanguageTable({ languages, formatDate }: LanguageTableProps) {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredLanguages.length > 0 ? (
-                filteredLanguages.map((language) => (
+                filteredLanguages.map(language => (
                   <tr key={language.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         {language.logoPath && (
                           <img
-                            src={language.logoPath || "/placeholder.svg"}
+                            src={language.logoPath || '/placeholder.svg'}
                             alt={`Logo ${language.name}`}
                             className="h-10 w-10 mr-3 object-contain"
                           />
@@ -137,10 +140,10 @@ export function LanguageTable({ languages, formatDate }: LanguageTableProps) {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant="outline">{language.type || "Non spécifié"}</Badge>
+                      <Badge variant="outline">{language.type || 'Non spécifié'}</Badge>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {language.yearCreated || "N/A"}
+                      {language.yearCreated || 'N/A'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {language.frameworksCount || 0}
@@ -149,7 +152,7 @@ export function LanguageTable({ languages, formatDate }: LanguageTableProps) {
                       {language.librariesCount || 0}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {language.updatedAt ? formatDate(language.updatedAt) : "Jamais"}
+                      {language.updatedAt ? formatDate(language.updatedAt) : 'Jamais'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
@@ -168,7 +171,9 @@ export function LanguageTable({ languages, formatDate }: LanguageTableProps) {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleDelete(language.id, language.name, language.logoPath || undefined)}
+                          onClick={() =>
+                            handleDelete(language.id, language.name, language.logoPath || undefined)
+                          }
                           disabled={isDeleting[language.id]}
                           className="text-red-600 hover:text-red-800 hover:bg-red-100"
                         >
@@ -182,7 +187,9 @@ export function LanguageTable({ languages, formatDate }: LanguageTableProps) {
               ) : (
                 <tr>
                   <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
-                    {searchTerm ? "Aucun langage ne correspond à votre recherche." : "Aucun langage trouvé."}
+                    {searchTerm
+                      ? 'Aucun langage ne correspond à votre recherche.'
+                      : 'Aucun langage trouvé.'}
                   </td>
                 </tr>
               )}
@@ -191,5 +198,5 @@ export function LanguageTable({ languages, formatDate }: LanguageTableProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

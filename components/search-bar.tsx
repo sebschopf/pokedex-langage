@@ -1,37 +1,37 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useRouter, useSearchParams } from "next/navigation"
-import { useState, useEffect } from "react"
-import { Search } from "lucide-react"
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { Search } from 'lucide-react';
 
 export default function SearchBar() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [searchTerm, setSearchTerm] = useState(searchParams.get("query") || "")
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('query') || '');
 
   // Mettre à jour le terme de recherche lorsque les paramètres d'URL changent
   useEffect(() => {
-    setSearchTerm(searchParams.get("query") || "")
-  }, [searchParams])
+    setSearchTerm(searchParams.get('query') || '');
+  }, [searchParams]);
 
   const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    const params = new URLSearchParams(searchParams.toString())
+    const params = new URLSearchParams(searchParams.toString());
 
     if (searchTerm) {
-      params.set("query", searchTerm)
+      params.set('query', searchTerm);
     } else {
-      params.delete("query")
+      params.delete('query');
     }
 
     // Réinitialiser la pagination
-    params.delete("page")
+    params.delete('page');
 
-    router.push(`/?${params.toString()}`)
-  }
+    router.push(`/?${params.toString()}`);
+  };
 
   return (
     <form onSubmit={handleSearch} className="relative">
@@ -39,7 +39,7 @@ export default function SearchBar() {
         <input
           type="text"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={e => setSearchTerm(e.target.value)}
           placeholder="Rechercher un langage..."
           className="w-full p-4 pl-12 border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 outline-none dark:bg-gray-800 dark:border-gray-600 dark:text-white"
         />
@@ -55,5 +55,5 @@ export default function SearchBar() {
         Rechercher
       </button>
     </form>
-  )
+  );
 }

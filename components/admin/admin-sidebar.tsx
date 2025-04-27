@@ -1,68 +1,77 @@
-"use client"
+'use client';
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { cn } from "@/utils/theme"
-import { BookOpen, Code, Users, MessageSquare, FileText, Settings, Home, CheckSquare } from "lucide-react"
-import { useAuth } from "@/components/providers/auth-provider"
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/utils/theme';
+import {
+  BookOpen,
+  Code,
+  Users,
+  MessageSquare,
+  FileText,
+  Settings,
+  Home,
+  CheckSquare,
+} from 'lucide-react';
+import { useAuth } from '@/components/providers/auth-provider';
 
 const adminNavItems = [
   {
-    title: "Tableau de bord",
-    href: "/admin",
+    title: 'Tableau de bord',
+    href: '/admin',
     icon: Home,
-    roles: ["admin", "validator"],
+    roles: ['admin', 'validator'],
   },
   {
-    title: "Langages",
-    href: "/admin/languages",
+    title: 'Langages',
+    href: '/admin/languages',
     icon: Code,
-    roles: ["admin"],
+    roles: ['admin'],
   },
   {
-    title: "Frameworks",
-    href: "/admin/frameworks",
+    title: 'Frameworks',
+    href: '/admin/frameworks',
     icon: BookOpen,
-    roles: ["admin"],
+    roles: ['admin'],
   },
   {
-    title: "Utilisateurs",
-    href: "/admin/users",
+    title: 'Utilisateurs',
+    href: '/admin/users',
     icon: Users,
-    roles: ["admin"],
+    roles: ['admin'],
   },
   {
-    title: "Corrections",
-    href: "/admin/corrections",
+    title: 'Corrections',
+    href: '/admin/corrections',
     icon: CheckSquare,
-    roles: ["admin", "validator"],
+    roles: ['admin', 'validator'],
   },
   {
-    title: "Propositions",
-    href: "/admin/proposals",
+    title: 'Propositions',
+    href: '/admin/proposals',
     icon: MessageSquare,
-    roles: ["admin", "validator"],
+    roles: ['admin', 'validator'],
   },
   {
-    title: "Contenu",
-    href: "/admin/content",
+    title: 'Contenu',
+    href: '/admin/content',
     icon: FileText,
-    roles: ["admin"],
+    roles: ['admin'],
   },
   {
-    title: "Paramètres",
-    href: "/admin/settings",
+    title: 'Paramètres',
+    href: '/admin/settings',
     icon: Settings,
-    roles: ["admin"],
+    roles: ['admin'],
   },
-]
+];
 
 export function AdminSidebar() {
-  const pathname = usePathname()
-  const { userRole } = useAuth()
+  const pathname = usePathname();
+  const { userRole } = useAuth();
 
   // Filtrer les éléments de navigation en fonction du rôle de l'utilisateur
-  const filteredNavItems = adminNavItems.filter((item) => item.roles.includes(userRole || ""))
+  const filteredNavItems = adminNavItems.filter(item => item.roles.includes(userRole || ''));
 
   return (
     <div className="w-64 bg-gray-50 border-r border-gray-200 min-h-screen p-4">
@@ -71,15 +80,15 @@ export function AdminSidebar() {
       </div>
 
       <nav className="space-y-1">
-        {filteredNavItems.map((item) => (
+        {filteredNavItems.map(item => (
           <Link
             key={item.href}
             href={item.href}
             className={cn(
-              "flex items-center px-4 py-2 text-sm rounded-md transition-colors",
+              'flex items-center px-4 py-2 text-sm rounded-md transition-colors',
               pathname === item.href || pathname.startsWith(`${item.href}/`)
-                ? "bg-primary text-primary-foreground font-medium"
-                : "text-gray-700 hover:bg-gray-100",
+                ? 'bg-primary text-primary-foreground font-medium'
+                : 'text-gray-700 hover:bg-gray-100',
             )}
           >
             <item.icon className="mr-3 h-5 w-5" />
@@ -89,10 +98,13 @@ export function AdminSidebar() {
       </nav>
 
       <div className="mt-auto pt-8 border-t border-gray-200 mt-8">
-        <Link href="/" className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md">
+        <Link
+          href="/"
+          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+        >
           Retour au site
         </Link>
       </div>
     </div>
-  )
+  );
 }

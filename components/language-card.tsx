@@ -1,37 +1,40 @@
-"use client"
+'use client';
 
-import Link from "next/link"
-import type { Language } from "@/types/models/language"
-import { getTypeBadgeColor } from "@/utils/theme"
-import { cn } from "@/utils/theme/cn"
-import { getImageName } from "@/utils/image"
-import LanguageImage from "./language-image"
-import { generateLanguageSlug } from "@/utils/slugs"
-import { routes } from "@/utils/routes/routes"
+import Link from 'next/link';
+import type { Language } from '@/types/models/language';
+import { getTypeBadgeColor } from '@/utils/theme';
+import { cn } from '@/utils/theme/cn';
+import { getImageName } from '@/utils/image';
+import LanguageImage from './language-image';
+import { generateLanguageSlug } from '@/utils/slugs';
+import { routes } from '@/utils/routes/routes';
 
 interface LanguageCardProps {
-  language: Language
+  language: Language;
 }
 
 export function LanguageCard({ language }: LanguageCardProps) {
   // Générer un slug à partir du nom si nécessaire
-  const slug = language.slug && language.slug.trim() !== "" ? language.slug : generateLanguageSlug(language.name)
+  const slug =
+    language.slug && language.slug.trim() !== ''
+      ? language.slug
+      : generateLanguageSlug(language.name);
 
   // Préparer l'URL de l'image
-  const imageSrc = language.logoPath || `/images/${getImageName(language.name)}.svg`
+  const imageSrc = language.logoPath || `/images/${getImageName(language.name)}.svg`;
 
   // Valeur par défaut pour le type
-  const languageType = language.type || "Autre"
+  const languageType = language.type || 'Autre';
 
   // Valeur par défaut pour le taux d'utilisation - s'assurer que c'est toujours un nombre
-  const usageRate = typeof language.usageRate === "number" ? language.usageRate : 0
+  const usageRate = typeof language.usageRate === 'number' ? language.usageRate : 0;
 
   return (
     <Link
       href={slug ? routes.languages.detail(slug) : routes.languages.detailById(language.id)}
       className={cn(
-        "block h-full border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 hover:-translate-y-1",
-        "dark:bg-[#2a2a20] dark:border-[#3a3a30] dark:shadow-[8px_8px_0px_0px_rgba(58,58,48,1)] dark:hover:shadow-[12px_12px_0px_0px_rgba(58,58,48,1)]",
+        'block h-full border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 hover:-translate-y-1',
+        'dark:bg-[#2a2a20] dark:border-[#3a3a30] dark:shadow-[8px_8px_0px_0px_rgba(58,58,48,1)] dark:hover:shadow-[12px_12px_0px_0px_rgba(58,58,48,1)]',
       )}
       aria-label={`Voir les détails de ${language.name}`}
       prefetch={false}
@@ -39,13 +42,15 @@ export function LanguageCard({ language }: LanguageCardProps) {
       <div className="p-4 pb-6 flex flex-col h-full">
         {/* Badges en haut */}
         <div className="flex justify-between items-start mb-4">
-          <div className={`${getTypeBadgeColor(languageType)} text-white font-bold px-2 py-1`}>{languageType}</div>
+          <div className={`${getTypeBadgeColor(languageType)} text-white font-bold px-2 py-1`}>
+            {languageType}
+          </div>
 
           {language.isOpenSource !== undefined && (
             <div
-              className={`${language.isOpenSource ? "bg-green-500 text-white" : "bg-red-600 text-white"} font-bold px-2 py-1`}
+              className={`${language.isOpenSource ? 'bg-green-500 text-white' : 'bg-red-600 text-white'} font-bold px-2 py-1`}
             >
-              {language.isOpenSource ? "Open Source" : "Propriétaire"}
+              {language.isOpenSource ? 'Open Source' : 'Propriétaire'}
             </div>
           )}
         </div>
@@ -67,7 +72,9 @@ export function LanguageCard({ language }: LanguageCardProps) {
         </div>
 
         {/* Description */}
-        <p className="text-center mb-4 line-clamp-3">{language.shortDescription || "Aucune description disponible"}</p>
+        <p className="text-center mb-4 line-clamp-3">
+          {language.shortDescription || 'Aucune description disponible'}
+        </p>
 
         {/* Taux d'utilisation */}
         <div className="mt-auto">
@@ -89,5 +96,5 @@ export function LanguageCard({ language }: LanguageCardProps) {
         </div>
       </div>
     </Link>
-  )
+  );
 }

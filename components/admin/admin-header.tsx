@@ -1,12 +1,12 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { PlusCircle } from "lucide-react"
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { PlusCircle } from 'lucide-react';
 
 interface AdminHeaderProps {
-  title: string
-  description?: string
-  createLink?: string
-  createLabel?: string
+  title: string;
+  description?: string;
+  createLink?: string;
+  createLabel?: string;
 }
 
 export function AdminHeader({ title, description, createLink, createLabel }: AdminHeaderProps) {
@@ -25,5 +25,5 @@ export function AdminHeader({ title, description, createLink, createLabel }: Adm
         </Button>
       )}
     </div>
-  )
+  );
 }

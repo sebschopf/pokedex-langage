@@ -1,143 +1,151 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState, useEffect } from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { createBrowserClient } from "@/lib/supabase/client"
-import { useToast } from "@/hooks/use-toast"
-import { Upload, Trash2 } from "lucide-react"
+import { useState, useEffect } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { createBrowserClient } from '@/lib/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { Upload, Trash2 } from 'lucide-react';
 
 interface AvatarUploadProps {
-  userId: string
-  avatarUrl: string | null
-  onAvatarChange?: (url: string) => void
-  size?: "sm" | "md" | "lg" | "xl"
+  userId: string;
+  avatarUrl: string | null;
+  onAvatarChange?: (url: string) => void;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-export default function AvatarUpload({ userId, avatarUrl, onAvatarChange, size = "md" }: AvatarUploadProps) {
-  const [avatarPath, setAvatarPath] = useState<string | null>(avatarUrl)
-  const [uploading, setUploading] = useState(false)
-  const supabase = createBrowserClient()
-  const { toast } = useToast()
+export default function AvatarUpload({
+  userId,
+  avatarUrl,
+  onAvatarChange,
+  size = 'md',
+}: AvatarUploadProps) {
+  const [avatarPath, setAvatarPath] = useState<string | null>(avatarUrl);
+  const [uploading, setUploading] = useState(false);
+  const supabase = createBrowserClient();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (avatarUrl !== avatarPath) {
-      setAvatarPath(avatarUrl)
+      setAvatarPath(avatarUrl);
     }
-  }, [avatarUrl, avatarPath])
+  }, [avatarUrl, avatarPath]);
 
   const uploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
-      setUploading(true)
+      setUploading(true);
 
       if (!event.target.files || event.target.files.length === 0) {
-        throw new Error("Vous devez sélectionner une image à télécharger.")
+        throw new Error('Vous devez sélectionner une image à télécharger.');
       }
 
-      const file = event.target.files[0]
-      const fileExt = file.name.split(".").pop()
-      const fileName = `${userId}-${Math.random().toString(36).substring(2)}.${fileExt}`
-      const filePath = fileName
+      const file = event.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${userId}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = fileName;
 
       // Vérifier la taille du fichier (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
-        throw new Error("L'image ne doit pas dépasser 2MB.")
+        throw new Error("L'image ne doit pas dépasser 2MB.");
       }
 
       // Vérifier le type de fichier
       if (!file.type.match(/image\/(jpeg|jpg|png|gif|webp)/i)) {
-        throw new Error("Le fichier doit être une image (JPEG, PNG, GIF, WEBP).")
+        throw new Error('Le fichier doit être une image (JPEG, PNG, GIF, WEBP).');
       }
 
       // Télécharger le fichier dans le bucket avatars
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, file, { upsert: true })
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
 
       if (uploadError) {
-        throw new Error(`Erreur lors du téléchargement: ${uploadError.message}`)
+        throw new Error(`Erreur lors du téléchargement: ${uploadError.message}`);
       }
 
       // Obtenir l'URL publique
-      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath)
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
 
       if (!urlData || !urlData.publicUrl) {
-        throw new Error("Impossible d'obtenir l'URL publique de l'avatar")
+        throw new Error("Impossible d'obtenir l'URL publique de l'avatar");
       }
 
-      const newAvatarUrl = urlData.publicUrl
+      const newAvatarUrl = urlData.publicUrl;
 
       // Mettre à jour le profil utilisateur avec la nouvelle URL d'avatar
       const { error: updateError } = await supabase
-        .from("profiles")
+        .from('profiles')
         .update({ avatar_url: newAvatarUrl })
-        .eq("id", userId)
+        .eq('id', userId);
 
       if (updateError) {
-        throw new Error(`Erreur lors de la mise à jour du profil: ${updateError.message}`)
+        throw new Error(`Erreur lors de la mise à jour du profil: ${updateError.message}`);
       }
 
-      setAvatarPath(newAvatarUrl)
+      setAvatarPath(newAvatarUrl);
 
       if (onAvatarChange) {
-        onAvatarChange(newAvatarUrl)
+        onAvatarChange(newAvatarUrl);
       }
 
       toast({
-        title: "Avatar mis à jour",
-        description: "Votre avatar a été mis à jour avec succès.",
-      })
+        title: 'Avatar mis à jour',
+        description: 'Votre avatar a été mis à jour avec succès.',
+      });
     } catch (error: any) {
       toast({
-        variant: "destructive",
-        title: "Erreur",
+        variant: 'destructive',
+        title: 'Erreur',
         description: error.message || "Une erreur est survenue lors du téléchargement de l'avatar.",
-      })
+      });
     } finally {
-      setUploading(false)
+      setUploading(false);
     }
-  }
+  };
 
   const removeAvatar = async () => {
     try {
-      setUploading(true)
+      setUploading(true);
 
       // Mettre à jour le profil utilisateur pour supprimer l'URL d'avatar
-      const { error: updateError } = await supabase.from("profiles").update({ avatar_url: null }).eq("id", userId)
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: null })
+        .eq('id', userId);
 
       if (updateError) {
-        throw new Error(`Erreur lors de la suppression de l'avatar: ${updateError.message}`)
+        throw new Error(`Erreur lors de la suppression de l'avatar: ${updateError.message}`);
       }
 
-      setAvatarPath(null)
+      setAvatarPath(null);
 
       if (onAvatarChange) {
-        onAvatarChange("")
+        onAvatarChange('');
       }
 
       toast({
-        title: "Avatar supprimé",
-        description: "Votre avatar a été supprimé avec succès.",
-      })
+        title: 'Avatar supprimé',
+        description: 'Votre avatar a été supprimé avec succès.',
+      });
     } catch (error: any) {
       toast({
-        variant: "destructive",
-        title: "Erreur",
+        variant: 'destructive',
+        title: 'Erreur',
         description: error.message || "Une erreur est survenue lors de la suppression de l'avatar.",
-      })
+      });
     } finally {
-      setUploading(false)
+      setUploading(false);
     }
-  }
+  };
 
   const sizeClasses = {
-    sm: "h-10 w-10",
-    md: "h-16 w-16",
-    lg: "h-24 w-24",
-    xl: "h-32 w-32",
-  }
+    sm: 'h-10 w-10',
+    md: 'h-16 w-16',
+    lg: 'h-24 w-24',
+    xl: 'h-32 w-32',
+  };
 
   return (
     <div className="flex flex-col items-center gap-2">
@@ -146,9 +154,15 @@ export default function AvatarUpload({ userId, avatarUrl, onAvatarChange, size =
         <AvatarFallback>{userId.charAt(0).toUpperCase()}</AvatarFallback>
       </Avatar>
 
-      {size !== "sm" && (
+      {size !== 'sm' && (
         <div className="flex gap-2 mt-2">
-          <Button type="button" variant="outline" size="sm" className="relative" disabled={uploading}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="relative"
+            disabled={uploading}
+          >
             <input
               type="file"
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
@@ -157,11 +171,17 @@ export default function AvatarUpload({ userId, avatarUrl, onAvatarChange, size =
               disabled={uploading}
             />
             <Upload className="h-4 w-4 mr-1" />
-            {uploading ? "Téléchargement..." : "Télécharger"}
+            {uploading ? 'Téléchargement...' : 'Télécharger'}
           </Button>
 
           {avatarPath && (
-            <Button type="button" variant="outline" size="sm" onClick={removeAvatar} disabled={uploading}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={removeAvatar}
+              disabled={uploading}
+            >
               <Trash2 className="h-4 w-4 mr-1" />
               Supprimer
             </Button>
@@ -169,5 +189,5 @@ export default function AvatarUpload({ userId, avatarUrl, onAvatarChange, size =
         </div>
       )}
     </div>
-  )
+  );
 }

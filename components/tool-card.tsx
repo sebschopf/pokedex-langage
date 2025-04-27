@@ -1,48 +1,50 @@
-"use client"
+'use client';
 
-import Link from "next/link"
-import { ExternalLink, Github } from "lucide-react"
-import { cn } from "@/utils/theme/cn"
-import { Badge } from "@/components/ui/badge"
-import type { Library } from "@/types/models/library"
+import Link from 'next/link';
+import { ExternalLink, Github } from 'lucide-react';
+import { cn } from '@/utils/theme/cn';
+import { Badge } from '@/components/ui/badge';
+import type { Library } from '@/types/models/library';
 
 interface ToolWithLanguages extends Library {
   languages?: Array<{
-    id: number
-    name: string
-    slug: string
-    isPrimary: boolean
-    logo_path?: string | null
-  }>
+    id: number;
+    name: string;
+    slug: string;
+    isPrimary: boolean;
+    logo_path?: string | null;
+  }>;
 }
 
 interface ToolCardProps {
-  tool: ToolWithLanguages
+  tool: ToolWithLanguages;
 }
 
 export function ToolCard({ tool }: ToolCardProps) {
   // Trouver le langage principal s'il existe
-  const primaryLanguage = tool.languages?.find((lang) => lang.isPrimary)
+  const primaryLanguage = tool.languages?.find(lang => lang.isPrimary);
 
   return (
     <div
       className={cn(
-        "block h-full border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 hover:-translate-y-1",
-        "dark:bg-[#2a2a20] dark:border-[#3a3a30] dark:shadow-[8px_8px_0px_0px_rgba(58,58,48,1)] dark:hover:shadow-[12px_12px_0px_0px_rgba(58,58,48,1)]",
+        'block h-full border-4 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] transition-all duration-300 hover:-translate-y-1',
+        'dark:bg-[#2a2a20] dark:border-[#3a3a30] dark:shadow-[8px_8px_0px_0px_rgba(58,58,48,1)] dark:hover:shadow-[12px_12px_0px_0px_rgba(58,58,48,1)]',
       )}
     >
       <div className="p-4 pb-6 flex flex-col h-full">
         {/* Badges en haut */}
         <div className="flex justify-between items-start mb-4">
-          <div className="bg-blue-600 text-white font-bold px-2 py-1">{tool.technologyType || "Outil d'analyse"}</div>
+          <div className="bg-blue-600 text-white font-bold px-2 py-1">
+            {tool.technologyType || "Outil d'analyse"}
+          </div>
 
           {tool.isOpenSource !== undefined && (
             <div
               className={`${
-                tool.isOpenSource ? "bg-green-500 text-white" : "bg-red-600 text-white"
+                tool.isOpenSource ? 'bg-green-500 text-white' : 'bg-red-600 text-white'
               } font-bold px-2 py-1`}
             >
-              {tool.isOpenSource ? "Open Source" : "Propriétaire"}
+              {tool.isOpenSource ? 'Open Source' : 'Propriétaire'}
             </div>
           )}
         </div>
@@ -53,7 +55,9 @@ export function ToolCard({ tool }: ToolCardProps) {
         </Link>
 
         {/* Description */}
-        <p className="text-center mb-4 line-clamp-3">{tool.description || "Aucune description disponible"}</p>
+        <p className="text-center mb-4 line-clamp-3">
+          {tool.description || 'Aucune description disponible'}
+        </p>
 
         {/* Langages associés */}
         {tool.languages && tool.languages.length > 0 && (
@@ -69,9 +73,9 @@ export function ToolCard({ tool }: ToolCardProps) {
               )}
 
               {tool.languages
-                .filter((lang) => !lang.isPrimary)
+                .filter(lang => !lang.isPrimary)
                 .slice(0, 2) // Limiter à 2 langages secondaires pour éviter de surcharger la carte
-                .map((lang) => (
+                .map(lang => (
                   <Link key={lang.id} href={`/languages/${lang.slug}`}>
                     <Badge variant="outline" className="text-xs">
                       {lang.name}
@@ -80,10 +84,10 @@ export function ToolCard({ tool }: ToolCardProps) {
                 ))}
 
               {/* Afficher un badge +X si plus de 2 langages secondaires */}
-              {tool.languages.filter((lang) => !lang.isPrimary).length > 2 && (
+              {tool.languages.filter(lang => !lang.isPrimary).length > 2 && (
                 <Link href={`/tools/${tool.slug}`}>
                   <Badge variant="secondary" className="text-xs">
-                    +{tool.languages.filter((lang) => !lang.isPrimary).length - 2}
+                    +{tool.languages.filter(lang => !lang.isPrimary).length - 2}
                   </Badge>
                 </Link>
               )}
@@ -119,5 +123,5 @@ export function ToolCard({ tool }: ToolCardProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

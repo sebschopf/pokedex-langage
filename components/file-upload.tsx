@@ -1,131 +1,131 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState, useRef } from "react"
-import { createBrowserClient } from "@/lib/client/supabase"
-import { Upload, X, Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { useToast } from "@/hooks/use-toast"
+import { useState, useRef } from 'react';
+import { createBrowserClient } from '@/lib/client/supabase';
+import { Upload, X, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/hooks/use-toast';
 
 interface FileUploadProps {
-  bucket: string
-  path?: string
-  onUploadComplete?: (url: string) => void
-  onCancel?: () => void
-  acceptedFileTypes?: string
-  maxSizeMB?: number
+  bucket: string;
+  path?: string;
+  onUploadComplete?: (url: string) => void;
+  onCancel?: () => void;
+  acceptedFileTypes?: string;
+  maxSizeMB?: number;
 }
 
 export default function FileUpload({
   bucket,
-  path = "",
+  path = '',
   onUploadComplete,
   onCancel,
-  acceptedFileTypes = "image/*",
+  acceptedFileTypes = 'image/*',
   maxSizeMB = 2,
 }: FileUploadProps) {
-  const [isUploading, setIsUploading] = useState(false)
-  const [progress, setProgress] = useState(0)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const supabase = createBrowserClient()
-  const { toast } = useToast()
+  const [isUploading, setIsUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const supabase = createBrowserClient();
+  const { toast } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) {
-      setSelectedFile(null)
-      return
+      setSelectedFile(null);
+      return;
     }
 
-    const file = e.target.files[0]
+    const file = e.target.files[0];
 
     // Vérifier la taille du fichier
     if (file.size > maxSizeMB * 1024 * 1024) {
       toast({
-        variant: "destructive",
-        title: "Fichier trop volumineux",
+        variant: 'destructive',
+        title: 'Fichier trop volumineux',
         description: `La taille du fichier ne doit pas dépasser ${maxSizeMB}MB.`,
-      })
-      setSelectedFile(null)
-      if (fileInputRef.current) fileInputRef.current.value = ""
-      return
+      });
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
     }
 
-    setSelectedFile(file)
-  }
+    setSelectedFile(file);
+  };
 
   const handleUpload = async () => {
-    if (!selectedFile) return
+    if (!selectedFile) return;
 
-    setIsUploading(true)
-    setProgress(0)
+    setIsUploading(true);
+    setProgress(0);
 
     try {
       // Générer un nom de fichier unique pour éviter les conflits
-      const fileExt = selectedFile.name.split(".").pop()?.toLowerCase() || "png"
-      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`
-      const filePath = path ? `${path}/${fileName}` : fileName
+      const fileExt = selectedFile.name.split('.').pop()?.toLowerCase() || 'png';
+      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+      const filePath = path ? `${path}/${fileName}` : fileName;
 
       // Déterminer le type MIME
-      let contentType = selectedFile.type
-      if (!contentType || contentType === "application/octet-stream") {
+      let contentType = selectedFile.type;
+      if (!contentType || contentType === 'application/octet-stream') {
         // Déterminer le type MIME basé sur l'extension
-        if (fileExt === "png") contentType = "image/png"
-        else if (fileExt === "jpg" || fileExt === "jpeg") contentType = "image/jpeg"
-        else if (fileExt === "gif") contentType = "image/gif"
-        else if (fileExt === "svg") contentType = "image/svg+xml"
+        if (fileExt === 'png') contentType = 'image/png';
+        else if (fileExt === 'jpg' || fileExt === 'jpeg') contentType = 'image/jpeg';
+        else if (fileExt === 'gif') contentType = 'image/gif';
+        else if (fileExt === 'svg') contentType = 'image/svg+xml';
       }
 
       // Télécharger le fichier avec le type MIME explicite
       const { data, error } = await supabase.storage.from(bucket).upload(filePath, selectedFile, {
-        cacheControl: "3600",
+        cacheControl: '3600',
         upsert: true,
         contentType: contentType,
-      })
+      });
 
-      if (error) throw error
+      if (error) throw error;
 
       // Simuler la progression
-      setProgress(100)
+      setProgress(100);
 
       // Obtenir l'URL publique du fichier téléchargé
-      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(filePath)
-      const publicUrl = urlData.publicUrl
+      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(filePath);
+      const publicUrl = urlData.publicUrl;
 
       if (!publicUrl) {
-        throw new Error("Impossible d'obtenir l'URL publique du fichier")
+        throw new Error("Impossible d'obtenir l'URL publique du fichier");
       }
 
       toast({
-        title: "Téléchargement réussi",
+        title: 'Téléchargement réussi',
         description: `Le fichier a été téléchargé avec succès.`,
-      })
+      });
 
-      setSelectedFile(null)
-      if (fileInputRef.current) fileInputRef.current.value = ""
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
 
       // Appeler le callback avec l'URL publique
       if (onUploadComplete) {
-        onUploadComplete(publicUrl)
+        onUploadComplete(publicUrl);
       }
     } catch (error: any) {
       toast({
-        variant: "destructive",
-        title: "Erreur de téléchargement",
-        description: error.message || "Une erreur est survenue lors du téléchargement du fichier.",
-      })
+        variant: 'destructive',
+        title: 'Erreur de téléchargement',
+        description: error.message || 'Une erreur est survenue lors du téléchargement du fichier.',
+      });
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
+  };
 
   const handleCancel = () => {
-    setSelectedFile(null)
-    if (fileInputRef.current) fileInputRef.current.value = ""
-    if (onCancel) onCancel()
-  }
+    setSelectedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (onCancel) onCancel();
+  };
 
   return (
     <div className="space-y-4">
@@ -147,11 +147,17 @@ export default function FileUpload({
           onChange={handleFileChange}
           disabled={isUploading}
         />
-        <label htmlFor="file-upload" className="cursor-pointer flex flex-col items-center justify-center">
+        <label
+          htmlFor="file-upload"
+          className="cursor-pointer flex flex-col items-center justify-center"
+        >
           <Upload className="h-10 w-10 text-gray-400 mb-2" />
-          <span className="text-sm text-gray-500">Cliquez pour sélectionner un fichier ou glissez-déposez</span>
+          <span className="text-sm text-gray-500">
+            Cliquez pour sélectionner un fichier ou glissez-déposez
+          </span>
           <span className="text-xs text-gray-400 mt-1">
-            {acceptedFileTypes === "image/*" ? "Images uniquement" : acceptedFileTypes} (max: {maxSizeMB}MB)
+            {acceptedFileTypes === 'image/*' ? 'Images uniquement' : acceptedFileTypes} (max:{' '}
+            {maxSizeMB}MB)
           </span>
         </label>
       </div>
@@ -160,7 +166,9 @@ export default function FileUpload({
         <div className="bg-gray-50 p-3 rounded-md">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium truncate">{selectedFile.name}</span>
-            <span className="text-xs text-gray-500">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</span>
+            <span className="text-xs text-gray-500">
+              {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+            </span>
           </div>
 
           {isUploading && (
@@ -188,5 +196,5 @@ export default function FileUpload({
         </div>
       )}
     </div>
-  )
+  );
 }

@@ -1,79 +1,86 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { toast } from "@/components/ui/use-toast"
-import { createBrowserClient } from "@/lib/supabase/client"
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { toast } from '@/components/ui/use-toast';
+import { createBrowserClient } from '@/lib/supabase/client';
 
 const formSchema = z.object({
   language: z.string().min(2, {
-    message: "Language must be at least 2 characters.",
+    message: 'Language must be at least 2 characters.',
   }),
-})
+});
 
 export function LanguageSuggestionForm() {
-  const [isLoading, setIsLoading] = useState(false)
-  const supabase = createBrowserClient()
+  const [isLoading, setIsLoading] = useState(false);
+  const supabase = createBrowserClient();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      language: "",
+      language: '',
     },
-  })
+  });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const {
         data: { user },
-      } = await supabase.auth.getUser()
+      } = await supabase.auth.getUser();
 
       if (!user) {
         toast({
-          title: "Non authentifié",
-          description: "Vous devez être connecté pour suggérer une langue.",
-          variant: "destructive",
-        })
-        return
+          title: 'Non authentifié',
+          description: 'Vous devez être connecté pour suggérer une langue.',
+          variant: 'destructive',
+        });
+        return;
       }
 
       // Correction ici: remplacer 'proposals' par 'name' qui est la colonne correcte
-      const { error } = await supabase.from("language_proposals").insert({
+      const { error } = await supabase.from('language_proposals').insert({
         name: values.language, // Utiliser 'name' au lieu de 'proposals'
         user_id: user.id,
-        status: "pending", // Ajouter le statut par défaut
-      })
+        status: 'pending', // Ajouter le statut par défaut
+      });
 
       if (error) {
-        console.error("Erreur lors de la suggestion de la langue:", error)
+        console.error('Erreur lors de la suggestion de la langue:', error);
         toast({
-          title: "Erreur",
+          title: 'Erreur',
           description: "Une erreur s'est produite lors de la suggestion de la langue.",
-          variant: "destructive",
-        })
+          variant: 'destructive',
+        });
       } else {
         toast({
-          title: "Succès",
-          description: "Votre suggestion a été soumise avec succès!",
-        })
-        form.reset()
+          title: 'Succès',
+          description: 'Votre suggestion a été soumise avec succès!',
+        });
+        form.reset();
       }
     } catch (error) {
-      console.error("Erreur lors de la vérification de l'authentification:", error)
+      console.error("Erreur lors de la vérification de l'authentification:", error);
       toast({
-        title: "Erreur",
+        title: 'Erreur',
         description: "Impossible de vérifier votre statut d'authentification",
-        variant: "destructive",
-      })
+        variant: 'destructive',
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
@@ -98,5 +105,5 @@ export function LanguageSuggestionForm() {
         </Button>
       </form>
     </Form>
-  )
+  );
 }

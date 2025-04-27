@@ -1,27 +1,27 @@
-"use client"
+'use client';
 
-import Link from "next/link"
-import { AuthButton } from "./auth-button"
-import { usePathname } from "next/navigation"
-import { cn } from "@/utils/theme/cn"
-import { routes } from "@/utils/routes"
+import Link from 'next/link';
+import { AuthButton } from './auth-button';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/utils/theme/cn';
+import { routes } from '@/utils/routes';
 
 export default function Header() {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   // Fonction pour déterminer si un lien est actif
   const isActive = (path: string) => {
-    return pathname === path || pathname.startsWith(`${path}/`)
-  }
+    return pathname === path || pathname.startsWith(`${path}/`);
+  };
 
   // Style pour les liens de navigation
   const navLinkClass = (path: string) =>
     cn(
-      "font-bold transition-colors px-3 py-2 border-b-4",
+      'font-bold transition-colors px-3 py-2 border-b-4',
       isActive(path)
-        ? "border-black text-black dark:border-yellow-500 dark:text-yellow-500"
-        : "border-transparent hover:border-gray-300 hover:text-gray-800 dark:hover:border-gray-600 dark:hover:text-gray-200",
-    )
+        ? 'border-black text-black dark:border-yellow-500 dark:text-yellow-500'
+        : 'border-transparent hover:border-gray-300 hover:text-gray-800 dark:hover:border-gray-600 dark:hover:text-gray-200',
+    );
 
   return (
     <header className="border-b-4 border-black dark:border-gray-800 py-4 mb-8">
@@ -50,5 +50,5 @@ export default function Header() {
         <AuthButton />
       </div>
     </header>
-  )
+  );
 }

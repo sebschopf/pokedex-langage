@@ -12,5 +12,5 @@ export const LanguageCardSkeleton = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

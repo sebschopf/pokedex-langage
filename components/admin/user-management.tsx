@@ -1,65 +1,73 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { useToast } from "@/hooks/use-toast"
-import { createBrowserClient } from "@/lib/client/supabase"
-import { withTokenRefresh } from "@/lib/client/auth-helpers"
-import AvatarUpload from "@/components/avatar-upload"
-import { UserRoleBadge } from "@/components/user-role-badge"
-import type { UserWithDetails } from "@/types/dto/user-management"
-import type { UserRoleTypeDB } from "@/lib/client/permissions"
-import { toStringId } from "@/utils/conversion"
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { createBrowserClient } from '@/lib/client/supabase';
+import { withTokenRefresh } from '@/lib/client/auth-helpers';
+import AvatarUpload from '@/components/avatar-upload';
+import { UserRoleBadge } from '@/components/user-role-badge';
+import type { UserWithDetails } from '@/types/dto/user-management';
+import type { UserRoleTypeDB } from '@/lib/client/permissions';
+import { toStringId } from '@/utils/conversion';
 
 interface UserManagementProps {
-  users: UserWithDetails[]
+  users: UserWithDetails[];
 }
 
 export function UserManagement({ users: initialUsers }: UserManagementProps) {
-  const [users, setUsers] = useState<UserWithDetails[]>(initialUsers)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [isUpdating, setIsUpdating] = useState<Record<string, boolean>>({})
-  const [selectedUser, setSelectedUser] = useState<UserWithDetails | null>(null)
-  const { toast } = useToast()
-  const supabase = createBrowserClient()
+  const [users, setUsers] = useState<UserWithDetails[]>(initialUsers);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isUpdating, setIsUpdating] = useState<Record<string, boolean>>({});
+  const [selectedUser, setSelectedUser] = useState<UserWithDetails | null>(null);
+  const { toast } = useToast();
+  const supabase = createBrowserClient();
 
   // Filtrer les utilisateurs en fonction du terme de recherche
   const filteredUsers = users.filter(
-    (user) =>
+    user =>
       user.auth.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.role.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user.profile.fullName && user.profile.fullName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (user.profile.username && user.profile.username.toLowerCase().includes(searchTerm.toLowerCase())),
-  )
+      (user.profile.fullName &&
+        user.profile.fullName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (user.profile.username &&
+        user.profile.username.toLowerCase().includes(searchTerm.toLowerCase())),
+  );
 
   // Mettre à jour le rôle d'un utilisateur
   const updateUserRole = async (userId: string, newRole: UserRoleTypeDB) => {
-    setIsUpdating({ ...isUpdating, [userId]: true })
+    setIsUpdating({ ...isUpdating, [userId]: true });
 
     try {
       // Utiliser withTokenRefresh pour gérer automatiquement le rafraîchissement du token
       await withTokenRefresh(async () => {
         const { error } = await supabase
-          .from("user_roles")
+          .from('user_roles')
           .update({
             role: newRole,
             updated_at: new Date().toISOString(),
           })
-          .eq("id", userId)
+          .eq('id', userId);
 
-        if (error) throw error
+        if (error) throw error;
 
         toast({
-          title: "Rôle mis à jour avec succès",
+          title: 'Rôle mis à jour avec succès',
           description: `Le rôle de l'utilisateur a été mis à jour.`,
-        })
+        });
 
         // Mettre à jour l'état local - Utilisation de toStringId pour la conversion
         setUsers(
-          users.map((user) =>
+          users.map(user =>
             toStringId(user.id) === userId
               ? {
                   ...user,
@@ -71,7 +79,7 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
                 }
               : user,
           ),
-        )
+        );
 
         // Mettre à jour l'utilisateur sélectionné si nécessaire - Utilisation de toStringId
         if (selectedUser && toStringId(selectedUser.id) === userId) {
@@ -82,37 +90,37 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
               role: newRole as UserRoleTypeDB,
               updatedAt: new Date().toISOString(),
             },
-          })
+          });
         }
-      })
+      });
     } catch (error: any) {
-      console.error("Erreur lors de la mise à jour du rôle:", error)
+      console.error('Erreur lors de la mise à jour du rôle:', error);
       toast({
-        title: "Erreur lors de la mise à jour du rôle",
+        title: 'Erreur lors de la mise à jour du rôle',
         description: error.message,
-        variant: "destructive",
-      })
+        variant: 'destructive',
+      });
     } finally {
-      setIsUpdating({ ...isUpdating, [userId]: false })
+      setIsUpdating({ ...isUpdating, [userId]: false });
     }
-  }
+  };
 
   // Formater la date
   const formatDate = (dateString: string | undefined | null) => {
-    if (!dateString) return "Non disponible"
+    if (!dateString) return 'Non disponible';
 
     try {
-      const date = new Date(dateString)
-      return new Intl.DateTimeFormat("fr-FR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }).format(date)
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      }).format(date);
     } catch (error) {
-      console.error("Erreur de formatage de date:", error)
-      return "Format invalide"
+      console.error('Erreur de formatage de date:', error);
+      return 'Format invalide';
     }
-  }
+  };
 
   return (
     <div className="container mx-auto py-12">
@@ -137,7 +145,7 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
               <Input
                 placeholder="Rechercher..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
                 className="max-w-md"
               />
             </CardContent>
@@ -162,11 +170,11 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
                   </thead>
                   <tbody>
                     {filteredUsers.length > 0 ? (
-                      filteredUsers.map((user) => (
+                      filteredUsers.map(user => (
                         <tr
                           key={user.id}
                           className={`border-b hover:bg-gray-50 cursor-pointer ${
-                            selectedUser?.id === user.id ? "bg-gray-50" : ""
+                            selectedUser?.id === user.id ? 'bg-gray-50' : ''
                           }`}
                           onClick={() => setSelectedUser(user)}
                         >
@@ -182,7 +190,9 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
                               </div>
                               <div>
                                 {(user.profile.fullName || user.profile.username) && (
-                                  <p className="font-medium">{user.profile.fullName || user.profile.username}</p>
+                                  <p className="font-medium">
+                                    {user.profile.fullName || user.profile.username}
+                                  </p>
                                 )}
                               </div>
                             </div>
@@ -195,7 +205,9 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
                           <td className="py-3 px-4 text-right">
                             <Select
                               value={user.role.role}
-                              onValueChange={(value) => updateUserRole(toStringId(user.id), value as UserRoleTypeDB)}
+                              onValueChange={value =>
+                                updateUserRole(toStringId(user.id), value as UserRoleTypeDB)
+                              }
                               disabled={isUpdating[toStringId(user.id)]}
                             >
                               <SelectTrigger className="w-32">
@@ -249,13 +261,15 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
                   </div>
 
                   <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Nom d'utilisateur</h3>
-                    <p className="font-medium">{selectedUser.profile.username || "Non défini"}</p>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                      Nom d'utilisateur
+                    </h3>
+                    <p className="font-medium">{selectedUser.profile.username || 'Non défini'}</p>
                   </div>
 
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">Nom complet</h3>
-                    <p className="font-medium">{selectedUser.profile.fullName || "Non défini"}</p>
+                    <p className="font-medium">{selectedUser.profile.fullName || 'Non défini'}</p>
                   </div>
 
                   <div>
@@ -284,13 +298,17 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
                   </div>
 
                   <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-1">Date d'inscription</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                      Date d'inscription
+                    </h3>
                     <p className="font-medium">{formatDate(selectedUser.auth.createdAt)}</p>
                   </div>
 
                   {selectedUser.auth.lastSignInAt && (
                     <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-1">Dernière connexion</h3>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                        Dernière connexion
+                      </h3>
                       <p className="font-medium">{formatDate(selectedUser.auth.lastSignInAt)}</p>
                     </div>
                   )}
@@ -299,7 +317,9 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">Rôle</h3>
                     <Select
                       defaultValue={selectedUser.role.role}
-                      onValueChange={(value) => updateUserRole(toStringId(selectedUser.id), value as UserRoleTypeDB)}
+                      onValueChange={value =>
+                        updateUserRole(toStringId(selectedUser.id), value as UserRoleTypeDB)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionner un rôle" />
@@ -325,5 +345,5 @@ export function UserManagement({ users: initialUsers }: UserManagementProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

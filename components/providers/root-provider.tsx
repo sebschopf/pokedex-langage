@@ -1,10 +1,10 @@
-"use client"
+'use client';
 
-import { ThemeProvider } from "@/components/theme-provider"
-import { QueryProvider } from "@/components/providers/query-provider"
-import { AuthProvider } from "@/components/providers/auth-provider"
-import ScrollToTop from "@/components/scroll-to-top"
-import type { ReactNode } from "react"
+import { ThemeProvider } from '@/components/theme-provider';
+import { QueryProvider } from '@/components/providers/query-provider';
+import { AuthProvider } from '@/components/providers/auth-provider';
+import ScrollToTop from '@/components/scroll-to-top';
+import type { ReactNode } from 'react';
 
 export function RootProvider({ children }: { children: ReactNode }) {
   return (
@@ -16,5 +16,5 @@ export function RootProvider({ children }: { children: ReactNode }) {
         </AuthProvider>
       </QueryProvider>
     </ThemeProvider>
-  )
+  );
 }

@@ -1,60 +1,67 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/hooks/use-toast"
-import { createBrowserClient } from "@/lib/client/supabase"
-import AvatarUpload from "@/components/avatar-upload"
-import { UserRoleBadge } from "@/components/user-role-badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import StorageManager from "@/components/storage-manager"
+import { useState } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { createBrowserClient } from '@/lib/client/supabase';
+import AvatarUpload from '@/components/avatar-upload';
+import { UserRoleBadge } from '@/components/user-role-badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import StorageManager from '@/components/storage-manager';
 
 // Définir le type UserRoleType
-type UserRoleType = "admin" | "validator" | "verified" | "registered"
+type UserRoleType = 'admin' | 'validator' | 'verified' | 'registered';
 
 interface Profile {
-  id: string
-  username?: string | null
-  fullName?: string | null
-  bio?: string | null
-  website?: string | null
-  avatarUrl?: string | null
-  [key: string]: any
+  id: string;
+  username?: string | null;
+  fullName?: string | null;
+  bio?: string | null;
+  website?: string | null;
+  avatarUrl?: string | null;
+  [key: string]: any;
 }
 
 interface UserProfileFormProps {
-  profile: Profile
-  userEmail: string
-  userRole: UserRoleType
+  profile: Profile;
+  userEmail: string;
+  userRole: UserRoleType;
 }
 
 export function UserProfileForm({ profile, userEmail, userRole }: UserProfileFormProps) {
-  const [formData, setFormData] = useState<Profile>(profile)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [activeTab, setActiveTab] = useState("profile")
-  const { toast } = useToast()
-  const supabase = createBrowserClient()
+  const [formData, setFormData] = useState<Profile>(profile);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState('profile');
+  const { toast } = useToast();
+  const supabase = createBrowserClient();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleAvatarChange = (url: string) => {
-    setFormData((prev) => ({ ...prev, avatarUrl: url }))
-  }
+    setFormData(prev => ({ ...prev, avatarUrl: url }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from("profiles").upsert({
+      const { error } = await supabase.from('profiles').upsert({
         id: profile.id,
         username: formData.username,
         full_name: formData.fullName,
@@ -62,24 +69,24 @@ export function UserProfileForm({ profile, userEmail, userRole }: UserProfileFor
         website: formData.website,
         avatar_url: formData.avatarUrl,
         updated_at: new Date().toISOString(),
-      })
+      });
 
-      if (error) throw error
+      if (error) throw error;
 
       toast({
-        title: "Profil mis à jour",
-        description: "Votre profil a été mis à jour avec succès.",
-      })
+        title: 'Profil mis à jour',
+        description: 'Votre profil a été mis à jour avec succès.',
+      });
     } catch (error: any) {
       toast({
-        title: "Erreur",
+        title: 'Erreur',
         description: error.message,
-        variant: "destructive",
-      })
+        variant: 'destructive',
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -119,7 +126,7 @@ export function UserProfileForm({ profile, userEmail, userRole }: UserProfileFor
                   <Input
                     id="username"
                     name="username"
-                    value={formData.username || ""}
+                    value={formData.username || ''}
                     onChange={handleChange}
                     placeholder="Votre nom d'utilisateur"
                   />
@@ -132,7 +139,7 @@ export function UserProfileForm({ profile, userEmail, userRole }: UserProfileFor
                   <Input
                     id="fullName"
                     name="fullName"
-                    value={formData.fullName || ""}
+                    value={formData.fullName || ''}
                     onChange={handleChange}
                     placeholder="Votre nom complet"
                   />
@@ -146,7 +153,7 @@ export function UserProfileForm({ profile, userEmail, userRole }: UserProfileFor
                 <Textarea
                   id="bio"
                   name="bio"
-                  value={formData.bio || ""}
+                  value={formData.bio || ''}
                   onChange={handleChange}
                   placeholder="Parlez-nous de vous"
                   rows={4}
@@ -160,7 +167,7 @@ export function UserProfileForm({ profile, userEmail, userRole }: UserProfileFor
                 <Input
                   id="website"
                   name="website"
-                  value={formData.website || ""}
+                  value={formData.website || ''}
                   onChange={handleChange}
                   placeholder="https://votre-site.com"
                 />
@@ -168,7 +175,7 @@ export function UserProfileForm({ profile, userEmail, userRole }: UserProfileFor
             </CardContent>
             <CardFooter>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Enregistrement..." : "Enregistrer les modifications"}
+                {isSubmitting ? 'Enregistrement...' : 'Enregistrer les modifications'}
               </Button>
             </CardFooter>
           </form>
@@ -179,7 +186,9 @@ export function UserProfileForm({ profile, userEmail, userRole }: UserProfileFor
         <Card>
           <CardHeader>
             <CardTitle>Gérer votre avatar</CardTitle>
-            <CardDescription>Téléchargez ou sélectionnez un avatar depuis la bibliothèque</CardDescription>
+            <CardDescription>
+              Téléchargez ou sélectionnez un avatar depuis la bibliothèque
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="mb-6">
@@ -206,11 +215,11 @@ export function UserProfileForm({ profile, userEmail, userRole }: UserProfileFor
           </CardContent>
           <CardFooter>
             <Button onClick={handleSubmit} disabled={isSubmitting}>
-              {isSubmitting ? "Enregistrement..." : "Enregistrer les modifications"}
+              {isSubmitting ? 'Enregistrement...' : 'Enregistrer les modifications'}
             </Button>
           </CardFooter>
         </Card>
       </TabsContent>
     </Tabs>
-  )
+  );
 }

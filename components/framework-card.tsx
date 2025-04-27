@@ -1,77 +1,84 @@
-"use client"
+'use client';
 
-import type React from "react"
-import { ExternalLink, Github, BookOpen, AlertCircle } from "lucide-react"
-import { useState, useRef, useEffect } from "react"
-import ToggleExpandButton from "./ui/toggle-expand-button"
+import type React from 'react';
+import { ExternalLink, Github, BookOpen, AlertCircle } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import ToggleExpandButton from './ui/toggle-expand-button';
 
 interface FrameworkCardProps {
-  name: string
-  language: string
-  frameworksData: { [key: string]: any }
-  index?: number
-  onCorrection?: (frameworkName: string, e: React.MouseEvent) => void
+  name: string;
+  language: string;
+  frameworksData: { [key: string]: any };
+  index?: number;
+  onCorrection?: (frameworkName: string, e: React.MouseEvent) => void;
 }
 
-const FrameworkCard: React.FC<FrameworkCardProps> = ({ name, language, frameworksData, index = 0, onCorrection }) => {
+const FrameworkCard: React.FC<FrameworkCardProps> = ({
+  name,
+  language,
+  frameworksData,
+  index = 0,
+  onCorrection,
+}) => {
   // État pour suivre si la description est étendue ou non
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false);
   // Référence pour détecter si le contenu est tronqué
-  const descriptionRef = useRef<HTMLParagraphElement>(null)
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
   // État pour suivre si le contenu est tronqué
-  const [isTruncated, setIsTruncated] = useState(false)
+  const [isTruncated, setIsTruncated] = useState(false);
 
   // Récupérer les données du framework ou utiliser des données par défaut simplifiées
   const frameworkData = frameworksData[name] || {
     name,
     description: `Framework populaire pour ${language}`,
     usedFor: `Développement d'applications ${language}`,
-    features: ["Caractéristique 1", "Caractéristique 2", "Caractéristique 3"],
+    features: ['Caractéristique 1', 'Caractéristique 2', 'Caractéristique 3'],
     officialWebsite: `https://www.google.com/search?q=${name}+framework`,
     uniqueSellingPoint: `Framework spécialisé pour ${language}`,
     bestFor: `Projets ${language}`,
-    version: "N/A",
+    version: 'N/A',
     documentation: null,
     githubUrl: null,
-  }
+  };
 
   // Vérifier si le contenu est tronqué au chargement et au redimensionnement
   useEffect(() => {
     const checkTruncation = () => {
       if (descriptionRef.current) {
-        const lineHeight = Number.parseInt(window.getComputedStyle(descriptionRef.current).lineHeight) || 24
-        const twoLinesHeight = lineHeight * 2
-        const fullHeight = descriptionRef.current.scrollHeight
+        const lineHeight =
+          Number.parseInt(window.getComputedStyle(descriptionRef.current).lineHeight) || 24;
+        const twoLinesHeight = lineHeight * 2;
+        const fullHeight = descriptionRef.current.scrollHeight;
 
         // Définir comme tronqué si plus de 2 lignes
-        setIsTruncated(fullHeight > twoLinesHeight + 5) // +5px pour la marge d'erreur
+        setIsTruncated(fullHeight > twoLinesHeight + 5); // +5px pour la marge d'erreur
       }
-    }
+    };
 
     // Exécuter après le rendu initial et à chaque redimensionnement
-    setTimeout(checkTruncation, 0)
-    window.addEventListener("resize", checkTruncation)
+    setTimeout(checkTruncation, 0);
+    window.addEventListener('resize', checkTruncation);
 
     return () => {
-      window.removeEventListener("resize", checkTruncation)
-    }
-  }, [frameworkData.description])
+      window.removeEventListener('resize', checkTruncation);
+    };
+  }, [frameworkData.description]);
 
   // Fonction pour basculer l'état d'expansion
   const toggleExpand = () => {
-    setIsExpanded(!isExpanded)
-  }
+    setIsExpanded(!isExpanded);
+  };
 
   // Déterminer si c'est un framework recommandé (pour les 2 premiers)
-  const isRecommended = index < 2
+  const isRecommended = index < 2;
 
   // Déterminer si c'est un framework adapté aux débutants (basé sur une propriété ou un index)
-  const isBeginnerFriendly = frameworkData.beginnerFriendly || index === 2
+  const isBeginnerFriendly = frameworkData.beginnerFriendly || index === 2;
 
   return (
     <div
       className="border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all h-full bg-white"
-      id={`framework-${name.toLowerCase().replace(/\s+/g, "-")}`}
+      id={`framework-${name.toLowerCase().replace(/\s+/g, '-')}`}
     >
       {/* En-tête avec nom et description */}
       <div className="border-b-2 border-black p-4">
@@ -80,7 +87,7 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({ name, language, framework
 
           {onCorrection && (
             <button
-              onClick={(e) => onCorrection(name, e)}
+              onClick={e => onCorrection(name, e)}
               className="text-xs bg-white border-2 border-black px-1 py-0.5 hover:bg-yellow-300 transition-colors"
               aria-label={`Suggérer une correction pour ${name}`}
             >
@@ -93,10 +100,14 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({ name, language, framework
         {(isRecommended || isBeginnerFriendly) && (
           <div className="flex flex-wrap gap-2 mb-2">
             {isRecommended && (
-              <span className="bg-red-600 text-white text-xs px-1 border-2 border-black">CHOIX RECOMMANDÉ</span>
+              <span className="bg-red-600 text-white text-xs px-1 border-2 border-black">
+                CHOIX RECOMMANDÉ
+              </span>
             )}
             {isBeginnerFriendly && (
-              <span className="bg-green-600 text-white text-xs px-1 border-2 border-black">DÉBUTANT</span>
+              <span className="bg-green-600 text-white text-xs px-1 border-2 border-black">
+                DÉBUTANT
+              </span>
             )}
           </div>
         )}
@@ -106,13 +117,13 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({ name, language, framework
           <div
             className={`relative overflow-hidden transition-all duration-300 ease-in-out ${
               isExpanded
-                ? "h-auto absolute top-0 left-0 right-0 bg-white z-10 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-2"
-                : "h-full"
+                ? 'h-auto absolute top-0 left-0 right-0 bg-white z-10 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-2'
+                : 'h-full'
             }`}
           >
             <p
               ref={descriptionRef}
-              className={`text-lg text-gray-600 leading-relaxed pr-8 ${!isExpanded ? "line-clamp-2" : ""}`}
+              className={`text-lg text-gray-600 leading-relaxed pr-8 ${!isExpanded ? 'line-clamp-2' : ''}`}
             >
               {frameworkData.description}
             </p>
@@ -122,7 +133,7 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({ name, language, framework
               <ToggleExpandButton
                 isExpanded={isExpanded}
                 onClick={toggleExpand}
-                className={isExpanded ? "top-2 right-2" : ""}
+                className={isExpanded ? 'top-2 right-2' : ''}
               />
             )}
           </div>
@@ -176,7 +187,7 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({ name, language, framework
         )}
 
         {/* Version */}
-        {frameworkData.version && frameworkData.version !== "N/A" && (
+        {frameworkData.version && frameworkData.version !== 'N/A' && (
           <div className="text-sm mt-4 mb-2">
             <span className="font-bold">Version:</span> {frameworkData.version}
           </div>
@@ -214,15 +225,17 @@ const FrameworkCard: React.FC<FrameworkCardProps> = ({ name, language, framework
               <BookOpen className="h-4 w-4 mr-2" /> Documentation
             </a>
           )}
-          {!frameworkData.officialWebsite && !frameworkData.githubUrl && !frameworkData.documentation && (
-            <div className="inline-flex items-center text-sm bg-gray-100 text-gray-700 px-3 py-2 border-2 border-black">
-              <AlertCircle className="h-4 w-4 mr-2" /> Pas de liens disponibles
-            </div>
-          )}
+          {!frameworkData.officialWebsite &&
+            !frameworkData.githubUrl &&
+            !frameworkData.documentation && (
+              <div className="inline-flex items-center text-sm bg-gray-100 text-gray-700 px-3 py-2 border-2 border-black">
+                <AlertCircle className="h-4 w-4 mr-2" /> Pas de liens disponibles
+              </div>
+            )}
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default FrameworkCard
+export default FrameworkCard;

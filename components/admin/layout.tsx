@@ -1,8 +1,8 @@
-"use client"
+'use client';
 
-import type { ReactNode } from "react"
-import { AdminSidebar } from "./admin-sidebar"
-import RoleProtected from "@/components/auth/role-protected"
+import type { ReactNode } from 'react';
+import { AdminSidebar } from './admin-sidebar';
+import RoleProtected from '@/components/auth/role-protected';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
@@ -20,5 +20,5 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <main className="flex-1 p-6 overflow-auto">{children}</main>
       </div>
     </RoleProtected>
-  )
+  );
 }

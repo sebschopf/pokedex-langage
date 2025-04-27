@@ -1,97 +1,101 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState, useEffect } from "react"
-import { X } from "lucide-react"
-import { submitCorrection } from "@/app/actions/correction-actions"
-import type { Language } from "@/types/models/language" // Importation depuis models
+import { useState, useEffect } from 'react';
+import { X } from 'lucide-react';
+import { submitCorrection } from '@/app/actions/correction-actions';
+import type { Language } from '@/types/models/language'; // Importation depuis models
 
 // Mettre à jour l'interface pour inclure un paramètre optionnel pour le framework
 interface CorrectionFormProps {
-  language: Language
-  framework?: string // Nom du framework si on corrige un framework
-  onClose: () => void
-  onSuccess: () => void
+  language: Language;
+  framework?: string; // Nom du framework si on corrige un framework
+  onClose: () => void;
+  onSuccess: () => void;
 }
 
 // Utiliser export function au lieu de export default function
 export function CorrectionForm({ language, framework, onClose, onSuccess }: CorrectionFormProps) {
-  const [correctionType, setCorrectionType] = useState<string>("language") // "language" ou "framework"
-  const [field, setField] = useState<string>("usedFor")
-  const [frameworkField, setFrameworkField] = useState<string>("description")
-  const [suggestion, setSuggestion] = useState<string>("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [frameworkName, setFrameworkName] = useState<string>(framework || "")
+  const [correctionType, setCorrectionType] = useState<string>('language'); // "language" ou "framework"
+  const [field, setField] = useState<string>('usedFor');
+  const [frameworkField, setFrameworkField] = useState<string>('description');
+  const [suggestion, setSuggestion] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [frameworkName, setFrameworkName] = useState<string>(framework || '');
 
   // Initialiser le type de correction en fonction de la présence d'un framework
   useEffect(() => {
     if (framework) {
-      setCorrectionType("framework")
-      setFrameworkName(framework)
+      setCorrectionType('framework');
+      setFrameworkName(framework);
     }
-  }, [framework])
+  }, [framework]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!suggestion.trim()) {
-      setError("Veuillez entrer une suggestion")
-      return
+      setError('Veuillez entrer une suggestion');
+      return;
     }
 
-    if (correctionType === "framework" && !frameworkName.trim()) {
-      setError("Veuillez entrer un nom de framework")
-      return
+    if (correctionType === 'framework' && !frameworkName.trim()) {
+      setError('Veuillez entrer un nom de framework');
+      return;
     }
 
-    setIsSubmitting(true)
-    setError(null)
+    setIsSubmitting(true);
+    setError(null);
 
     try {
       // Créer un objet FormData
-      const formData = new FormData()
+      const formData = new FormData();
 
       // Ajouter les données au FormData
-      formData.append("languageId", language.id.toString())
-      formData.append("field", correctionType === "language" ? field : frameworkField)
-      formData.append("suggestion", suggestion)
-      formData.append("type", correctionType)
+      formData.append('languageId', language.id.toString());
+      formData.append('field', correctionType === 'language' ? field : frameworkField);
+      formData.append('suggestion', suggestion);
+      formData.append('type', correctionType);
 
       // Ajouter le nom du framework si nécessaire
-      if (correctionType === "framework") {
-        formData.append("frameworkName", framework || frameworkName)
+      if (correctionType === 'framework') {
+        formData.append('frameworkName', framework || frameworkName);
       }
 
       // Soumettre la correction
-      await submitCorrection(formData)
+      await submitCorrection(formData);
 
-      setIsSubmitting(false)
-      onSuccess()
+      setIsSubmitting(false);
+      onSuccess();
     } catch (err) {
-      setIsSubmitting(false)
-      setError("Une erreur est survenue. Veuillez réessayer.")
-      console.error(err)
+      setIsSubmitting(false);
+      setError('Une erreur est survenue. Veuillez réessayer.');
+      console.error(err);
     }
-  }
+  };
 
   // Aide pour le format des ressources
   const getPlaceholder = () => {
-    if (correctionType === "framework" && frameworkField === "resources") {
-      return "Format: Nom du lien|URL\nExemple:\nDocumentation officielle|https://example.com\nTutoriels|https://tutorials.com"
+    if (correctionType === 'framework' && frameworkField === 'resources') {
+      return 'Format: Nom du lien|URL\nExemple:\nDocumentation officielle|https://example.com\nTutoriels|https://tutorials.com';
     }
-    return "Entrez votre suggestion ici..."
-  }
+    return 'Entrez votre suggestion ici...';
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] w-full max-w-lg">
         <div className="flex justify-between items-center p-4 border-b-4 border-black">
           <h2 className="text-2xl font-black">
-            {framework ? `Suggérer une correction pour ${framework}` : "Suggérer une correction"}
+            {framework ? `Suggérer une correction pour ${framework}` : 'Suggérer une correction'}
           </h2>
-          <button onClick={onClose} className="bg-black text-white p-1 hover:bg-gray-800" aria-label="Fermer">
+          <button
+            onClick={onClose}
+            className="bg-black text-white p-1 hover:bg-gray-800"
+            aria-label="Fermer"
+          >
             <X size={24} />
           </button>
         </div>
@@ -105,7 +109,7 @@ export function CorrectionForm({ language, framework, onClose, onSuccess }: Corr
               <select
                 id="correction-type"
                 value={correctionType}
-                onChange={(e) => setCorrectionType(e.target.value)}
+                onChange={e => setCorrectionType(e.target.value)}
                 className="w-full p-2 border-4 border-black font-medium"
               >
                 <option value="language">Langage de programmation</option>
@@ -114,7 +118,7 @@ export function CorrectionForm({ language, framework, onClose, onSuccess }: Corr
             </div>
           )}
 
-          {correctionType === "framework" && (
+          {correctionType === 'framework' && (
             <div className="mb-4">
               <label htmlFor="framework-name" className="block font-bold mb-2">
                 Nom du framework:
@@ -123,7 +127,7 @@ export function CorrectionForm({ language, framework, onClose, onSuccess }: Corr
                 id="framework-name"
                 type="text"
                 value={frameworkName}
-                onChange={(e) => setFrameworkName(e.target.value)}
+                onChange={e => setFrameworkName(e.target.value)}
                 placeholder="Entrez le nom du framework"
                 readOnly={!!framework}
                 className="w-full p-2 border-4 border-black font-medium"
@@ -135,11 +139,11 @@ export function CorrectionForm({ language, framework, onClose, onSuccess }: Corr
             <label htmlFor="field" className="block font-bold mb-2">
               Champ à corriger:
             </label>
-            {correctionType === "language" ? (
+            {correctionType === 'language' ? (
               <select
                 id="field"
                 value={field}
-                onChange={(e) => setField(e.target.value)}
+                onChange={e => setField(e.target.value)}
                 className="w-full p-2 border-4 border-black font-medium"
               >
                 <option value="usedFor">Utilisé pour</option>
@@ -152,7 +156,7 @@ export function CorrectionForm({ language, framework, onClose, onSuccess }: Corr
               <select
                 id="field"
                 value={frameworkField}
-                onChange={(e) => setFrameworkField(e.target.value)}
+                onChange={e => setFrameworkField(e.target.value)}
                 className="w-full p-2 border-4 border-black font-medium"
               >
                 <option value="description">Description</option>
@@ -173,11 +177,11 @@ export function CorrectionForm({ language, framework, onClose, onSuccess }: Corr
             <textarea
               id="suggestion"
               value={suggestion}
-              onChange={(e) => setSuggestion(e.target.value)}
+              onChange={e => setSuggestion(e.target.value)}
               className="w-full p-2 border-4 border-black font-medium min-h-[120px]"
               placeholder={getPlaceholder()}
             />
-            {correctionType === "framework" && frameworkField === "resources" && (
+            {correctionType === 'framework' && frameworkField === 'resources' && (
               <p className="text-sm text-gray-600 mt-1">
                 Entrez chaque ressource sur une nouvelle ligne au format "Nom|URL"
               </p>
@@ -198,14 +202,14 @@ export function CorrectionForm({ language, framework, onClose, onSuccess }: Corr
               disabled={isSubmitting}
               className="px-4 py-2 bg-black text-white border-4 border-black font-bold hover:bg-gray-800 disabled:opacity-50"
             >
-              {isSubmitting ? "Envoi en cours..." : "Envoyer"}
+              {isSubmitting ? 'Envoi en cours...' : 'Envoyer'}
             </button>
           </div>
         </form>
       </div>
     </div>
-  )
+  );
 }
 
 //  permettre l'import par défaut au cas où
-export default CorrectionForm
+export default CorrectionForm;
