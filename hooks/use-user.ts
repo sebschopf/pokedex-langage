@@ -1,129 +1,87 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { createBrowserClient } from "@/lib/client/supabase"
-import type { UserRoleType } from "@/types/models/user-role"
-import type { Profile } from "@/types/models/profile"
-import type { User } from "@supabase/supabase-js"
-
-export interface UserData {
-  user: User | null
-  userRole: UserRoleType | null
-  profile: Profile | null
-  isLoading: boolean
-  error: Error | null
-  refreshUserData: () => Promise<void>
-}
+import type { User } from "@/types/models/profile"
+import type { UserRoleType } from "@/lib/client/permissions"
+import { dbUserToUser } from "@/lib/server/mapping/profile-mapping" // Correction de l'importation
 
 /**
- * Hook personnalisé pour accéder aux données utilisateur
- * Fournit l'utilisateur, son rôle, son profil et des fonctions utilitaires
+ * Hook pour récupérer les données de l'utilisateur connecté
  */
-export function useUser(): UserData {
+export function useUser() {
   const [user, setUser] = useState<User | null>(null)
   const [userRole, setUserRole] = useState<UserRoleType | null>(null)
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
   const supabase = createBrowserClient()
 
-  const fetchUserData = useCallback(async () => {
-    try {
-      setIsLoading(true)
-      setError(null)
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        setIsLoading(true)
 
-      // Récupérer la session
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+        // Vérifier si l'utilisateur est connecté
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
 
-      if (sessionError) {
-        throw new Error(`Erreur lors de la récupération de la session: ${sessionError.message}`)
+        if (!session) {
+          setUser(null)
+          setUserRole(null)
+          return
+        }
+
+        // Récupérer les données complètes de l'utilisateur
+        // Utiliser la méthode auth.admin.getUserById au lieu de from("users")
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(session.user.id)
+
+        if (userError) {
+          throw new Error(userError.message)
+        }
+
+        if (userData) {
+          // Convertir les données de la base de données en format d'application
+          const appUser = dbUserToUser({
+            id: userData.user.id,
+            email: userData.user.email || null, // Conversion de undefined en null
+            created_at: userData.user.created_at,
+            updated_at: userData.user.updated_at || null // Conversion de undefined en null
+          })
+          setUser(appUser)
+        } else {
+          // Fallback avec les données minimales
+          setUser({
+            id: session.user.id,
+            email: session.user.email || null, // Conversion de undefined en null
+            createdAt: new Date(session.user.created_at).toISOString(),
+            updatedAt: null,
+          })
+        }
+
+        // Récupérer le rôle de l'utilisateur
+        const { data: roleData, error: roleError } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single()
+
+        if (roleError && roleError.code !== "PGRST116") {
+          // PGRST116 = "No rows returned" - c'est normal si l'utilisateur n'a pas encore de rôle
+          console.error("Erreur lors de la récupération du rôle:", roleError)
+        }
+
+        // Utiliser le rôle récupéré ou "registered" par défaut
+        setUserRole((roleData?.role as UserRoleType) || "registered")
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error("Une erreur est survenue"))
+      } finally {
+        setIsLoading(false)
       }
-
-      const session = sessionData.session
-
-      if (!session) {
-        // Pas de session, réinitialiser les états
-        setUser(null)
-        setUserRole(null)
-        setProfile(null)
-        return
-      }
-
-      // Définir l'utilisateur
-      setUser(session.user)
-
-      // Récupérer le rôle et le profil en une seule requête si possible
-      // Si votre base de données le permet, vous pourriez utiliser une procédure stockée ou une vue
-      // Pour cet exemple, nous utilisons deux requêtes séparées mais optimisées
-
-      // Récupérer le rôle
-      const { data: roleData, error: roleError } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.user.id)
-        .single()
-
-      if (roleError && roleError.code !== "PGRST116") {
-        // PGRST116 = "No rows returned" - c'est normal si l'utilisateur n'a pas encore de rôle
-        console.error("Erreur lors de la récupération du rôle:", roleError)
-      }
-
-      setUserRole((roleData?.role as UserRoleType) || "registered")
-
-      // Récupérer le profil
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", session.user.id)
-        .single()
-
-      if (profileError && profileError.code !== "PGRST116") {
-        console.error("Erreur lors de la récupération du profil:", profileError)
-      }
-
-      if (profileData) {
-        setProfile(profileData as unknown as Profile)
-      }
-    } catch (err) {
-      console.error("Erreur dans useUser:", err)
-      setError(err instanceof Error ? err : new Error(String(err)))
-    } finally {
-      setIsLoading(false)
     }
+
+    fetchUser()
   }, [supabase])
 
-  // Fonction pour rafraîchir manuellement les données utilisateur
-  const refreshUserData = useCallback(async () => {
-    await fetchUserData()
-  }, [fetchUserData])
-
-  useEffect(() => {
-    // Charger les données utilisateur au montage
-    fetchUserData()
-
-    // S'abonner aux changements d'état d'authentification
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event) => {
-      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-        await fetchUserData()
-      } else if (event === "SIGNED_OUT") {
-        setUser(null)
-        setUserRole(null)
-        setProfile(null)
-      }
-    })
-
-    // Nettoyer l'abonnement
-    return () => {
-      authListener.subscription.unsubscribe()
-    }
-  }, [supabase, fetchUserData])
-
-  return {
-    user,
-    userRole,
-    profile,
-    isLoading,
-    error,
-    refreshUserData,
-  }
+  return { user, userRole, isLoading, error }
 }
