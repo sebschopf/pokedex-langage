@@ -74,9 +74,12 @@ export async function updateProposalStatus(id: number, status: "approved" | "rej
     revalidatePath("/")
 
     return { success: true }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erreur lors de la mise à jour du statut de la proposition:", error)
-    return { success: false, error: error.message }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    }
   }
 }
 
@@ -130,8 +133,11 @@ export async function submitLanguageProposal(formData: FormData) {
     revalidatePath("/suggestions")
 
     return { success: true }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erreur lors de la soumission de la proposition:", error)
-    return { success: false, error: error.message }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    }
   }
 }

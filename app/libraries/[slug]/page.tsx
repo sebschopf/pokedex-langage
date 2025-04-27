@@ -1,17 +1,17 @@
-import { notFound } from "next/navigation"
-import { getLibraryBySlug } from "@/lib/server/api/libraries"
-import { getLanguageById } from "@/lib/server/api/languages"
-import Link from "next/link"
+import { notFound } from 'next/navigation';
+import { getLibraryBySlug } from '@/lib/server/api/libraries';
+import { getLanguageById } from '@/lib/server/api/languages';
+import Link from 'next/link';
 
 export default async function LibraryPage({ params }: { params: { slug: string } }) {
-  const library = await getLibraryBySlug(params.slug)
+  const library = await getLibraryBySlug(params.slug);
 
   if (!library) {
-    notFound()
+    notFound();
   }
 
   // Récupérer les informations du langage associé
-  const language = library.languageId ? await getLanguageById(library.languageId) : null
+  const language = library.languageId ? await getLanguageById(library.languageId) : null;
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -27,7 +27,10 @@ export default async function LibraryPage({ params }: { params: { slug: string }
               {language && (
                 <li className="flex flex-col">
                   <span className="font-bold text-lg">Langage:</span>
-                  <Link href={`/languages/${language.slug}`} className="text-blue-600 hover:underline">
+                  <Link
+                    href={`/languages/${language.slug}`}
+                    className="text-blue-600 hover:underline"
+                  >
                     {language.name}
                   </Link>
                 </li>
@@ -47,7 +50,7 @@ export default async function LibraryPage({ params }: { params: { slug: string }
               {library.isOpenSource !== undefined && (
                 <li className="flex flex-col">
                   <span className="font-bold text-lg">Open Source:</span>
-                  <span className="text-lg">{library.isOpenSource ? "Oui" : "Non"}</span>
+                  <span className="text-lg">{library.isOpenSource ? 'Oui' : 'Non'}</span>
                 </li>
               )}
               {library.license && (
@@ -118,5 +121,5 @@ export default async function LibraryPage({ params }: { params: { slug: string }
         )}
       </div>
     </div>
-  )
+  );
 }

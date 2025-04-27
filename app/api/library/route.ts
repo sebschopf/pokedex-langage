@@ -1,47 +1,49 @@
-import { NextResponse } from "next/server"
-import { getAllLibraries, createLibrary } from "@/lib/server/api/libraries"
-import { isValidSlug } from "@/utils/slugs"
-import type { Library } from "@/types/models/library"
-import { generateSlug } from "@/utils/slugs"
+import { NextResponse } from 'next/server';
+import { getAllLibraries, createLibrary } from '@/lib/server/api/libraries';
+import { isValidSlug } from '@/utils/slugs';
+import type { Library } from '@/types/models/library';
+import { generateSlug } from '@/utils/slugs';
 
 // Forcer le rendu dynamique de cette route
-export const dynamic = "force-dynamic"
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url)
-    const search = searchParams.get("search") || undefined
-    const languageId = searchParams.get("languageId") ? Number(searchParams.get("languageId")) : undefined
-    const technologyType = searchParams.get("technologyType") || undefined
-    const sort = searchParams.get("sort") || undefined
-    const page = Number(searchParams.get("page") || "1")
-    const pageSize = Number(searchParams.get("pageSize") || "20")
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get('search') || undefined;
+    const languageId = searchParams.get('languageId')
+      ? Number(searchParams.get('languageId'))
+      : undefined;
+    const technologyType = searchParams.get('technologyType') || undefined;
+    const sort = searchParams.get('sort') || undefined;
+    const page = Number(searchParams.get('page') || '1');
+    const pageSize = Number(searchParams.get('pageSize') || '20');
 
     // Correction: utiliser getAllLibraries au lieu de getLibraries
-    const libraries = await getAllLibraries()
+    const libraries = await getAllLibraries();
 
     // Filtrage et tri basiques (à améliorer avec une implémentation plus robuste)
-    let filteredLibraries = libraries
+    let filteredLibraries = libraries;
 
     if (search) {
       filteredLibraries = filteredLibraries.filter(
-        (lib) =>
+        lib =>
           lib.name.toLowerCase().includes(search.toLowerCase()) ||
           (lib.description && lib.description.toLowerCase().includes(search.toLowerCase())),
-      )
+      );
     }
 
     if (languageId) {
-      filteredLibraries = filteredLibraries.filter((lib) => lib.languageId === languageId)
+      filteredLibraries = filteredLibraries.filter(lib => lib.languageId === languageId);
     }
 
     if (technologyType) {
-      filteredLibraries = filteredLibraries.filter((lib) => lib.technologyType === technologyType)
+      filteredLibraries = filteredLibraries.filter(lib => lib.technologyType === technologyType);
     }
 
     // Pagination
-    const totalCount = filteredLibraries.length
-    const paginatedLibraries = filteredLibraries.slice((page - 1) * pageSize, page * pageSize)
+    const totalCount = filteredLibraries.length;
+    const paginatedLibraries = filteredLibraries.slice((page - 1) * pageSize, page * pageSize);
 
     return NextResponse.json({
       data: paginatedLibraries,
@@ -49,40 +51,44 @@ export async function GET(request: Request) {
       page,
       pageSize,
       totalPages: Math.ceil(totalCount / pageSize),
-    })
+    });
   } catch (error) {
-    console.error("Erreur lors de la récupération des bibliothèques:", error)
-    return NextResponse.json({ error: "Erreur lors de la récupération des bibliothèques" }, { status: 500 })
+    console.error('Erreur lors de la récupération des bibliothèques:', error);
+    return NextResponse.json(
+      { error: 'Erreur lors de la récupération des bibliothèques' },
+      { status: 500 },
+    );
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
+    const body = await request.json();
 
     // Validation des champs obligatoires
     if (!body.name) {
-      return NextResponse.json({ error: "Le nom est obligatoire" }, { status: 400 })
+      return NextResponse.json({ error: 'Le nom est obligatoire' }, { status: 400 });
     }
 
     // Générer un slug si non fourni
     if (!body.slug) {
-      body.slug = generateSlug(body.name)
+      body.slug = generateSlug(body.name);
     }
 
     // Validation du format du slug
     if (!isValidSlug(body.slug)) {
       return NextResponse.json(
         {
-          error: "Le slug n'est pas valide. Utilisez uniquement des lettres minuscules, des chiffres et des tirets.",
+          error:
+            "Le slug n'est pas valide. Utilisez uniquement des lettres minuscules, des chiffres et des tirets.",
         },
         { status: 400 },
-      )
+      );
     }
 
     // Correction: convertir Partial<Library> en Omit<Library, "id">
     // en s'assurant que tous les champs obligatoires sont présents
-    const libraryData: Omit<Library, "id"> = {
+    const libraryData: Omit<Library, 'id'> = {
       name: body.name,
       slug: body.slug,
       // Définir des valeurs par défaut pour les champs obligatoires
@@ -107,30 +113,30 @@ export async function POST(request: Request) {
       // Ajouter les propriétés manquantes
       license: body.license ?? null,
       websiteUrl: body.websiteUrl ?? null,
-    }
+    };
 
     // Créer la bibliothèque
-    const library = await createLibrary(libraryData)
+    const library = await createLibrary(libraryData);
 
-    return NextResponse.json(library)
+    return NextResponse.json(library);
   } catch (error) {
-    console.error("Erreur lors de la création de la bibliothèque:", error)
+    console.error('Erreur lors de la création de la bibliothèque:', error);
 
     // Gérer l'erreur de contrainte d'unicité
-    if (error instanceof Error && error.message.includes("unique constraint")) {
+    if (error instanceof Error && error.message.includes('unique constraint')) {
       return NextResponse.json(
         {
-          error: "Un slug identique existe déjà. Veuillez en choisir un autre.",
+          error: 'Un slug identique existe déjà. Veuillez en choisir un autre.',
         },
         { status: 409 },
-      )
+      );
     }
 
     return NextResponse.json(
       {
-        error: "Erreur lors de la création de la bibliothèque",
+        error: 'Erreur lors de la création de la bibliothèque',
       },
       { status: 500 },
-    )
+    );
   }
 }

@@ -1,38 +1,38 @@
-import Link from "next/link"
-import { Plus } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { TodoList } from "@/components/todo-list"
-import { SeedTodosButton } from "@/components/seed-todos-button"
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
-import { redirect } from "next/navigation"
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { TodoList } from '@/components/todo-list';
+import { SeedTodosButton } from '@/components/seed-todos-button';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
-export const dynamic = "force-dynamic"
+export const dynamic = 'force-dynamic';
 
 export default async function TodosPage() {
   // Vérifier si l'utilisateur est connecté
-  const supabase = createServerComponentClient({ cookies })
+  const supabase = createServerComponentClient({ cookies });
   const {
     data: { session },
-  } = await supabase.auth.getSession()
+  } = await supabase.auth.getSession();
 
   if (!session) {
-    redirect("/login")
+    redirect('/login');
   }
 
   // Récupérer les catégories et les statuts
-  const { data: categories } = await supabase.from("todo_categories").select("*").order("name")
+  const { data: categories } = await supabase.from('todo_categories').select('*').order('name');
 
-  const { data: statuses } = await supabase.from("todo_status").select("*").order("id")
+  const { data: statuses } = await supabase.from('todo_status').select('*').order('id');
 
   // Récupérer les tâches de l'utilisateur
   const { data: todos } = await supabase
-    .from("todos")
-    .select("*")
-    .eq("user_id", session.user.id)
-    .order("created_at", { ascending: false })
+    .from('todos')
+    .select('*')
+    .eq('user_id', session.user.id)
+    .order('created_at', { ascending: false });
 
-  const hasTodos = todos && todos.length > 0
+  const hasTodos = todos && todos.length > 0;
 
   return (
     <div className="container mx-auto py-10">
@@ -49,7 +49,11 @@ export default async function TodosPage() {
         </div>
       </div>
 
-      <TodoList initialTodos={todos || []} categories={categories || []} statuses={statuses || []} />
+      <TodoList
+        initialTodos={todos || []}
+        categories={categories || []}
+        statuses={statuses || []}
+      />
     </div>
-  )
+  );
 }

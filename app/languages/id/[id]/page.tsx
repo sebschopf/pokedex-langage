@@ -1,27 +1,31 @@
-import { notFound } from "next/navigation"
-import { createServerClient } from "@/lib/supabase/server"
-import { dbToLanguage } from "@/lib/server/mapping/language-mapping/language-mapping"
-import type { Language } from "@/types/models/language"
+import { notFound } from 'next/navigation';
+import { createServerClient } from '@/lib/supabase/server';
+import { dbToLanguage } from '@/lib/server/mapping/language-mapping/language-mapping';
+import type { Language } from '@/types/models/language';
 
 // Récupérer les données du langage par ID
 async function getLanguageById(id: string): Promise<Language | null> {
-  const supabase = createServerClient()
-  const { data, error } = await supabase.from("languages").select("*").eq("id", Number.parseInt(id)).single()
+  const supabase = createServerClient();
+  const { data, error } = await supabase
+    .from('languages')
+    .select('*')
+    .eq('id', Number.parseInt(id))
+    .single();
 
   if (error || !data) {
-    console.error("Erreur lors de la récupération du langage:", error)
-    return null
+    console.error('Erreur lors de la récupération du langage:', error);
+    return null;
   }
 
   // Utiliser la fonction de mapping pour convertir les données
-  return dbToLanguage(data)
+  return dbToLanguage(data);
 }
 
 export default async function LanguageByIdPage({ params }: { params: { id: string } }) {
-  const language = await getLanguageById(params.id)
+  const language = await getLanguageById(params.id);
 
   if (!language) {
-    notFound()
+    notFound();
   }
 
   return (
@@ -30,7 +34,9 @@ export default async function LanguageByIdPage({ params }: { params: { id: strin
 
       {/* Afficher les détails du langage */}
       <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-6 mb-8">
-        <p className="text-gray-800 mb-6 text-lg">{language.description || language.shortDescription}</p>
+        <p className="text-gray-800 mb-6 text-lg">
+          {language.description || language.shortDescription}
+        </p>
 
         {/* Autres détails du langage */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
@@ -43,7 +49,7 @@ export default async function LanguageByIdPage({ params }: { params: { id: strin
               </li>
               <li className="flex flex-col">
                 <span className="font-bold text-lg">Créateur:</span>
-                <span className="text-lg">{language.creator || "Non spécifié"}</span>
+                <span className="text-lg">{language.creator || 'Non spécifié'}</span>
               </li>
               <li className="flex flex-col">
                 <span className="font-bold text-lg">Type:</span>
@@ -51,7 +57,7 @@ export default async function LanguageByIdPage({ params }: { params: { id: strin
               </li>
               <li className="flex flex-col">
                 <span className="font-bold text-lg">Open Source:</span>
-                <span className="text-lg">{language.isOpenSource ? "Oui" : "Non"}</span>
+                <span className="text-lg">{language.isOpenSource ? 'Oui' : 'Non'}</span>
               </li>
               {language.currentVersion && (
                 <li className="flex flex-col">
@@ -130,5 +136,5 @@ export default async function LanguageByIdPage({ params }: { params: { id: strin
         )}
       </div>
     </div>
-  )
+  );
 }

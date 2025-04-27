@@ -6,29 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { hasRole } from "@/lib/server/auth"
 import { UpdateUserRoleForm } from "@/components/admin/update-user-role-form"
-import { formatDate } from "@/utils/date" 
+import { formatDate } from "@/utils/date"
 import { isValidDbRole, dbRoleToAppRole } from "@/utils/security"
 import type { UserRoleType, UserRoleTypeDB } from "@/lib/client/permissions"
-
-// Définition des types pour les données Supabase
-interface AuthUser {
-  email: string
-  created_at: string
-  last_sign_in_at: string | null
-}
-
-interface Profile {
-  username: string | null
-  avatar_url: string | null
-  updated_at: string | null
-}
-
-interface UserData {
-  id: string
-  role: UserRoleTypeDB
-  auth_users: AuthUser[]
-  profiles: Profile[]
-}
+import { dbUserWithProfileToUserWithProfile } from "@/lib/server/mapping/profile-mapping"
+import type { UserWithProfile } from "@/types/models/profile"
 
 export const metadata = {
   title: "Modifier un utilisateur | POKEDEX_DEV",
@@ -48,7 +30,8 @@ export default async function EditUserPage({ params }: { params: { id: string } 
   // Récupérer l'utilisateur avec son rôle et son profil
   const { data, error } = await supabase
     .from("user_roles")
-    .select(`
+    .select(
+      `
       id,
       role,
       auth_users:id (
@@ -59,9 +42,13 @@ export default async function EditUserPage({ params }: { params: { id: string } 
       profiles (
         username,
         avatar_url,
-        updated_at
+        updated_at,
+        full_name,
+        bio,
+        website
       )
-    `)
+    `,
+    )
     .eq("id", params.id)
     .single()
 
@@ -73,24 +60,22 @@ export default async function EditUserPage({ params }: { params: { id: string } 
   // Utiliser la fonction importée pour valider le rôle
   const userRole: UserRoleTypeDB = isValidDbRole(data.role) ? data.role : "registered"
 
-  // Créer l'objet user avec le rôle validé
-  const user: UserData = {
-    ...(data as any),
+  // Vérifier si auth_users et profiles sont des tableaux
+  const authUsers = Array.isArray(data.auth_users) ? data.auth_users : []
+  const profiles = Array.isArray(data.profiles) ? data.profiles : []
+
+  // Utiliser la fonction de mapping existante pour convertir les données
+  const userData = {
+    id: data.id,
+    email: authUsers[0]?.email || null,
+    created_at: authUsers[0]?.created_at || null,
+    updated_at: null,
+    profile: profiles[0] || undefined,
     role: userRole,
   }
 
-  // Extraction des données du premier élément des tableaux pour faciliter l'accès
-  const authUser = user.auth_users?.[0] || {
-    email: "",
-    created_at: new Date().toISOString(),
-    last_sign_in_at: null,
-  }
-
-  const profile = user.profiles?.[0] || {
-    username: null,
-    avatar_url: null,
-    updated_at: null,
-  }
+  // Convertir en modèle d'application
+  const user: UserWithProfile = dbUserWithProfileToUserWithProfile(userData)
 
   // Fonction pour obtenir l'URL de l'avatar
   const getAvatarUrl = (avatarPath: string | null) => {
@@ -103,12 +88,12 @@ export default async function EditUserPage({ params }: { params: { id: string } 
     }
   }
 
-  const avatarUrl = getAvatarUrl(profile.avatar_url)
-  const displayName = profile.username || authUser.email || "Utilisateur"
+  const avatarUrl = user.profile?.avatarUrl ? getAvatarUrl(user.profile.avatarUrl) : null
+  const displayName = user.profile?.username || user.email || "Utilisateur"
   const userInitial = (displayName[0] || "U").toUpperCase()
 
   // Utiliser la fonction dbRoleToAppRole pour convertir le rôle
-  const appRole: UserRoleType = dbRoleToAppRole(user.role)
+  const appRole: UserRoleType = dbRoleToAppRole(userRole)
 
   return (
     <div className="container py-10">
@@ -139,11 +124,11 @@ export default async function EditUserPage({ params }: { params: { id: string } 
             <div className="space-y-4">
               <div>
                 <p className="text-sm font-medium">Email</p>
-                <p>{authUser.email}</p>
+                <p>{user.email || "Non disponible"}</p>
               </div>
               <div>
                 <p className="text-sm font-medium">Nom d'utilisateur</p>
-                <p>{profile.username || "Non défini"}</p>
+                <p>{user.profile?.username || "Non défini"}</p>
               </div>
               <div>
                 <p className="text-sm font-medium">Rôle actuel</p>
@@ -153,15 +138,11 @@ export default async function EditUserPage({ params }: { params: { id: string } 
               </div>
               <div>
                 <p className="text-sm font-medium">Date d'inscription</p>
-                <p>{formatDate(authUser.created_at) || "Non disponible"}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Dernière connexion</p>
-                <p>{authUser.last_sign_in_at ? formatDate(authUser.last_sign_in_at) : "Jamais"}</p>
+                <p>{user.createdAt ? formatDate(user.createdAt) : "Non disponible"}</p>
               </div>
               <div>
                 <p className="text-sm font-medium">Dernière mise à jour du profil</p>
-                <p>{profile.updated_at ? formatDate(profile.updated_at) : "Jamais"}</p>
+                <p>{user.profile?.updatedAt ? formatDate(user.profile.updatedAt) : "Jamais"}</p>
               </div>
             </div>
           </CardContent>
@@ -173,7 +154,7 @@ export default async function EditUserPage({ params }: { params: { id: string } 
             <CardDescription>Attribuer un nouveau rôle à l'utilisateur</CardDescription>
           </CardHeader>
           <CardContent>
-            <UpdateUserRoleForm userId={user.id} currentRole={user.role} />
+            <UpdateUserRoleForm userId={user.id} currentRole={userRole} />
           </CardContent>
         </Card>
       </div>

@@ -6,5 +6,5 @@ export default function Loading() {
         <span className="font-bold text-xl">Chargement...</span>
       </div>
     </div>
-  )
+  );
 }

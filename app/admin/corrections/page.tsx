@@ -1,13 +1,13 @@
-import { getAllCorrections } from "@/lib/server/api/corrections"
-import { requireAdminSC } from "@/lib/server/auth/authorize"
-import { CorrectionList } from "@/components/admin/correction-list"
+import { getAllCorrections } from '@/lib/server/api/corrections';
+import { requireAdminSC } from '@/lib/server/auth/authorize';
+import { CorrectionList } from '@/components/admin/correction-list';
 
 export default async function AdminCorrectionsPage() {
   // Vérifier que l'utilisateur est administrateur
-  await requireAdminSC()
+  await requireAdminSC();
 
   // Récupérer toutes les corrections
-  const corrections = await getAllCorrections()
+  const corrections = await getAllCorrections();
 
   return (
     <div className="container mx-auto py-8">
@@ -15,5 +15,5 @@ export default async function AdminCorrectionsPage() {
 
       <CorrectionList corrections={corrections} />
     </div>
-  )
+  );
 }

@@ -1,27 +1,27 @@
-import { getUsageCategoryById } from "@/lib/server/api/usage-categories"
-import { UsageCategoryForm } from "@/components/usage-categories/usage-category-form"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
-import { notFound } from "next/navigation"
+import { getUsageCategoryById } from '@/lib/server/api/usage-categories';
+import { UsageCategoryForm } from '@/components/usage-categories/usage-category-form';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
+import { notFound } from 'next/navigation';
 
 interface PageProps {
   params: {
-    id: string
-  }
+    id: string;
+  };
 }
 
 export default async function EditUsageCategoryPage({ params }: PageProps) {
-  const id = Number.parseInt(params.id, 10)
+  const id = Number.parseInt(params.id, 10);
 
   if (isNaN(id)) {
-    notFound()
+    notFound();
   }
 
-  const category = await getUsageCategoryById(id)
+  const category = await getUsageCategoryById(id);
 
   if (!category) {
-    notFound()
+    notFound();
   }
 
   return (
@@ -40,5 +40,5 @@ export default async function EditUsageCategoryPage({ params }: PageProps) {
         <UsageCategoryForm category={category} />
       </div>
     </div>
-  )
+  );
 }

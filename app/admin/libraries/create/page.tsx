@@ -11,8 +11,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { customToast } from "@/components/custom-toast" // Importez customToast au lieu de toast
-import { generateSlug } from "@/utils/slugs"
-import { isValidSlug } from "@/utils/slugs"
+import { generateSlug, isValidSlug } from "@/utils/slugs"
 
 export default function CreateLibraryPage() {
   const router = useRouter()

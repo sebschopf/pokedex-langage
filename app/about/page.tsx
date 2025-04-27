@@ -1,5 +1,5 @@
-//about/page.tsx 
-import Link from "next/link"
+//about/page.tsx
+import Link from 'next/link';
 
 export default function AboutPage() {
   return (
@@ -16,18 +16,18 @@ export default function AboutPage() {
           Le projet Pokedex des langages
         </h2>
         <p className="mb-4 text-lg">
-          Ce projet a pour but de créer une encyclopédie des langages de programmation, inspirée du concept du Pokedex
-          dans l'univers Pokémon. L'objectif est de fournir une ressource éducative et ludique pour découvrir et
-          comparer les différents langages de programmation.
+          Ce projet a pour but de créer une encyclopédie des langages de programmation, inspirée du
+          concept du Pokedex dans l'univers Pokémon. L'objectif est de fournir une ressource
+          éducative et ludique pour découvrir et comparer les différents langages de programmation.
         </p>
         <p className="mb-4 text-lg">
-          Chaque langage est présenté sous forme de carte avec ses caractéristiques principales, son histoire, ses cas
-          d'usage et son taux d'utilisation dans l'industrie.
+          Chaque langage est présenté sous forme de carte avec ses caractéristiques principales, son
+          histoire, ses cas d'usage et son taux d'utilisation dans l'industrie.
         </p>
         <p className="text-lg font-medium">
-          Ce projet est open-source et les contributions sont les bienvenues. Si vous souhaitez ajouter un langage,
-          corriger une information ou améliorer le site, n'hésitez pas à utiliser le bouton "✎" présent sur chaque
-          carte.
+          Ce projet est open-source et les contributions sont les bienvenues. Si vous souhaitez
+          ajouter un langage, corriger une information ou améliorer le site, n'hésitez pas à
+          utiliser le bouton "✎" présent sur chaque carte.
         </p>
       </section>
 
@@ -35,32 +35,34 @@ export default function AboutPage() {
         <h2 className="text-3xl font-black mb-6 text-black uppercase tracking-tight border-b-4 border-black pb-2">
           Sources d'information
         </h2>
-        <p className="mb-6 text-lg">Les informations présentées sur ce site proviennent de diverses sources :</p>
+        <p className="mb-6 text-lg">
+          Les informations présentées sur ce site proviennent de diverses sources :
+        </p>
         <ul className="mb-6 space-y-4">
           {[
             {
-              name: "TIOBE Index",
-              url: "https://www.tiobe.com/tiobe-index/",
+              name: 'TIOBE Index',
+              url: 'https://www.tiobe.com/tiobe-index/',
               description: "Pour les statistiques d'utilisation des langages",
             },
             {
-              name: "GitHub Trending",
-              url: "https://github.com/trending",
-              description: "Pour les tendances actuelles",
+              name: 'GitHub Trending',
+              url: 'https://github.com/trending',
+              description: 'Pour les tendances actuelles',
             },
             {
-              name: "Stack Overflow Tags",
-              url: "https://stackoverflow.com/tags",
-              description: "Pour la popularité des langages parmi les développeurs",
+              name: 'Stack Overflow Tags',
+              url: 'https://stackoverflow.com/tags',
+              description: 'Pour la popularité des langages parmi les développeurs',
             },
             {
-              name: "Wikipedia",
-              url: "https://en.wikipedia.org/wiki/List_of_programming_languages",
+              name: 'Wikipedia',
+              url: 'https://en.wikipedia.org/wiki/List_of_programming_languages',
               description: "Pour l'histoire et les caractéristiques des langages",
             },
             {
-              name: "JetBrains Developer Ecosystem",
-              url: "https://www.jetbrains.com/lp/devecosystem/",
+              name: 'JetBrains Developer Ecosystem',
+              url: 'https://www.jetbrains.com/lp/devecosystem/',
               description: "Pour les tendances d'adoption",
             },
           ].map((source, index) => (
@@ -82,8 +84,8 @@ export default function AboutPage() {
           ))}
         </ul>
         <p className="text-lg font-medium p-4 bg-gray-100 border-l-4 border-black">
-          Les logos des langages de programmation sont la propriété de leurs détenteurs respectifs et sont utilisés à
-          des fins éducatives.
+          Les logos des langages de programmation sont la propriété de leurs détenteurs respectifs
+          et sont utilisés à des fins éducatives.
         </p>
       </section>
 
@@ -94,19 +96,19 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[
             {
-              name: "Next.js",
-              description: "Framework React pour le développement web",
+              name: 'Next.js',
+              description: 'Framework React pour le développement web',
             },
             {
-              name: "TypeScript",
-              description: "Pour un code plus robuste et typé",
+              name: 'TypeScript',
+              description: 'Pour un code plus robuste et typé',
             },
             {
-              name: "Tailwind CSS",
-              description: "Pour le style et la mise en page",
+              name: 'Tailwind CSS',
+              description: 'Pour le style et la mise en page',
             },
             {
-              name: "Vercel",
+              name: 'Vercel',
               description: "Pour l'hébergement et le déploiement",
             },
           ].map((tech, index) => (
@@ -127,6 +129,5 @@ export default function AboutPage() {
         </Link>
       </div>
     </div>
-  )
+  );
 }
-

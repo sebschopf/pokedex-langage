@@ -1,20 +1,20 @@
-import { requireAdminSC } from "@/lib/server/auth/authorize"
-import { getUserWithDetails, getAllUsersWithDetails } from "@/lib/server/api/users"
-import { getSession } from "@/lib/server/auth/session"
+import { requireAdminSC } from '@/lib/server/auth/authorize';
+import { getUserWithDetails, getAllUsersWithDetails } from '@/lib/server/api/users';
+import { getSession } from '@/lib/server/auth/session';
 
 export default async function AdminDashboardPage() {
   // Vérifier que l'utilisateur est administrateur
-  await requireAdminSC()
+  await requireAdminSC();
 
   // Récupérer la session de l'utilisateur
-  const session = await getSession()
-  const userId = session?.user.id
+  const session = await getSession();
+  const userId = session?.user.id;
 
   // Récupérer les détails de l'utilisateur connecté
-  const userDetails = userId ? await getUserWithDetails(userId) : null
+  const userDetails = userId ? await getUserWithDetails(userId) : null;
 
   // Récupérer tous les utilisateurs pour l'administration
-  const allUsers = await getAllUsersWithDetails()
+  const allUsers = await getAllUsersWithDetails();
 
   return (
     <div className="container mx-auto py-8">
@@ -23,7 +23,8 @@ export default async function AdminDashboardPage() {
       {userDetails && (
         <div className="mb-8 p-4 bg-gray-50 rounded-lg">
           <h2 className="text-xl font-semibold mb-2">
-            Bienvenue, {userDetails.profile?.fullName || userDetails.profile?.username || "Administrateur"}
+            Bienvenue,{' '}
+            {userDetails.profile?.fullName || userDetails.profile?.username || 'Administrateur'}
           </h2>
           <p>Rôle: {userDetails.role}</p>
         </div>
@@ -55,5 +56,5 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

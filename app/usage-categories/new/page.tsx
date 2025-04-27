@@ -1,7 +1,7 @@
-import { UsageCategoryForm } from "@/components/usage-categories/usage-category-form"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { UsageCategoryForm } from '@/components/usage-categories/usage-category-form';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
 export default function NewUsageCategoryPage() {
   return (
@@ -20,5 +20,5 @@ export default function NewUsageCategoryPage() {
         <UsageCategoryForm />
       </div>
     </div>
-  )
+  );
 }

@@ -38,6 +38,28 @@ export async function GET(request: Request) {
       filteredLanguages = filteredLanguages.filter((lang) => lang.type === technologyType)
     }
 
+    // Tri des résultats
+    if (sort) {
+      filteredLanguages = filteredLanguages.sort((a, b) => {
+        switch (sort) {
+          case "name":
+            return a.name.localeCompare(b.name)
+          case "name_desc":
+            return b.name.localeCompare(a.name)
+          case "year":
+            return (a.yearCreated || 0) - (b.yearCreated || 0)
+          case "year_desc":
+            return (b.yearCreated || 0) - (a.yearCreated || 0)
+          case "usage":
+            return (a.usageRate || 0) - (b.usageRate || 0)
+          case "usage_desc":
+            return (b.usageRate || 0) - (a.usageRate || 0)
+          default:
+            return 0
+        }
+      })
+    }
+
     // Pagination
     const totalCount = filteredLanguages.length
     const paginatedLanguages = filteredLanguages.slice((page - 1) * pageSize, page * pageSize)

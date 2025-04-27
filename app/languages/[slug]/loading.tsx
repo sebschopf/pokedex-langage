@@ -1,7 +1,7 @@
-import { Skeleton } from "@/components/ui/skeleton"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
 export default function LanguageLoading() {
   return (
@@ -64,5 +64,5 @@ export default function LanguageLoading() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

@@ -1,21 +1,21 @@
 export const dynamic = 'force-dynamic';
-import { requireAdminSC } from "@/lib/server/auth/authorize"
-import { getUserWithDetails } from "@/lib/server/api/users"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { AdminHeader } from "@/components/admin/admin-header"
+import { requireAdminSC } from '@/lib/server/auth/authorize';
+import { getUserWithDetails } from '@/lib/server/api/users';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AdminHeader } from '@/components/admin/admin-header';
 
 export default async function AdminDashboardPage() {
   // Cette fonction redirigera automatiquement si l'utilisateur n'est pas admin
-  const userId = await requireAdminSC()
+  const userId = await requireAdminSC();
 
   // Récupérer les détails de l'utilisateur
-  const { profile } = await getUserWithDetails(userId)
+  const { profile } = await getUserWithDetails(userId);
 
   return (
     <div className="space-y-6">
       <AdminHeader
         title="Tableau de bord d'administration"
-        description={`Bienvenue, ${profile?.fullName || profile?.username || "Administrateur"}`}
+        description={`Bienvenue, ${profile?.fullName || profile?.username || 'Administrateur'}`}
       />
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -62,5 +62,5 @@ export default async function AdminDashboardPage() {
 
       {/* Autres sections du tableau de bord */}
     </div>
-  )
+  );
 }

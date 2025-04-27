@@ -1,50 +1,50 @@
-import { createServerClient } from "@/lib/supabase/server"
-import { ToolGrid } from "@/components/tool-grid"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { PlusCircle } from "lucide-react"
-import { dbToLibrary } from "@/lib/server/mapping/library-mapping/db-to-library"
-import type { DbLibrary } from "@/types/database/library"
-import type { Library } from "@/types/models/library"
-import { getLanguagesForLibrary } from "@/lib/server/api/library-languages"
+import { createServerClient } from '@/lib/supabase/server';
+import { ToolGrid } from '@/components/tool-grid';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { PlusCircle } from 'lucide-react';
+import { dbToLibrary } from '@/lib/server/mapping/library-mapping/db-to-library';
+import type { DbLibrary } from '@/types/database/library';
+import type { Library } from '@/types/models/library';
+import { getLanguagesForLibrary } from '@/lib/server/api/library-languages';
 
 export const metadata = {
   title: "Outils d'analyse web | POKEDEX_DEV",
   description: "Découvrez les meilleurs outils d'analyse web pour améliorer vos applications",
-}
+};
 
 export default async function ToolsPage() {
-  const supabase = createServerClient()
+  const supabase = createServerClient();
 
   // Récupérer les outils d'analyse web avec le bon type
   const { data: toolsData, error } = await supabase
-    .from("libraries")
+    .from('libraries')
     .select(`*`)
-    .eq("technology_type", "testing-tool")
-    .order("name")
+    .eq('technology_type', 'testing-tool')
+    .order('name');
 
   if (error) {
-    console.error("Erreur lors de la récupération des outils:", error)
+    console.error('Erreur lors de la récupération des outils:', error);
   }
 
   // Convertir les données de la base de données en modèle d'application
-  const tools: Library[] = toolsData ? toolsData.map((tool) => dbToLibrary(tool as DbLibrary)) : []
+  const tools: Library[] = toolsData ? toolsData.map(tool => dbToLibrary(tool as DbLibrary)) : [];
 
   // Récupérer les langages associés pour chaque outil
   const toolsWithLanguages = await Promise.all(
-    tools.map(async (tool) => {
-      const languages = await getLanguagesForLibrary(tool.id)
+    tools.map(async tool => {
+      const languages = await getLanguagesForLibrary(tool.id);
       // Transformer les langages pour garantir que isPrimary est toujours un booléen
-      const transformedLanguages = languages.map((lang) => ({
+      const transformedLanguages = languages.map(lang => ({
         ...lang,
         isPrimary: !!lang.isPrimary, // Convertit boolean | null en boolean
-      }))
+      }));
       return {
         ...tool,
         languages: transformedLanguages,
-      }
+      };
     }),
-  )
+  );
 
   return (
     <div className="container py-8">
@@ -52,7 +52,8 @@ export default async function ToolsPage() {
         <div>
           <h1 className="text-4xl font-bold mb-2">Outils d'analyse web</h1>
           <p className="text-lg text-gray-600">
-            Découvrez les meilleurs outils pour analyser et améliorer les performances de vos applications web
+            Découvrez les meilleurs outils pour analyser et améliorer les performances de vos
+            applications web
           </p>
         </div>
         <Link href="/tools/add">
@@ -71,5 +72,5 @@ export default async function ToolsPage() {
         </div>
       )}
     </div>
-  )
+  );
 }

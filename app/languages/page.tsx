@@ -1,15 +1,15 @@
-import { getLanguages } from "@/lib/server/api/languages"
-import { LanguageGrid } from "@/components/language-grid"
-import SearchBar from "@/components/search-bar"
-import FilterBar from "@/components/filter-bar"
-import CategoryTitle from "@/components/category-title"
-import type { Metadata } from "next"
-import type { LanguageSearchParams } from "@/types/dto/search-params"
+import { getLanguages } from '@/lib/server/api/languages';
+import { LanguageGrid } from '@/components/language-grid';
+import SearchBar from '@/components/search-bar';
+import FilterBar from '@/components/filter-bar';
+import CategoryTitle from '@/components/category-title';
+import type { Metadata } from 'next';
+import type { LanguageSearchParams } from '@/types/dto/search-params';
 
 export const metadata: Metadata = {
-  title: "Langages de programmation",
-  description: "Découvrez tous les langages de programmation populaires",
-}
+  title: 'Langages de programmation',
+  description: 'Découvrez tous les langages de programmation populaires',
+};
 
 // Fonction pour convertir les paramètres de recherche en options pour l'API
 function convertSearchParamsToApiOptions(searchParams: LanguageSearchParams) {
@@ -17,24 +17,29 @@ function convertSearchParamsToApiOptions(searchParams: LanguageSearchParams) {
     page: Number(searchParams.page) || 1,
     pageSize: Number(searchParams.pageSize) || 100,
     search: searchParams.query,
-    category: searchParams.type !== "all" ? searchParams.type : undefined,
+    category: searchParams.type !== 'all' ? searchParams.type : undefined,
     minUsage: searchParams.usageMin ? Number(searchParams.usageMin) : undefined,
-    sort: (searchParams.sort as "name" | "usage" | "year") || "name",
-    openSource: searchParams.openSource === "true" ? true : searchParams.openSource === "false" ? false : undefined,
-  }
+    sort: (searchParams.sort as 'name' | 'usage' | 'year') || 'name',
+    openSource:
+      searchParams.openSource === 'true'
+        ? true
+        : searchParams.openSource === 'false'
+          ? false
+          : undefined,
+  };
 }
 
 export default async function LanguagesPage({
   searchParams,
 }: {
-  searchParams: LanguageSearchParams
+  searchParams: LanguageSearchParams;
 }) {
   // Convertir les paramètres de recherche en options pour l'API
-  const options = convertSearchParamsToApiOptions(searchParams)
+  const options = convertSearchParamsToApiOptions(searchParams);
 
   // Appel à l'API
-  const { data: languages, totalCount } = await getLanguages(options)
-  const query = searchParams.query || ""
+  const { data: languages, totalCount } = await getLanguages(options);
+  const query = searchParams.query || '';
 
   return (
     <div className="space-y-8">
@@ -49,7 +54,7 @@ export default async function LanguagesPage({
       </div>
 
       <CategoryTitle
-        title={query ? `Recherche: "${query}"` : "Tous les langages"}
+        title={query ? `Recherche: "${query}"` : 'Tous les langages'}
         count={languages.length}
         subtitle={`${languages.length} sur ${totalCount} langages`}
       />
@@ -60,5 +65,5 @@ export default async function LanguagesPage({
         searchParams={searchParams as { [key: string]: string | string[] | undefined }}
       />
     </div>
-  )
+  );
 }

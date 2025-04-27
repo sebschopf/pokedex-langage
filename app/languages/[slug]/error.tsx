@@ -1,19 +1,19 @@
-"use client"
+'use client';
 
-import { useEffect } from "react"
-import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { useEffect } from 'react';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 
 export default function LanguageError({
   error,
   reset,
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+  error: Error & { digest?: string };
+  reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Erreur dans la page de langage:", error)
-  }, [error])
+    console.error('Erreur dans la page de langage:', error);
+  }, [error]);
 
   return (
     <div className="container py-8 space-y-8">
@@ -27,7 +27,9 @@ export default function LanguageError({
 
       <div className="p-8 bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
         <h2 className="text-2xl font-bold mb-4">Erreur lors du chargement du langage</h2>
-        <p className="mb-6">{error.message || "Impossible de charger les informations de ce langage."}</p>
+        <p className="mb-6">
+          {error.message || 'Impossible de charger les informations de ce langage.'}
+        </p>
         <div className="flex gap-4">
           <button
             onClick={reset}
@@ -38,5 +40,5 @@ export default function LanguageError({
         </div>
       </div>
     </div>
-  )
+  );
 }

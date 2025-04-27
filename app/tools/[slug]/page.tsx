@@ -1,46 +1,50 @@
-import { createServerClient } from "@/lib/supabase/server"
-import { notFound } from "next/navigation"
-import Link from "next/link"
-import { ExternalLink, Github, ArrowLeft } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { dbToLibrary } from "@/lib/server/mapping/library-mapping/db-to-library"
-import { LanguageAssociationManager } from "@/components/language-association-manager"
-import { getLanguagesForLibrary } from "@/lib/server/api/library-languages"
-import type { DbLibrary } from "@/types/database/library"
+import { createServerClient } from '@/lib/supabase/server';
+import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import { ExternalLink, Github, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { dbToLibrary } from '@/lib/server/mapping/library-mapping/db-to-library';
+import { LanguageAssociationManager } from '@/components/language-association-manager';
+import { getLanguagesForLibrary } from '@/lib/server/api/library-languages';
+import type { DbLibrary } from '@/types/database/library';
 
 interface ToolPageProps {
   params: {
-    slug: string
-  }
+    slug: string;
+  };
 }
 
 export default async function ToolPage({ params }: ToolPageProps) {
-  const { slug } = params
-  const supabase = createServerClient()
+  const { slug } = params;
+  const supabase = createServerClient();
 
   // Récupérer les détails de l'outil
-  const { data: toolData, error } = await supabase.from("libraries").select(`*`).eq("slug", slug).single()
+  const { data: toolData, error } = await supabase
+    .from('libraries')
+    .select(`*`)
+    .eq('slug', slug)
+    .single();
 
   if (error || !toolData) {
-    notFound()
+    notFound();
   }
 
   // Convertir en modèle d'application
-  const tool = dbToLibrary(toolData as DbLibrary)
+  const tool = dbToLibrary(toolData as DbLibrary);
 
   // Récupérer les langages associés à cet outil
-  const associatedLanguagesRaw = await getLanguagesForLibrary(tool.id)
+  const associatedLanguagesRaw = await getLanguagesForLibrary(tool.id);
 
   // Transformer les langages pour garantir que isPrimary est toujours un booléen
-  const associatedLanguages = associatedLanguagesRaw.map((lang) => ({
+  const associatedLanguages = associatedLanguagesRaw.map(lang => ({
     ...lang,
     isPrimary: !!lang.isPrimary, // Convertit boolean | null en boolean
-  }))
+  }));
 
   // Séparer les langages principaux et secondaires
-  const primaryLanguage = associatedLanguages.find((lang) => lang.isPrimary)
-  const secondaryLanguages = associatedLanguages.filter((lang) => !lang.isPrimary)
+  const primaryLanguage = associatedLanguages.find(lang => lang.isPrimary);
+  const secondaryLanguages = associatedLanguages.filter(lang => !lang.isPrimary);
 
   return (
     <div className="container py-8">
@@ -56,8 +60,8 @@ export default async function ToolPage({ params }: ToolPageProps) {
           <h1 className="text-4xl font-bold">{tool.name}</h1>
 
           {tool.isOpenSource !== undefined && (
-            <Badge variant={tool.isOpenSource ? "success" : "destructive"}>
-              {tool.isOpenSource ? "Open Source" : "Propriétaire"}
+            <Badge variant={tool.isOpenSource ? 'success' : 'destructive'}>
+              {tool.isOpenSource ? 'Open Source' : 'Propriétaire'}
             </Badge>
           )}
         </div>
@@ -97,7 +101,9 @@ export default async function ToolPage({ params }: ToolPageProps) {
 
           {/* Langages associés */}
           <div className="border-4 border-black p-4 bg-yellow-100 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]">
-            <h2 className="text-2xl font-bold mb-4 border-b-2 border-black pb-2">Langages associés</h2>
+            <h2 className="text-2xl font-bold mb-4 border-b-2 border-black pb-2">
+              Langages associés
+            </h2>
 
             {associatedLanguages.length > 0 ? (
               <div className="space-y-4">
@@ -119,7 +125,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
                   <div>
                     <h3 className="font-bold mb-2">Langages secondaires:</h3>
                     <div className="flex flex-wrap gap-2">
-                      {secondaryLanguages.map((language) => (
+                      {secondaryLanguages.map(language => (
                         <Link key={language.id} href={`/languages/${language.slug}`}>
                           <Badge
                             variant="outline"
@@ -141,9 +147,13 @@ export default async function ToolPage({ params }: ToolPageProps) {
 
         {/* Section de gestion des associations (pour les administrateurs) */}
         <div className="mt-12 pt-8 border-t-2 border-gray-200">
-          <LanguageAssociationManager toolId={tool.id} toolSlug={tool.slug} initialAssociations={associatedLanguages} />
+          <LanguageAssociationManager
+            toolId={tool.id}
+            toolSlug={tool.slug}
+            initialAssociations={associatedLanguages}
+          />
         </div>
       </div>
     </div>
-  )
+  );
 }

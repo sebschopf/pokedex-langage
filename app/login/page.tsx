@@ -1,98 +1,102 @@
-"use client"
+'use client';
 
-import type React from "react"
-import type { UserRoleType } from "@/lib/client/permissions"
+import type React from 'react';
+import type { UserRoleType } from '@/lib/client/permissions';
 
-import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { Loader2 } from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
-import { createBrowserClient } from "@/lib/client/supabase"
-import { withTokenRefresh } from "@/lib/client/auth-helpers"
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import { createBrowserClient } from '@/lib/client/supabase';
+import { withTokenRefresh } from '@/lib/client/auth-helpers';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin")
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const { toast } = useToast()
-  const supabase = createBrowserClient()
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { toast } = useToast();
+  const supabase = createBrowserClient();
 
   // Ajouter un log pour voir si la page est rechargée en boucle
   useEffect(() => {
-    console.log("Page de login chargée")
-    console.log("Paramètres d'URL:", Object.fromEntries(searchParams.entries()))
-  }, [searchParams])
+    //console.log('Page de login chargée');
+    //console.log("Paramètres d'URL:", Object.fromEntries(searchParams.entries()));
+  }, [searchParams]);
 
   const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
-      setIsLoading(true)
-      console.log("Tentative de connexion avec:", email)
+      setIsLoading(true);
+      //console.log('Tentative de connexion avec:', email);
 
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
-      })
+      });
 
-      if (error) throw error
+      if (error) throw error;
 
-      console.log("Connexion réussie")
+      //console.log('Connexion réussie');
 
       // Utiliser withTokenRefresh pour gérer automatiquement le rafraîchissement du token
       await withTokenRefresh(async () => {
         // Vérifier le rôle de l'utilisateur pour rediriger vers le bon dashboard
         const {
           data: { session },
-        } = await supabase.auth.getSession()
+        } = await supabase.auth.getSession();
 
         if (session) {
-          const { data: userRole } = await supabase.from("user_roles").select("role").eq("id", session.user.id).single()
-          const role = userRole?.role as UserRoleType | undefined
-          console.log("Rôle de l'utilisateur:", role)
+          const { data: userRole } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+          const role = userRole?.role as UserRoleType | undefined;
+          //console.log("Rôle de l'utilisateur:", role);
 
           // Récupérer l'URL de redirection depuis les paramètres d'URL
-          const redirectedFrom = searchParams.get("redirectedFrom")
+          const redirectedFrom = searchParams.get('redirectedFrom');
 
           if (redirectedFrom) {
             // Si l'utilisateur a été redirigé depuis une page protégée, le renvoyer à cette page
-            console.log("Redirection vers:", redirectedFrom)
-            router.push(redirectedFrom)
-          } else if (role === "admin" || role === "validator") {
+            //console.log('Redirection vers:', redirectedFrom);
+            router.push(redirectedFrom);
+          } else if (role === 'admin' || role === 'validator') {
             // Si c'est un admin ou validator, rediriger vers le dashboard admin
-            console.log("Redirection vers /admin/dashboard")
-            router.push("/admin/dashboard")
+            //console.log('Redirection vers /admin/dashboard');
+            router.push('/admin/dashboard');
           } else {
             // Pour les utilisateurs normaux, rediriger vers la page principale
-            console.log("Redirection vers /")
-            router.push("/")
+            //console.log('Redirection vers /');
+            router.push('/');
           }
         } else {
           // Si pas de session (cas improbable après connexion réussie), rediriger vers la page principale
-          console.log("Pas de session, redirection vers /")
-          router.push("/")
+          //console.log('Pas de session, redirection vers /');
+          router.push('/');
         }
-      })
+      });
     } catch (error: any) {
-      console.error("Erreur de connexion:", error.message)
+      console.error('Erreur de connexion:', error.message);
       toast({
-        title: "Erreur de connexion",
+        title: 'Erreur de connexion',
         description: error.message,
-        variant: "destructive",
-      })
+        variant: 'destructive',
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
-      setIsLoading(true)
+      setIsLoading(true);
 
       const { error } = await supabase.auth.signUp({
         email,
@@ -100,54 +104,54 @@ export default function LoginPage() {
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
-      })
+      });
 
-      if (error) throw error
+      if (error) throw error;
 
       toast({
-        title: "Inscription réussie",
-        description: "Veuillez vérifier votre email pour confirmer votre compte.",
-      })
+        title: 'Inscription réussie',
+        description: 'Veuillez vérifier votre email pour confirmer votre compte.',
+      });
     } catch (error: any) {
       toast({
         title: "Erreur d'inscription",
         description: error.message,
-        variant: "destructive",
-      })
+        variant: 'destructive',
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleGitHubSignIn = async () => {
     try {
-      setIsLoading(true)
+      setIsLoading(true);
 
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: "github",
+        provider: 'github',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
         },
-      })
+      });
 
-      if (error) throw error
+      if (error) throw error;
     } catch (error: any) {
       toast({
-        title: "Erreur de connexion",
+        title: 'Erreur de connexion',
         description: error.message,
-        variant: "destructive",
-      })
+        variant: 'destructive',
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="container flex min-h-screen w-full flex-col items-center justify-center py-12">
       {/* Ajouter un message de débogage visible */}
       <div className="bg-yellow-100 p-4 mb-4 border-2 border-yellow-400 max-w-md">
         <p className="font-bold">Mode débogage:</p>
-        <p>URL actuelle: {typeof window !== "undefined" ? window.location.href : ""}</p>
+        <p>URL actuelle: {typeof window !== 'undefined' ? window.location.href : ''}</p>
         <p>Paramètres: {JSON.stringify(Object.fromEntries(searchParams.entries()))}</p>
       </div>
 
@@ -162,17 +166,17 @@ export default function LoginPage() {
           {/* Tabs Header */}
           <div className="grid w-full grid-cols-2 border-b-4 border-black">
             <button
-              onClick={() => setActiveTab("signin")}
+              onClick={() => setActiveTab('signin')}
               className={`py-4 font-black text-lg uppercase transition-colors ${
-                activeTab === "signin" ? "bg-yellow-300" : "bg-white hover:bg-gray-100"
+                activeTab === 'signin' ? 'bg-yellow-300' : 'bg-white hover:bg-gray-100'
               }`}
             >
               Connexion
             </button>
             <button
-              onClick={() => setActiveTab("signup")}
+              onClick={() => setActiveTab('signup')}
               className={`py-4 font-black text-lg uppercase transition-colors ${
-                activeTab === "signup" ? "bg-yellow-300" : "bg-white hover:bg-gray-100"
+                activeTab === 'signup' ? 'bg-yellow-300' : 'bg-white hover:bg-gray-100'
               } border-l-4 border-black`}
             >
               Inscription
@@ -181,11 +185,13 @@ export default function LoginPage() {
 
           {/* Tabs Content */}
           <div className="p-6">
-            {activeTab === "signin" ? (
+            {activeTab === 'signin' ? (
               <form onSubmit={handleSignIn} className="space-y-6">
                 <div className="space-y-2">
                   <h2 className="text-2xl font-black">Connexion</h2>
-                  <p className="text-base font-medium">Entrez vos identifiants pour vous connecter</p>
+                  <p className="text-base font-medium">
+                    Entrez vos identifiants pour vous connecter
+                  </p>
                 </div>
 
                 <div className="space-y-4">
@@ -198,7 +204,7 @@ export default function LoginPage() {
                       type="email"
                       placeholder="votre@email.com"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={e => setEmail(e.target.value)}
                       required
                       className="w-full p-3 border-4 border-black font-medium text-base"
                     />
@@ -212,7 +218,7 @@ export default function LoginPage() {
                       id="password"
                       type="password"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={e => setPassword(e.target.value)}
                       required
                       className="w-full p-3 border-4 border-black font-medium text-base"
                     />
@@ -231,7 +237,7 @@ export default function LoginPage() {
                         Connexion en cours...
                       </>
                     ) : (
-                      "Se connecter"
+                      'Se connecter'
                     )}
                   </button>
 
@@ -261,7 +267,9 @@ export default function LoginPage() {
               <form onSubmit={handleSignUp} className="space-y-6">
                 <div className="space-y-2">
                   <h2 className="text-2xl font-black">Inscription</h2>
-                  <p className="text-base font-medium">Créez un compte pour accéder à toutes les fonctionnalités</p>
+                  <p className="text-base font-medium">
+                    Créez un compte pour accéder à toutes les fonctionnalités
+                  </p>
                 </div>
 
                 <div className="space-y-4">
@@ -274,7 +282,7 @@ export default function LoginPage() {
                       type="email"
                       placeholder="votre@email.com"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={e => setEmail(e.target.value)}
                       required
                       className="w-full p-3 border-4 border-black font-medium text-base"
                     />
@@ -288,11 +296,13 @@ export default function LoginPage() {
                       id="signup-password"
                       type="password"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={e => setPassword(e.target.value)}
                       required
                       className="w-full p-3 border-4 border-black font-medium text-base"
                     />
-                    <p className="text-sm font-medium">Le mot de passe doit contenir au moins 6 caractères</p>
+                    <p className="text-sm font-medium">
+                      Le mot de passe doit contenir au moins 6 caractères
+                    </p>
                   </div>
                 </div>
 
@@ -318,5 +328,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

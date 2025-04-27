@@ -1,6 +1,6 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { AlertTriangle } from "lucide-react"
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { AlertTriangle } from 'lucide-react';
 
 export default function UnauthorizedPage() {
   return (
@@ -19,5 +19,5 @@ export default function UnauthorizedPage() {
         </Button>
       </div>
     </div>
-  )
+  );
 }

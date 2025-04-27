@@ -1,31 +1,35 @@
-import { createServerClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import StorageManager from "@/components/storage-manager"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import  AdminLayout from "@/components/admin/layout"
+import { createServerClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
+import StorageManager from '@/components/storage-manager';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AdminLayout from '@/components/admin/layout';
 
 export const metadata = {
-  title: "Gestion des médias | POKEDEX_DEV",
-  description: "Gérez les médias du site",
-}
+  title: 'Gestion des médias | POKEDEX_DEV',
+  description: 'Gérez les médias du site',
+};
 
 export default async function AdminStoragePage() {
-  const supabase = createServerClient()
+  const supabase = createServerClient();
 
   // Vérifier si l'utilisateur est connecté et a le rôle admin ou validator
   const {
     data: { session },
-  } = await supabase.auth.getSession()
+  } = await supabase.auth.getSession();
 
   if (!session) {
-    redirect("/login?redirect=/admin/storage")
+    redirect('/login?redirect=/admin/storage');
   }
 
   // Vérifier le rôle de l'utilisateur
-  const { data: userRole } = await supabase.from("user_roles").select("role").eq("id", session.user.id).single()
+  const { data: userRole } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('id', session.user.id)
+    .single();
 
-  if (!userRole || (userRole.role !== "admin" && userRole.role !== "validator")) {
-    redirect("/")
+  if (!userRole || (userRole.role !== 'admin' && userRole.role !== 'validator')) {
+    redirect('/');
   }
 
   return (
@@ -54,5 +58,5 @@ export default async function AdminStoragePage() {
         </Tabs>
       </div>
     </AdminLayout>
-  )
+  );
 }

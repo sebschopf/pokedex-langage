@@ -1,13 +1,13 @@
-import { getAllUsageCategories } from "@/lib/server/api/usage-categories"
-import { UsageCategoryList } from "@/components/usage-categories/usage-category-list"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { PlusCircle } from "lucide-react"
+import { getAllUsageCategories } from '@/lib/server/api/usage-categories';
+import { UsageCategoryList } from '@/components/usage-categories/usage-category-list';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { PlusCircle } from 'lucide-react';
 
-export const dynamic = "force-dynamic"
+export const dynamic = 'force-dynamic';
 
 export default async function UsageCategoriesPage() {
-  const categories = await getAllUsageCategories()
+  const categories = await getAllUsageCategories();
 
   return (
     <div className="container py-8">
@@ -23,5 +23,5 @@ export default async function UsageCategoriesPage() {
 
       <UsageCategoryList categories={categories} />
     </div>
-  )
+  );
 }

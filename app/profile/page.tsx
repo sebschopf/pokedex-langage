@@ -1,92 +1,92 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { withTokenRefresh } from "@/lib/client/auth-helpers"
-import { useToast } from "@/components/ui/use-toast"
-import { Loader2 } from "lucide-react"
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { withTokenRefresh } from '@/lib/client/auth-helpers';
+import { useToast } from '@/components/ui/use-toast';
+import { Loader2 } from 'lucide-react';
 
-import { useAuth } from "@/components/providers/auth-provider"
-import { createBrowserClient } from "@/lib/client/supabase"
-import type { Profile } from "@/types/models"
-import type { UserRoleType } from "@/lib/client/permissions"
+import { useAuth } from '@/components/providers/auth-provider';
+import { createBrowserClient } from '@/lib/client/supabase';
+import type { Profile } from '@/types/models';
+import type { UserRoleType } from '@/lib/client/permissions';
 
 // Fonction utilitaire pour obtenir le libellé du rôle
 function getRoleLabel(role: UserRoleType | null): string {
-  if (!role) return "Non défini"
+  if (!role) return 'Non défini';
 
   const roleLabels: Record<string, string> = {
-    admin: "Administrateur",
-    validator: "Validateur",
-    verified: "Utilisateur vérifié",
-    registered: "Utilisateur enregistré",
-    anonymous: "Visiteur",
-  }
+    admin: 'Administrateur',
+    validator: 'Validateur',
+    verified: 'Utilisateur vérifié',
+    registered: 'Utilisateur enregistré',
+    anonymous: 'Visiteur',
+  };
 
-  return roleLabels[role] || "Rôle inconnu"
+  return roleLabels[role] || 'Rôle inconnu';
 }
 
 // Fonction utilitaire pour obtenir la classe CSS du badge de rôle
 function getRoleBadgeClass(role: UserRoleType | null): string {
-  if (!role) return "bg-gray-100"
+  if (!role) return 'bg-gray-100';
 
   const roleBadgeClasses: Record<string, string> = {
-    admin: "bg-red-100",
-    validator: "bg-purple-100",
-    verified: "bg-green-100",
-    registered: "bg-blue-100",
-    anonymous: "bg-gray-100",
-  }
+    admin: 'bg-red-100',
+    validator: 'bg-purple-100',
+    verified: 'bg-green-100',
+    registered: 'bg-blue-100',
+    anonymous: 'bg-gray-100',
+  };
 
-  return roleBadgeClasses[role] || "bg-gray-100"
+  return roleBadgeClasses[role] || 'bg-gray-100';
 }
 
 export default function ProfilePage() {
-  const { user, userRole, isLoading, signOut, refreshUserData } = useAuth()
+  const { user, userRole, isLoading, signOut, refreshUserData } = useAuth();
 
-  const [updating, setUpdating] = useState(false)
-  const [username, setUsername] = useState("")
-  const [bio, setBio] = useState("")
-  const [website, setWebsite] = useState("")
-  const router = useRouter()
-  const { toast } = useToast()
-  const supabase = createBrowserClient()
+  const [updating, setUpdating] = useState(false);
+  const [username, setUsername] = useState('');
+  const [bio, setBio] = useState('');
+  const [website, setWebsite] = useState('');
+  const router = useRouter();
+  const { toast } = useToast();
+  const supabase = createBrowserClient();
 
   // Charger les données du profil au montage du composant
   useEffect(() => {
     const loadProfileData = async () => {
-      if (!user) return
+      if (!user) return;
 
       try {
         const { data, error } = await supabase
-          .from("profiles")
-          .select("username, bio, website")
-          .eq("id", user.id)
-          .single()
+          .from('profiles')
+          .select('username, bio, website')
+          .eq('id', user.id)
+          .single();
 
-        if (error && error.code !== "PGRST116") {
-          console.error("Erreur lors de la récupération du profil:", error)
-          return
+        if (error && error.code !== 'PGRST116') {
+          console.error('Erreur lors de la récupération du profil:', error);
+          return;
         }
 
         if (data) {
-          setUsername(data.username || "")
-          setBio(data.bio || "")
-          setWebsite(data.website || "")
+          setUsername(data.username || '');
+          setBio(data.bio || '');
+          setWebsite(data.website || '');
         }
       } catch (error) {
-        console.error("Erreur lors de la récupération du profil:", error)
+        console.error('Erreur lors de la récupération du profil:', error);
       }
-    }
+    };
 
-    loadProfileData()
-  }, [user, supabase])
+    loadProfileData();
+  }, [user, supabase]);
 
   const updateProfile = async () => {
     try {
-      setUpdating(true)
+      setUpdating(true);
 
-      if (!user) return
+      if (!user) return;
 
       // Utiliser withTokenRefresh pour gérer automatiquement le rafraîchissement du token
       await withTokenRefresh(async () => {
@@ -96,41 +96,41 @@ export default function ProfilePage() {
           bio,
           website,
           updatedAt: new Date().toISOString(),
-        }
+        };
 
-        const { error } = await supabase.from("profiles").upsert({
+        const { error } = await supabase.from('profiles').upsert({
           id: user.id,
           username,
           bio,
           website,
           updated_at: new Date().toISOString(),
-        })
+        });
 
-        if (error) throw error
+        if (error) throw error;
 
         // Rafraîchir les données utilisateur dans le contexte
-        await refreshUserData()
+        await refreshUserData();
 
         toast({
-          title: "Profil mis à jour",
-          description: "Votre profil a été mis à jour avec succès.",
-        })
-      })
+          title: 'Profil mis à jour',
+          description: 'Votre profil a été mis à jour avec succès.',
+        });
+      });
     } catch (error: any) {
       toast({
-        title: "Erreur",
+        title: 'Erreur',
         description: error.message,
-        variant: "destructive",
-      })
+        variant: 'destructive',
+      });
     } finally {
-      setUpdating(false)
+      setUpdating(false);
     }
-  }
+  };
 
   const handleSignOut = async () => {
-    await signOut()
-    router.push("/")
-  }
+    await signOut();
+    router.push('/');
+  };
 
   if (isLoading || !user) {
     return (
@@ -140,7 +140,7 @@ export default function ProfilePage() {
           <span>Chargement...</span>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -175,7 +175,7 @@ export default function ProfilePage() {
               id="username"
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={e => setUsername(e.target.value)}
               placeholder="Entrez votre nom d'utilisateur"
               className="w-full p-3 border-4 border-black font-medium text-base"
             />
@@ -188,7 +188,7 @@ export default function ProfilePage() {
             <textarea
               id="bio"
               value={bio}
-              onChange={(e) => setBio(e.target.value)}
+              onChange={e => setBio(e.target.value)}
               placeholder="Parlez-nous de vous"
               className="w-full p-3 border-4 border-black font-medium text-base"
               rows={4}
@@ -203,7 +203,7 @@ export default function ProfilePage() {
               id="website"
               type="url"
               value={website}
-              onChange={(e) => setWebsite(e.target.value)}
+              onChange={e => setWebsite(e.target.value)}
               placeholder="https://votre-site-web.com"
               className="w-full p-3 border-4 border-black font-medium text-base"
             />
@@ -221,28 +221,28 @@ export default function ProfilePage() {
                   Mise à jour...
                 </>
               ) : (
-                "Enregistrer les modifications"
+                'Enregistrer les modifications'
               )}
             </button>
           </div>
         </div>
 
         {/* Fonctionnalités spécifiques au rôle */}
-        {userRole && (userRole === "admin" || userRole === "validator") && (
+        {userRole && (userRole === 'admin' || userRole === 'validator') && (
           <div className="border-t-4 border-black p-6">
             <h2 className="text-xl font-bold mb-4">Fonctionnalités spéciales</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {userRole === "admin" && (
+              {userRole === 'admin' && (
                 <button
-                  onClick={() => router.push("/admin")}
+                  onClick={() => router.push('/admin')}
                   className="p-4 border-4 border-black bg-red-100 hover:bg-red-200 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1"
                 >
                   Panneau d'administration
                 </button>
               )}
-              {(userRole === "admin" || userRole === "validator") && (
+              {(userRole === 'admin' || userRole === 'validator') && (
                 <button
-                  onClick={() => router.push("/validation")}
+                  onClick={() => router.push('/validation')}
                   className="p-4 border-4 border-black bg-purple-100 hover:bg-purple-200 transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1"
                 >
                   Gérer les validations
@@ -263,5 +263,5 @@ export default function ProfilePage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

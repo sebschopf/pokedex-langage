@@ -42,8 +42,9 @@ export default function CorrectionForm({ languages, onSubmit }: CorrectionFormPr
         })
       }
     } catch (error) {
+      console.error("Erreur lors de la soumission de la correction:", error)
       setMessage({
-        text: "Une erreur est survenue lors de la soumission de votre correction. Veuillez réessayer.",
+        text: `Une erreur est survenue: ${error instanceof Error ? error.message : "Veuillez réessayer."}`,
         type: "error",
       })
     } finally {

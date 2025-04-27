@@ -1,19 +1,49 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { useRouter } from "next/navigation"
+import { redirect } from "next/navigation"
+import { AdminDashboard } from "@/components/admin/dashboard"
+import { useToast } from "@/hooks/use-toast"
 import { Loader2 } from "lucide-react"
+import { createBrowserClient } from "@/lib/client/supabase"
+import type { User } from "@supabase/supabase-js"
+import type { UserRoleType } from "@/lib/client/permissions"
+
+// Remplacer l'interface Suggestion par celle-ci pour correspondre à celle attendue par AdminDashboard
+interface Suggestion {
+  id: number
+  language_id: number | null
+  field: string
+  correction_text: string
+  framework: string | null
+  status: string
+  suggestion: string | null
+  user_id: string | null
+  created_at: string
+  updated_at: string | null
+  languages?: {
+    name: string
+  }
+  type?: string
+  proposal_name?: string
+}
 
 export default function AdminDashboardPage() {
+  const [user, setUser] = useState<User | null>(null)
+  const [userRole, setUserRole] = useState<UserRoleType | null>(null)
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
-  const [userRole, setUserRole] = useState<string | null>(null)
-  const router = useRouter()
-  const supabase = createClientComponentClient()
+  const [pendingSuggestionsCount, setPendingSuggestionsCount] = useState(0)
+  const [pendingCorrectionsCount, setPendingCorrectionsCount] = useState(0)
+  const [pendingProposalsCount, setPendingProposalsCount] = useState(0)
+  const [languagesCount, setLanguagesCount] = useState(0)
+  const [usersCount, setUsersCount] = useState(0)
+  const [recentSuggestions, setRecentSuggestions] = useState<Suggestion[]>([])
+
+  const { toast } = useToast()
+  const supabase = createBrowserClient()
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true)
 
@@ -23,82 +53,154 @@ export default function AdminDashboardPage() {
         } = await supabase.auth.getSession()
 
         if (!session) {
-          // Le middleware devrait déjà gérer cette redirection, mais par sécurité
-          router.push("/")
+          redirect("/login")
           return
         }
 
         setUser(session.user)
 
-        // Vérifier le rôle de l'utilisateur
-        const { data: roleData } = await supabase.from("user_roles").select("role").eq("id", session.user.id).single()
+        // Récupérer le rôle de l'utilisateur
+        const { data: userRoleData, error: roleError } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single()
 
-        if (roleData) {
-          setUserRole(roleData.role)
+        if (roleError) {
+          console.error("Erreur lors de la récupération du rôle:", roleError)
+          toast({
+            title: "Erreur",
+            description: "Impossible de récupérer votre rôle",
+            variant: "destructive",
+          })
+          redirect("/")
+          return
         }
+
+        setUserRole(userRoleData.role as UserRoleType)
+
+        // Le layout vérifie déjà le rôle, donc nous n'avons plus besoin de le faire ici
+
+        // Récupérer les statistiques du tableau de bord
+        const fetchDashboardStats = async () => {
+          try {
+            // Récupérer le nombre de suggestions en attente
+            const { count: pendingSuggestions, error: pendingError } = await supabase
+              .from("corrections")
+              .select("*", { count: "exact", head: true })
+              .eq("status", "pending")
+
+            if (!pendingError) {
+              setPendingSuggestionsCount(pendingSuggestions || 0)
+            }
+
+            // Récupérer le nombre de corrections en attente
+            const { count: pendingCorrections, error: correctionsError } = await supabase
+              .from("corrections")
+              .select("*", { count: "exact", head: true })
+              .eq("status", "pending")
+              .neq("field", "new_language")
+
+            if (!correctionsError) {
+              setPendingCorrectionsCount(pendingCorrections || 0)
+            }
+
+            // Récupérer le nombre de propositions en attente
+            const { count: pendingProposals, error: proposalsError } = await supabase
+              .from("language_proposals")
+              .select("*", { count: "exact", head: true })
+              .eq("status", "pending")
+
+            if (!proposalsError) {
+              setPendingProposalsCount(pendingProposals || 0)
+            }
+
+            // Récupérer le nombre de langages
+            const { count: languages, error: languagesError } = await supabase
+              .from("languages")
+              .select("*", { count: "exact", head: true })
+
+            if (!languagesError) {
+              setLanguagesCount(languages || 0)
+            }
+
+            // Récupérer le nombre d'utilisateurs
+            const { count: users, error: usersError } = await supabase
+              .from("profiles")
+              .select("*", { count: "exact", head: true })
+
+            if (!usersError) {
+              setUsersCount(users || 0)
+            }
+
+            // Récupérer les suggestions récentes
+            const { data: recentData, error: recentError } = await supabase
+              .from("corrections")
+              .select(`
+                *,
+                languages:language_id (name)
+              `)
+              .order("created_at", { ascending: false })
+              .limit(5)
+
+            if (!recentError && recentData) {
+              // Transformer les données pour s'assurer que field n'est jamais null
+              const processedData = recentData.map((item) => ({
+                ...item,
+                field: item.field || "", // Convertir null en chaîne vide
+                created_at: item.created_at || new Date().toISOString(), // S'assurer que created_at n'est jamais null
+              })) as Suggestion[]
+
+              setRecentSuggestions(processedData)
+            }
+          } catch (error) {
+            console.error("Erreur lors de la récupération des statistiques:", error)
+          }
+        }
+
+        await fetchDashboardStats()
       } catch (error) {
-        console.error("Erreur lors de la vérification de l'authentification:", error)
+        console.error("Erreur:", error)
+        toast({
+          title: "Erreur",
+          description: "Une erreur est survenue lors du chargement des données",
+          variant: "destructive",
+        })
       } finally {
         setLoading(false)
       }
     }
 
-    checkAuth()
-  }, [router, supabase])
+    fetchData()
+  }, [supabase, toast])
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="flex items-center space-x-2">
+      <div className="flex items-center justify-center h-screen">
+        <div className="flex flex-col items-center gap-2">
           <Loader2 className="h-8 w-8 animate-spin" />
-          <span className="text-xl font-medium">Chargement...</span>
+          <p>Chargement du tableau de bord...</p>
         </div>
       </div>
     )
   }
 
+  // S'assurer que userRole n'est pas null avant de rendre le composant
+  if (!userRole) {
+    redirect("/login")
+    return null
+  }
+
   return (
-    <div className="container mx-auto py-12 px-4">
-      <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-6">
-        <h1 className="text-3xl font-black mb-6">Tableau de bord d'administration</h1>
-
-        <div className="bg-yellow-100 border-2 border-yellow-400 p-4 rounded-md mb-6">
-          <p className="font-medium">Vous êtes connecté en tant qu'administrateur.</p>
-          <p>Email: {user?.email}</p>
-          <p>Rôle: {userRole}</p>
-          <p>ID: {user?.id}</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="border-2 border-black p-4 rounded-md">
-            <h2 className="text-xl font-bold mb-2">Gestion des utilisateurs</h2>
-            <p className="mb-4">Gérer les utilisateurs et leurs rôles</p>
-            <button
-              onClick={() => router.push("/admin/users")}
-              className="px-4 py-2 bg-black text-white font-bold rounded hover:bg-gray-800"
-            >
-              Accéder
-            </button>
-          </div>
-
-          <div className="border-2 border-black p-4 rounded-md">
-            <h2 className="text-xl font-bold mb-2">Gestion des suggestions</h2>
-            <p className="mb-4">Gérer les suggestions des utilisateurs</p>
-            <button
-              onClick={() => router.push("/admin/suggestions")}
-              className="px-4 py-2 bg-black text-white font-bold rounded hover:bg-gray-800"
-            >
-              Accéder
-            </button>
-          </div>
-
-          <div className="border-2 border-black p-4 rounded-md">
-            <h2 className="text-xl font-bold mb-2">Statistiques</h2>
-            <p className="mb-4">Voir les statistiques du site</p>
-            <button className="px-4 py-2 bg-black text-white font-bold rounded hover:bg-gray-800">Accéder</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <AdminDashboard
+      user={user}
+      userRole={userRole}
+      pendingSuggestionsCount={pendingSuggestionsCount}
+      pendingCorrectionsCount={pendingCorrectionsCount}
+      pendingProposalsCount={pendingProposalsCount}
+      languagesCount={languagesCount}
+      usersCount={usersCount}
+      recentSuggestions={recentSuggestions}
+    />
   )
 }

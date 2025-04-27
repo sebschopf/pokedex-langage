@@ -1,29 +1,29 @@
-"use client"
+'use client';
 
-import { Suspense } from "react"
-import { notFound } from "next/navigation"
-import TodoForm from "@/components/todo-form"
-import { createServerClient } from "@/lib/supabase/server"
+import { Suspense } from 'react';
+import { notFound } from 'next/navigation';
+import TodoForm from '@/components/todo-form';
+import { createServerClient } from '@/lib/supabase/server';
 
 interface PageProps {
   params: {
-    id: string
-  }
+    id: string;
+  };
 }
 
 export default async function EditTodoPage({ params }: PageProps) {
-  const todoId = Number.parseInt(params.id)
+  const todoId = Number.parseInt(params.id);
 
   if (isNaN(todoId)) {
-    notFound()
+    notFound();
   }
 
   // Récupérer le todo depuis la base de données
-  const supabase = createServerClient()
-  const { data: todo, error } = await supabase.from("todos").select("*").eq("id", todoId).single()
+  const supabase = createServerClient();
+  const { data: todo, error } = await supabase.from('todos').select('*').eq('id', todoId).single();
 
   if (error || !todo) {
-    notFound()
+    notFound();
   }
 
   return (
@@ -33,5 +33,5 @@ export default async function EditTodoPage({ params }: PageProps) {
         <TodoForm todo={todo} onSubmit={() => {}} />
       </Suspense>
     </div>
-  )
+  );
 }

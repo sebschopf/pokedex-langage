@@ -1,5 +1,5 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { revalidatePath } from "next/cache"
+import { type NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 
 /**
  * Route API pour revalider les pages après des modifications dans Supabase
@@ -8,60 +8,64 @@ import { revalidatePath } from "next/cache"
 export async function POST(request: NextRequest) {
   try {
     // Vérifier le secret pour sécuriser l'endpoint
-    const secret = request.headers.get("x-revalidate-secret")
+    const secret = request.headers.get('x-revalidate-secret');
     if (secret !== process.env.REVALIDATE_SECRET) {
-      return NextResponse.json({ error: "Accès non autorisé" }, { status: 401 })
+      return NextResponse.json({ error: 'Accès non autorisé' }, { status: 401 });
     }
 
-    const body = await request.json()
+    const body = await request.json();
 
     // Extraire les informations du webhook
-    const { table, record, type } = body
+    const { table, record, type } = body;
 
     // Revalider les chemins appropriés en fonction de la table modifiée
-    if (table === "languages") {
+    if (table === 'languages') {
       // Revalider la page d'accueil et la page de détail du langage
-      revalidatePath("/")
+      revalidatePath('/');
       if (record?.slug) {
-        revalidatePath(`/language/${record.slug}`)
+        revalidatePath(`/language/${record.slug}`);
       }
-    } else if (table === "libraries") {
+    } else if (table === 'libraries') {
       // Revalider la page du langage associé
       if (record?.language_id) {
         // Récupérer le slug du langage à partir de l'ID
-        const { createBrowserClient } = await import("@/lib/supabase/client")
-        const supabase = createBrowserClient()
+        const { createBrowserClient } = await import('@/lib/supabase/client');
+        const supabase = createBrowserClient();
 
-        const { data: language } = await supabase.from("languages").select("slug").eq("id", record.language_id).single()
+        const { data: language } = await supabase
+          .from('languages')
+          .select('slug')
+          .eq('id', record.language_id)
+          .single();
 
         if (language?.slug) {
-          revalidatePath(`/language/${language.slug}`)
+          revalidatePath(`/language/${language.slug}`);
         } else {
           // Si on ne peut pas trouver le slug, revalidons toutes les pages
-          revalidatePath("/")
+          revalidatePath('/');
         }
       }
-    } else if (table === "corrections") {
+    } else if (table === 'corrections') {
       // Revalider la page d'administration des corrections
-      revalidatePath("/admin/suggestions")
-    } else if (table === "language_proposals") {
+      revalidatePath('/admin/suggestions');
+    } else if (table === 'language_proposals') {
       // Revalider la page d'administration des propositions
-      revalidatePath("/admin/suggestions")
+      revalidatePath('/admin/suggestions');
     }
 
     return NextResponse.json({
       revalidated: true,
       now: Date.now(),
       message: `Revalidation déclenchée pour la table ${table}`,
-    })
+    });
   } catch (error) {
-    console.error("Erreur lors de la revalidation:", error)
+    console.error('Erreur lors de la revalidation:', error);
     return NextResponse.json(
       {
-        error: "Erreur lors de la revalidation",
+        error: 'Erreur lors de la revalidation',
         message: error instanceof Error ? error.message : String(error),
       },
       { status: 500 },
-    )
+    );
   }
 }

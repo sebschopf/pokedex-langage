@@ -1,17 +1,17 @@
-"use server"
+'use server';
 
-import { revalidatePath } from "next/cache"
-import { createServerClient } from "@/lib/supabase/server"
+import { revalidatePath } from 'next/cache';
+import { createServerClient } from '@/lib/supabase/server';
 
 // Types pour les todos
 interface Todo {
-  id?: number
-  title: string
-  description?: string | null
-  status_id?: number | null
-  category_id?: number | null
-  user_id?: string | null
-  due_date?: string | null
+  id?: number;
+  title: string;
+  description?: string | null;
+  status_id?: number | null;
+  category_id?: number | null;
+  user_id?: string | null;
+  due_date?: string | null;
 }
 
 /**
@@ -21,19 +21,19 @@ interface Todo {
  */
 export async function createTodo(todo: Todo) {
   try {
-    const supabase = createServerClient()
+    const supabase = createServerClient();
 
     // Vérifier les données requises
     if (!todo.title) {
       return {
         success: false,
-        message: "Le titre est obligatoire",
-      }
+        message: 'Le titre est obligatoire',
+      };
     }
 
     // Insérer la tâche dans la base de données
     const { data, error } = await supabase
-      .from("todos")
+      .from('todos')
       .insert({
         title: todo.title,
         description: todo.description || null,
@@ -44,26 +44,26 @@ export async function createTodo(todo: Todo) {
         created_at: new Date().toISOString(),
       })
       .select()
-      .single()
+      .single();
 
     if (error) {
-      throw error
+      throw error;
     }
 
     // Revalider les chemins
-    revalidatePath("/todos")
+    revalidatePath('/todos');
 
     return {
       success: true,
-      message: "Tâche créée avec succès",
+      message: 'Tâche créée avec succès',
       data,
-    }
+    };
   } catch (error) {
-    console.error("Erreur lors de la création de la tâche:", error)
+    console.error('Erreur lors de la création de la tâche:', error);
     return {
       success: false,
-      message: "Une erreur est survenue lors de la création de la tâche",
-    }
+      message: 'Une erreur est survenue lors de la création de la tâche',
+    };
   }
 }
 
@@ -75,19 +75,19 @@ export async function createTodo(todo: Todo) {
  */
 export async function updateTodo(id: number, todo: Partial<Todo>) {
   try {
-    const supabase = createServerClient()
+    const supabase = createServerClient();
 
     // Vérifier que l'ID est valide
     if (!id) {
       return {
         success: false,
-        message: "ID de tâche manquant",
-      }
+        message: 'ID de tâche manquant',
+      };
     }
 
     // Mettre à jour la tâche dans la base de données
     const { data, error } = await supabase
-      .from("todos")
+      .from('todos')
       .update({
         title: todo.title,
         description: todo.description,
@@ -97,29 +97,29 @@ export async function updateTodo(id: number, todo: Partial<Todo>) {
         due_date: todo.due_date,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", id)
+      .eq('id', id)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      throw error
+      throw error;
     }
 
     // Revalider les chemins
-    revalidatePath("/todos")
-    revalidatePath(`/todos/${id}`)
+    revalidatePath('/todos');
+    revalidatePath(`/todos/${id}`);
 
     return {
       success: true,
-      message: "Tâche mise à jour avec succès",
+      message: 'Tâche mise à jour avec succès',
       data,
-    }
+    };
   } catch (error) {
-    console.error("Erreur lors de la mise à jour de la tâche:", error)
+    console.error('Erreur lors de la mise à jour de la tâche:', error);
     return {
       success: false,
-      message: "Une erreur est survenue lors de la mise à jour de la tâche",
-    }
+      message: 'Une erreur est survenue lors de la mise à jour de la tâche',
+    };
   }
 }
 
@@ -130,36 +130,36 @@ export async function updateTodo(id: number, todo: Partial<Todo>) {
  */
 export async function deleteTodo(id: number) {
   try {
-    const supabase = createServerClient()
+    const supabase = createServerClient();
 
     // Vérifier que l'ID est valide
     if (!id) {
       return {
         success: false,
-        message: "ID de tâche manquant",
-      }
+        message: 'ID de tâche manquant',
+      };
     }
 
     // Supprimer la tâche de la base de données
-    const { error } = await supabase.from("todos").delete().eq("id", id)
+    const { error } = await supabase.from('todos').delete().eq('id', id);
 
     if (error) {
-      throw error
+      throw error;
     }
 
     // Revalider les chemins
-    revalidatePath("/todos")
+    revalidatePath('/todos');
 
     return {
       success: true,
-      message: "Tâche supprimée avec succès",
-    }
+      message: 'Tâche supprimée avec succès',
+    };
   } catch (error) {
-    console.error("Erreur lors de la suppression de la tâche:", error)
+    console.error('Erreur lors de la suppression de la tâche:', error);
     return {
       success: false,
-      message: "Une erreur est survenue lors de la suppression de la tâche",
-    }
+      message: 'Une erreur est survenue lors de la suppression de la tâche',
+    };
   }
 }
 
@@ -170,50 +170,50 @@ export async function deleteTodo(id: number) {
  */
 export async function completeTodo(id: number) {
   try {
-    const supabase = createServerClient()
+    const supabase = createServerClient();
 
     // Récupérer l'ID du statut "terminé"
     const { data: statusData, error: statusError } = await supabase
-      .from("todo_status")
-      .select("id")
-      .eq("name", "Terminé")
-      .single()
+      .from('todo_status')
+      .select('id')
+      .eq('name', 'Terminé')
+      .single();
 
     if (statusError) {
-      throw statusError
+      throw statusError;
     }
 
-    const completedStatusId = statusData.id
+    const completedStatusId = statusData.id;
 
     // Mettre à jour le statut de la tâche
     const { data, error } = await supabase
-      .from("todos")
+      .from('todos')
       .update({
         status_id: completedStatusId,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", id)
+      .eq('id', id)
       .select()
-      .single()
+      .single();
 
     if (error) {
-      throw error
+      throw error;
     }
 
     // Revalider les chemins
-    revalidatePath("/todos")
-    revalidatePath(`/todos/${id}`)
+    revalidatePath('/todos');
+    revalidatePath(`/todos/${id}`);
 
     return {
       success: true,
-      message: "Tâche marquée comme terminée",
+      message: 'Tâche marquée comme terminée',
       data,
-    }
+    };
   } catch (error) {
-    console.error("Erreur lors de la mise à jour du statut de la tâche:", error)
+    console.error('Erreur lors de la mise à jour du statut de la tâche:', error);
     return {
       success: false,
-      message: "Une erreur est survenue lors de la mise à jour du statut de la tâche",
-    }
+      message: 'Une erreur est survenue lors de la mise à jour du statut de la tâche',
+    };
   }
 }

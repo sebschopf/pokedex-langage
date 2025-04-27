@@ -1,10 +1,10 @@
-import type React from "react"
-import { Inter } from "next/font/google"
-import "./globals.css"
-import { RootProvider } from "@/components/providers/root-provider"
-import Header from "@/components/header"
+import type React from 'react';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { RootProvider } from '@/components/providers/root-provider';
+import Header from '@/components/header';
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ['latin'] });
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -16,5 +16,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </RootProvider>
       </body>
     </html>
-  )
+  );
 }
