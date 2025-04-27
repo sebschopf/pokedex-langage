@@ -23,11 +23,11 @@ Le "Pokedex des Langages de Programmation" est une application web qui catalogue
 L'application suit une architecture moderne basée sur Next.js avec le modèle App Router, utilisant Supabase comme backend-as-a-service pour la base de données, l'authentification et le stockage. L'architecture est conçue pour être modulaire, maintenable et évolutive.
 
 \`\`\`
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│                 │     │                 │     │                 │
-│  Client (Next)  │◄───►│  Server (Next)  │◄───►│    Supabase     │
-│                 │     │                 │     │                 │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│ │ │ │ │ │
+│ Client (Next) │◄───►│ Server (Next) │◄───►│ Supabase │
+│ │ │ │ │ │
+└─────────────────┘ └─────────────────┘ └─────────────────┘
 \`\`\`
 
 ## Structure du projet
@@ -36,35 +36,35 @@ Le projet suit une structure organisée par fonctionnalité et type de composant
 
 \`\`\`
 /
-├── app/                  # Routes Next.js (App Router)
-│   ├── api/              # Routes API
-│   ├── language/         # Pages des langages
-│   ├── tools/            # Pages des outils
-│   ├── admin/            # Pages d'administration
-│   └── ...
-├── components/           # Composants React
-│   ├── ui/               # Composants UI réutilisables
-│   ├── admin/            # Composants pour l'administration
-│   └── ...
-├── lib/                  # Logique métier et utilitaires
-│   ├── server/           # Code côté serveur
-│   │   ├── api/          # Fonctions d'accès aux données
-│   │   ├── auth/         # Fonctions d'authentification
-│   │   ├── mapping/      # Fonctions de mapping
-│   │   └── ...
-│   ├── client/           # Code côté client
-│   └── ...
-├── hooks/                # Hooks React personnalisés
-├── types/                # Définitions de types TypeScript
-│   ├── database/         # Types pour les tables de la base de données
-│   ├── models/           # Types pour les modèles de données
-│   └── ...
-├── utils/                # Fonctions utilitaires
-│   ├── security/         # Utilitaires de sécurité
-│   ├── slugs/            # Utilitaires pour les slugs
-│   ├── conversion/       # Utilitaires de conversion
-│   └── ...
-├── public/               # Fichiers statiques
+├── app/ # Routes Next.js (App Router)
+│ ├── api/ # Routes API
+│ ├── language/ # Pages des langages
+│ ├── tools/ # Pages des outils
+│ ├── admin/ # Pages d'administration
+│ └── ...
+├── components/ # Composants React
+│ ├── ui/ # Composants UI réutilisables
+│ ├── admin/ # Composants pour l'administration
+│ └── ...
+├── lib/ # Logique métier et utilitaires
+│ ├── server/ # Code côté serveur
+│ │ ├── api/ # Fonctions d'accès aux données
+│ │ ├── auth/ # Fonctions d'authentification
+│ │ ├── mapping/ # Fonctions de mapping
+│ │ └── ...
+│ ├── client/ # Code côté client
+│ └── ...
+├── hooks/ # Hooks React personnalisés
+├── types/ # Définitions de types TypeScript
+│ ├── database/ # Types pour les tables de la base de données
+│ ├── models/ # Types pour les modèles de données
+│ └── ...
+├── utils/ # Fonctions utilitaires
+│ ├── security/ # Utilitaires de sécurité
+│ ├── slugs/ # Utilitaires pour les slugs
+│ ├── conversion/ # Utilitaires de conversion
+│ └── ...
+├── public/ # Fichiers statiques
 └── ...
 \`\`\`
 
@@ -100,24 +100,24 @@ L'application utilise plusieurs modèles de données principaux, avec une sépar
 \`\`\`typescript
 // Type d'application
 interface Language {
-  id: number;
-  name: string;
-  slug: string;
-  description: string | null;
-  shortDescription: string | null;
-  type: string | null;
-  // ... autres propriétés
+id: number;
+name: string;
+slug: string;
+description: string | null;
+shortDescription: string | null;
+type: string | null;
+// ... autres propriétés
 }
 
 // Type de base de données
 interface DbLanguage {
-  id: number;
-  name: string;
-  slug: string;
-  description: string | null;
-  short_description: string | null;
-  type: string | null;
-  // ... autres propriétés
+id: number;
+name: string;
+slug: string;
+description: string | null;
+short_description: string | null;
+type: string | null;
+// ... autres propriétés
 }
 \`\`\`
 
@@ -125,12 +125,12 @@ interface DbLanguage {
 
 \`\`\`typescript
 interface Library {
-  id: number;
-  name: string;
-  slug: string;
-  languageId: number | null;
-  description: string | null;
-  // ... autres propriétés
+id: number;
+name: string;
+slug: string;
+languageId: number | null;
+description: string | null;
+// ... autres propriétés
 }
 \`\`\`
 
@@ -141,10 +141,10 @@ type UserRoleTypeDB = "admin" | "validator" | "verified" | "registered";
 type UserRoleType = UserRoleTypeDB | "anonymous";
 
 interface UserRole {
-  id: string;
-  role: UserRoleTypeDB;
-  createdAt: string | null;
-  updatedAt: string | null;
+id: string;
+role: UserRoleTypeDB;
+createdAt: string | null;
+updatedAt: string | null;
 }
 \`\`\`
 
@@ -157,15 +157,15 @@ L'application utilise Supabase Auth pour l'authentification des utilisateurs, av
 \`\`\`typescript
 // Exemple de vérification d'authentification côté serveur
 export async function requireAuthSC(redirectTo?: string): Promise<string> {
-  const supabase = createServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
+const supabase = createServerClient();
+const { data: { session } } = await supabase.auth.getSession();
 
-  if (!session) {
-    const redirectUrl = redirectTo ? `/login?redirectTo=${encodeURIComponent(redirectTo)}` : "/login";
-    redirect(redirectUrl);
-  }
+if (!session) {
+const redirectUrl = redirectTo ? `/login?redirectTo=${encodeURIComponent(redirectTo)}` : "/login";
+redirect(redirectUrl);
+}
 
-  return session.user.id;
+return session.user.id;
 }
 \`\`\`
 
@@ -182,17 +182,17 @@ L'application implémente un système de rôles hiérarchique avec les niveaux s
 \`\`\`typescript
 // Hiérarchie des rôles
 const ROLE_HIERARCHY: RoleHierarchy = {
-  admin: 100,
-  validator: 50,
-  verified: 20,
-  registered: 10,
-  anonymous: 0,
+admin: 100,
+validator: 50,
+verified: 20,
+registered: 10,
+anonymous: 0,
 };
 
 // Vérification des rôles
 export function checkUserRole(userRole: UserRoleType | null | undefined, requiredRole: UserRoleType): boolean {
-  if (!userRole) return requiredRole === "anonymous";
-  return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[requiredRole];
+if (!userRole) return requiredRole === "anonymous";
+return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[requiredRole];
 }
 \`\`\`
 
@@ -205,14 +205,14 @@ L'application utilise un pattern de mapping pour convertir entre les formats de 
 \`\`\`typescript
 // Exemple de fonction de mapping
 export function dbToLanguage(dbLanguage: DbLanguage): Language {
-  return {
-    id: dbLanguage.id,
-    name: dbLanguage.name,
-    slug: dbLanguage.slug,
-    description: dbLanguage.description ?? null,
-    shortDescription: dbLanguage.short_description ?? null,
-    // ... autres propriétés
-  };
+return {
+id: dbLanguage.id,
+name: dbLanguage.name,
+slug: dbLanguage.slug,
+description: dbLanguage.description ?? null,
+shortDescription: dbLanguage.short_description ?? null,
+// ... autres propriétés
+};
 }
 \`\`\`
 
@@ -223,21 +223,22 @@ L'application utilise les Server Actions de Next.js pour les opérations de muta
 \`\`\`typescript
 // Exemple de Server Action
 export async function createLanguageAction(formData: FormData) {
-  "use server";
-  
-  try {
-    // Logique de création
-    // ...
-    
+"use server";
+
+try {
+// Logique de création
+// ...
+
     return {
       success: true,
       message: "Langage créé avec succès",
       data: newLanguage,
     };
-  } catch (error) {
-    // Gestion des erreurs
-    // ...
-  }
+
+} catch (error) {
+// Gestion des erreurs
+// ...
+}
 }
 \`\`\`
 
@@ -247,18 +248,18 @@ L'application implémente une gestion des erreurs standardisée avec des classes
 
 \`\`\`typescript
 export class ApiError extends Error {
-  statusCode: number;
-  
-  constructor(message: string, statusCode: number = 500) {
-    super(message);
-    this.statusCode = statusCode;
-    this.name = 'ApiError';
-  }
+statusCode: number;
+
+constructor(message: string, statusCode: number = 500) {
+super(message);
+this.statusCode = statusCode;
+this.name = 'ApiError';
+}
 }
 
 export function handleApiError(error: unknown) {
-  // Logique de gestion des erreurs
-  // ...
+// Logique de gestion des erreurs
+// ...
 }
 \`\`\`
 
@@ -276,23 +277,24 @@ L'application utilise plusieurs méthodes pour récupérer des données :
 \`\`\`typescript
 // Exemple de récupération de données dans un Server Component
 export default async function LanguagePage({ params }: Props) {
-  const language = await getLanguageBySlug(params.slug);
-  
-  if (!language) {
-    notFound();
-  }
-  
-  // Récupérer les frameworks et bibliothèques associés
-  const [frameworks, libraries] = await Promise.all([
-    getFrameworksByLanguageId(language.id),
-    getLibrariesByLanguageId(language.id),
-  ]);
-  
-  return (
-    <div className="container py-8">
-      <LanguageDetail language={language} frameworks={frameworks} libraries={libraries} />
-    </div>
-  );
+const language = await getLanguageBySlug(params.slug);
+
+if (!language) {
+notFound();
+}
+
+// Récupérer les frameworks et bibliothèques associés
+const [frameworks, libraries] = await Promise.all([
+getFrameworksByLanguageId(language.id),
+getLibrariesByLanguageId(language.id),
+]);
+
+return (
+
+<div className="container py-8">
+<LanguageDetail language={language} frameworks={frameworks} libraries={libraries} />
+</div>
+);
 }
 \`\`\`
 
@@ -312,26 +314,26 @@ L'application expose plusieurs endpoints API pour interagir avec les données :
 
 \`\`\`
 /api
-/languages            # Gestion des langages de programmation
-  /[id]               # Opérations sur un langage spécifique
-  /slug/[slug]        # Récupération d'un langage par son slug
-/libraries            # Gestion des bibliothèques
-  /[id]               # Opérations sur une bibliothèque spécifique
-/tools                # Gestion des outils
-  /[id]/languages     # Gestion des langages associés à un outil
-/corrections          # Gestion des corrections
-/proposals            # Gestion des propositions
+/languages # Gestion des langages de programmation
+/[id] # Opérations sur un langage spécifique
+/slug/[slug] # Récupération d'un langage par son slug
+/libraries # Gestion des bibliothèques
+/[id] # Opérations sur une bibliothèque spécifique
+/tools # Gestion des outils
+/[id]/languages # Gestion des langages associés à un outil
+/corrections # Gestion des corrections
+/proposals # Gestion des propositions
 \`\`\`
 
 ### Server Actions
 
 \`\`\`
 /app/actions
-/language-actions.ts  # Actions pour les langages
-/library-actions.ts   # Actions pour les bibliothèques
+/language-actions.ts # Actions pour les langages
+/library-actions.ts # Actions pour les bibliothèques
 /framework-actions.ts # Actions pour les frameworks
 /correction-actions.ts # Actions pour les corrections
-/todo-actions.ts      # Actions pour les tâches
+/todo-actions.ts # Actions pour les tâches
 \`\`\`
 
 ## Considérations de performance
@@ -347,25 +349,26 @@ L'application utilise plusieurs stratégies de mise en cache pour optimiser les 
 \`\`\`typescript
 // Exemple de revalidation après une mutation
 export async function updateLanguageAction(id: string, formData: FormData) {
-  "use server";
-  
-  try {
-    // Logique de mise à jour
-    // ...
-    
+"use server";
+
+try {
+// Logique de mise à jour
+// ...
+
     // Revalider les chemins pertinents
     revalidatePath("/");
     revalidatePath(`/languages/${slug}`);
     revalidatePath("/admin/languages");
-    
+
     return {
       success: true,
       message: "Langage mis à jour avec succès",
     };
-  } catch (error) {
-    // Gestion des erreurs
-    // ...
-  }
+
+} catch (error) {
+// Gestion des erreurs
+// ...
+}
 }
 \`\`\`
 
@@ -398,12 +401,12 @@ L'application utilise une gestion sécurisée des tokens JWT :
 
 \`\`\`typescript
 export async function withTokenRefresh<T>(callback: () => Promise<T>): Promise<T> {
-  try {
-    return await callback();
-  } catch (error: any) {
-    // Logique de rafraîchissement du token
-    // ...
-  }
+try {
+return await callback();
+} catch (error: any) {
+// Logique de rafraîchissement du token
+// ...
+}
 }
 \`\`\`
 

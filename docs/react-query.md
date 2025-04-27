@@ -7,7 +7,6 @@ Nous avons organisé nos hooks TanStack Query en deux catégories principales :
 1. **Hooks de requête** (`hooks/use-queries.ts`) : Pour récupérer des données
 2. **Hooks de mutation** (`hooks/use-mutations.ts`) : Pour modifier des données
 
-
 ### Clés de requête
 
 Nous utilisons un système centralisé de clés de requête pour organiser notre cache :
@@ -15,18 +14,18 @@ Nous utilisons un système centralisé de clés de requête pour organiser notre
 ```typescript
 // hooks/query-keys.ts
 export const QUERY_KEYS = {
-  languages: "languages",
-  languageDetail: (id: string | number) => ["language", id.toString()],
-  languageBySlug: (slug: string) => ["language", "slug", slug],
-  frameworks: (languageId: string | number) => ["frameworks", languageId.toString()],
-  libraries: "libraries",
-  libraryDetail: (id: string | number) => ["library", id.toString()],
-  corrections: "corrections",
-  correctionDetail: (id: string | number) => ["correction", id.toString()],
-  proposals: "proposals",
-  proposalDetail: (id: string | number) => ["proposal", id.toString()],
-  userProfile: (userId: string) => ["user", userId],
-}
+  languages: 'languages',
+  languageDetail: (id: string | number) => ['language', id.toString()],
+  languageBySlug: (slug: string) => ['language', 'slug', slug],
+  frameworks: (languageId: string | number) => ['frameworks', languageId.toString()],
+  libraries: 'libraries',
+  libraryDetail: (id: string | number) => ['library', id.toString()],
+  corrections: 'corrections',
+  correctionDetail: (id: string | number) => ['correction', id.toString()],
+  proposals: 'proposals',
+  proposalDetail: (id: string | number) => ['proposal', id.toString()],
+  userProfile: (userId: string) => ['user', userId],
+};
 ```
 
 ## Hooks de requête
@@ -35,16 +34,16 @@ export const QUERY_KEYS = {
 
 ```typescript
 // hooks/use-queries.ts
-import { useQuery } from '@tanstack/react-query'
-import { QUERY_KEYS } from './query-keys'
-import { fetchLanguages } from '@/lib/client/api'
-import type { Language } from '@/types/models/language'
+import { useQuery } from '@tanstack/react-query';
+import { QUERY_KEYS } from './query-keys';
+import { fetchLanguages } from '@/lib/client/api';
+import type { Language } from '@/types/models/language';
 
 export function useLanguages(options = {}) {
-  return useQuery<{ data: Language[], totalCount: number, page: number, pageSize: number }>({
+  return useQuery<{ data: Language[]; totalCount: number; page: number; pageSize: number }>({
     queryKey: [QUERY_KEYS.languages, options],
     queryFn: () => fetchLanguages(options),
-  })
+  });
 }
 ```
 
@@ -52,17 +51,17 @@ export function useLanguages(options = {}) {
 
 ```typescript
 // hooks/use-queries.ts
-import { useQuery } from '@tanstack/react-query'
-import { QUERY_KEYS } from './query-keys'
-import { fetchLanguageById } from '@/lib/client/api'
-import type { Language } from '@/types/models/language'
+import { useQuery } from '@tanstack/react-query';
+import { QUERY_KEYS } from './query-keys';
+import { fetchLanguageById } from '@/lib/client/api';
+import type { Language } from '@/types/models/language';
 
 export function useLanguage(id: string | number) {
   return useQuery<Language>({
     queryKey: [QUERY_KEYS.languageDetail(id)],
     queryFn: () => fetchLanguageById(id.toString()),
     enabled: !!id,
-  })
+  });
 }
 ```
 
@@ -92,7 +91,7 @@ export function LanguageList() {
   if (error) {
     return <div className="text-red-500">Erreur: {error.message}</div>
   }
-  
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {data?.data.map(language => (
@@ -109,21 +108,21 @@ export function LanguageList() {
 
 ```typescript
 // hooks/use-mutations.ts
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { QUERY_KEYS } from './query-keys'
-import { createLanguageClient } from '@/lib/client/api'
-import type { Language } from '@/types/models/language'
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from './query-keys';
+import { createLanguageClient } from '@/lib/client/api';
+import type { Language } from '@/types/models/language';
 
 export function useCreateLanguage() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (newLanguage: Omit<Language, "id">) => createLanguageClient(newLanguage),
+    mutationFn: (newLanguage: Omit<Language, 'id'>) => createLanguageClient(newLanguage),
     onSuccess: () => {
       // Invalider la requête des langages pour forcer un rechargement
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.languages] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.languages] });
     },
-  })
+  });
 }
 ```
 
@@ -131,22 +130,23 @@ export function useCreateLanguage() {
 
 ```typescript
 // hooks/use-mutations.ts
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { QUERY_KEYS } from './query-keys'
-import { updateLanguageClient } from '@/lib/client/api'
-import type { Language } from '@/types/models/language'
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from './query-keys';
+import { updateLanguageClient } from '@/lib/client/api';
+import type { Language } from '@/types/models/language';
 
 export function useUpdateLanguage(id: string | number) {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (updatedLanguage: Partial<Language>) => updateLanguageClient(id.toString(), updatedLanguage),
+    mutationFn: (updatedLanguage: Partial<Language>) =>
+      updateLanguageClient(id.toString(), updatedLanguage),
     onSuccess: () => {
       // Invalider les requêtes concernées
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.languageDetail(id)] })
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.languages] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.languageDetail(id)] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.languages] });
     },
-  })
+  });
 }
 ```
 
@@ -169,9 +169,9 @@ export function LanguageForm() {
     type: '',
     shortDescription: '',
   })
-  
+
   const createLanguage = useCreateLanguage()
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
@@ -190,7 +190,7 @@ export function LanguageForm() {
       })
     }
   }
-  
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
@@ -248,10 +248,10 @@ import { toast } from '@/components/ui/use-toast'
 export function LanguageFormWithServerAction() {
   const formRef = useRef<HTMLFormElement>(null)
   const queryClient = useQueryClient()
-  
+
   async function handleAction(formData: FormData) {
     const result = await createLanguageAction(formData)
-    
+
     if (result.success) {
       toast({
         title: 'Succès',
@@ -269,7 +269,7 @@ export function LanguageFormWithServerAction() {
       })
     }
   }
-  
+
   return (
     <form ref={formRef} action={handleAction} className="space-y-4">
       <div>
@@ -322,8 +322,8 @@ Après une mutation, invalider les requêtes concernées :
 
 ```typescript
 onSuccess: () => {
-  queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.languages] })
-}
+  queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.languages] });
+};
 ```
 
 ### 4. Optimistic Updates
@@ -334,13 +334,13 @@ Pour une meilleure UX, utiliser les mises à jour optimistes :
 onMutate: async (newTodo) => {
   // Annuler les requêtes en cours
   await queryClient.cancelQueries({ queryKey: ['todos'] })
-  
+
   // Sauvegarder l'état précédent
   const previousTodos = queryClient.getQueryData(['todos'])
-  
+
   // Mettre à jour le cache de manière optimiste
   queryClient.setQueryData(['todos'], old => [...old, newTodo])
-  
+
   // Retourner le contexte avec l'état précédent
   return { previousTodos }
 },
@@ -356,13 +356,13 @@ Pour améliorer les performances, précharger les données qui seront probableme
 
 ```typescript
 // Précharger les détails d'un langage au survol
-const queryClient = useQueryClient()
+const queryClient = useQueryClient();
 
 function handleMouseEnter(id: string) {
   queryClient.prefetchQuery({
     queryKey: [QUERY_KEYS.languageDetail(id)],
     queryFn: () => fetchLanguageById(id),
-  })
+  });
 }
 ```
 

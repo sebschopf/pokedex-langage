@@ -27,24 +27,16 @@ Scénarios d.download-icon {
 
 1. Visiteur non enregistré
 
-
-
-2. **Flux**:
+1. **Flux**:
 
 1. Le visiteur peut consulter toutes les informations publiques sur les langages, bibliothèques, etc.
-2. S'il tente de soumettre une correction ou un ajout, il est invité à s'enregistrer
-3. Un message explique les avantages de l'enregistrement et le processus de vérification
+1. S'il tente de soumettre une correction ou un ajout, il est invité à s'enregistrer
+1. Un message explique les avantages de l'enregistrement et le processus de vérification
 
-
-
-3. **Règles d'accès**:
+1. **Règles d'accès**:
 
 1. Accès en lecture seule au contenu public
-2. Pas d'accès aux fonctionnalités de soumission
-
-
-
-
+1. Pas d'accès aux fonctionnalités de soumission
 
 ### 2. Soumission de Corrections par les Utilisateurs Enregistrés
 
@@ -53,37 +45,27 @@ Scénarios d.download-icon {
 1. **Acteurs**:
 
 1. Utilisateur enregistré (role: registered)
-2. Utilisateur vérifié (role: verified)
+1. Utilisateur vérifié (role: verified)
 
-
-
-2. **Flux**:
+1. **Flux**:
 
 1. L'utilisateur identifie une erreur dans une fiche de langage ou bibliothèque
-2. Il remplit un formulaire de correction spécifiant:
+1. Il remplit un formulaire de correction spécifiant:
 
 1. L'élément concerné (language_id ou library_id)
-2. Le champ à corriger (field)
-3. La correction proposée (suggestion)
-4. Une justification (correction_text)
+1. Le champ à corriger (field)
+1. La correction proposée (suggestion)
+1. Une justification (correction_text)
 
+1. La correction est enregistrée dans la table "corrections" avec status="pending"
+1. Son user_id est associé à la correction
+1. La correction est visible dans l'application avec un indicateur de statut "en attente"
 
-
-3. La correction est enregistrée dans la table "corrections" avec status="pending"
-4. Son user_id est associé à la correction
-5. La correction est visible dans l'application avec un indicateur de statut "en attente"
-
-
-
-3. **Règles d'accès**:
+1. **Règles d'accès**:
 
 1. Seuls les utilisateurs authentifiés peuvent soumettre des corrections
-2. Les utilisateurs peuvent voir uniquement leurs propres corrections
-3. Les validateurs et admins peuvent voir toutes les corrections
-
-
-
-
+1. Les utilisateurs peuvent voir uniquement leurs propres corrections
+1. Les validateurs et admins peuvent voir toutes les corrections
 
 ### 3. Soumission de Nouveau Contenu par les Utilisateurs Vérifiés
 
@@ -93,25 +75,17 @@ Scénarios d.download-icon {
 
 1. Utilisateur vérifié (role: verified)
 
-
-
-2. **Flux**:
+1. **Flux**:
 
 1. L'utilisateur remplit un formulaire d'ajout avec les détails de la bibliothèque
-2. L'ajout est enregistré dans la table appropriée (ex: "libraries") avec status="pending"
-3. Le user_id de l'utilisateur est associé à l'ajout
+1. L'ajout est enregistré dans la table appropriée (ex: "libraries") avec status="pending"
+1. Le user_id de l'utilisateur est associé à l'ajout
 
-
-
-3. **Règles d'accès**:
+1. **Règles d'accès**:
 
 1. Seuls les utilisateurs avec le rôle "verified" ou supérieur peuvent soumettre de nouveaux contenus
-2. Les utilisateurs peuvent voir uniquement leurs propres soumissions
-3. Les validateurs et admins peuvent voir toutes les soumissions
-
-
-
-
+1. Les utilisateurs peuvent voir uniquement leurs propres soumissions
+1. Les validateurs et admins peuvent voir toutes les soumissions
 
 ### 4. Validation des Soumissions
 
@@ -120,37 +94,27 @@ Scénarios d.download-icon {
 1. **Acteurs**:
 
 1. Validateur (role: validator)
-2. Référent de langage (validateur désigné pour un langage spécifique)
-3. Administrateur (role: admin)
+1. Référent de langage (validateur désigné pour un langage spécifique)
+1. Administrateur (role: admin)
 
-
-
-2. **Flux pour l'approbation**:
+1. **Flux pour l'approbation**:
 
 1. Le validateur examine la soumission
-2. S'il l'approuve, il met à jour status="approved"
-3. Pour les corrections, les données correspondantes sont mises à jour dans la table principale
-4. Pour les nouveaux contenus, l'entrée est activée dans la table principale
+1. S'il l'approuve, il met à jour status="approved"
+1. Pour les corrections, les données correspondantes sont mises à jour dans la table principale
+1. Pour les nouveaux contenus, l'entrée est activée dans la table principale
 
-
-
-3. **Flux pour le rejet**:
+1. **Flux pour le rejet**:
 
 1. Le validateur examine la soumission
-2. S'il la rejette, il DOIT fournir un commentaire explicatif
-3. Le système met à jour status="rejected" et enregistre le commentaire
-4. L'utilisateur peut voir le motif du rejet et éventuellement soumettre une version corrigée
+1. S'il la rejette, il DOIT fournir un commentaire explicatif
+1. Le système met à jour status="rejected" et enregistre le commentaire
+1. L'utilisateur peut voir le motif du rejet et éventuellement soumettre une version corrigée
 
-
-
-4. **Règles d'accès**:
+1. **Règles d'accès**:
 
 1. Seuls les validateurs et admins peuvent modifier le statut des soumissions
-2. Le rejet nécessite obligatoirement un commentaire
-
-
-
-
+1. Le rejet nécessite obligatoirement un commentaire
 
 ### 5. Gestion des Utilisateurs par les Validateurs
 
@@ -159,27 +123,19 @@ Scénarios d.download-icon {
 1. **Acteurs**:
 
 1. Validateur (role: validator)
-2. Administrateur (role: admin)
+1. Administrateur (role: admin)
 
-
-
-2. **Flux**:
+1. **Flux**:
 
 1. Le validateur consulte la liste des utilisateurs enregistrés
-2. Il peut attribuer le statut "verified" à un utilisateur registered
-3. Il peut retirer le statut "verified" à un utilisateur (le ramenant à "registered")
-4. Chaque modification de statut peut être accompagnée d'un commentaire
+1. Il peut attribuer le statut "verified" à un utilisateur registered
+1. Il peut retirer le statut "verified" à un utilisateur (le ramenant à "registered")
+1. Chaque modification de statut peut être accompagnée d'un commentaire
 
-
-
-3. **Règles d'accès**:
+1. **Règles d'accès**:
 
 1. Les validateurs peuvent uniquement modifier le statut "verified"
-2. Les admins peuvent modifier tous les statuts
-
-
-
-
+1. Les admins peuvent modifier tous les statuts
 
 ### 6. Référents de Langage
 
@@ -188,34 +144,24 @@ Scénarios d.download-icon {
 1. **Acteurs**:
 
 1. Administrateur (role: admin)
-2. Validateur désigné comme référent (role: validator + référent)
+1. Validateur désigné comme référent (role: validator + référent)
 
-
-
-2. **Flux de désignation**:
+1. **Flux de désignation**:
 
 1. L'admin identifie un validateur ayant une expertise sur un langage spécifique
-2. Il le désigne comme référent pour ce langage dans la table "language_referents"
-3. Le validateur est notifié de sa désignation
+1. Il le désigne comme référent pour ce langage dans la table "language_referents"
+1. Le validateur est notifié de sa désignation
 
-
-
-3. **Implications**:
+1. **Implications**:
 
 1. Le référent est affiché comme contact principal pour le langage
-2. Il est prioritairement notifié des soumissions concernant ce langage
-3. Il n'a pas de droits supplémentaires, mais une responsabilité accrue
+1. Il est prioritairement notifié des soumissions concernant ce langage
+1. Il n'a pas de droits supplémentaires, mais une responsabilité accrue
 
-
-
-4. **Règles d'accès**:
+1. **Règles d'accès**:
 
 1. Seuls les admins peuvent désigner des référents
-2. Un validateur peut être référent pour plusieurs langages
-
-
-
-
+1. Un validateur peut être référent pour plusieurs langages
 
 ### 7. Gestion des Tâches (Todos)
 
@@ -224,34 +170,24 @@ Scénarios d.download-icon {
 1. **Acteurs**:
 
 1. Validateur (role: validator)
-2. Administrateur (role: admin)
+1. Administrateur (role: admin)
 
-
-
-2. **Flux**:
+1. **Flux**:
 
 1. Le validateur accède au module de gestion des tâches
-2. Il peut créer de nouvelles tâches avec:
+1. Il peut créer de nouvelles tâches avec:
 
 1. Titre et description
-2. Catégorie (table: todo_categories)
-3. Priorité
-4. Date d'échéance
+1. Catégorie (table: todo_categories)
+1. Priorité
+1. Date d'échéance
 
+1. Il peut assigner des tâches à des utilisateurs spécifiques
+1. Il peut suivre l'avancement et mettre à jour le statut des tâches
 
-
-3. Il peut assigner des tâches à des utilisateurs spécifiques
-4. Il peut suivre l'avancement et mettre à jour le statut des tâches
-
-
-
-3. **Règles d'accès**:
+1. **Règles d'accès**:
 
 1. Seuls les validateurs et admins peuvent voir et gérer le module todo
-2. Les utilisateurs assignés à une tâche peuvent voir et mettre à jour uniquement leurs tâches
-
-
-
-
+1. Les utilisateurs assignés à une tâche peuvent voir et mettre à jour uniquement leurs tâches
 
 Ce schéma de scénarios amélioré reflète les précisions que vous avez apportées sur les rôles, les permissions et les flux de travail dans votre application.

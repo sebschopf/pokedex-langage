@@ -8,15 +8,15 @@ I'll update each of the documentation files to reflect the changes we've made to
 id                  integer         NOT NULL (PK)
 name                varchar         NOT NULL
 slug                varchar         NOT NULL
-description         text            
+description         text
 language_id         integer         NOT NULL (FK -> languages.id)
-technology_type     varchar         
-website_url         varchar         
-github_url          varchar         
-logo_path           varchar         
-is_popular          boolean         
-created_at          timestamp       
-updated_at          timestamp       
+technology_type     varchar
+website_url         varchar
+github_url          varchar
+logo_path           varchar
+is_popular          boolean
+created_at          timestamp
+updated_at          timestamp
 documentation_url   varchar
 best_for            text
 category            varchar
@@ -34,13 +34,13 @@ is_open_source      boolean
 
 ```plaintext
 id                  uuid            NOT NULL (PK)
-username            text            
-created_at          timestamp       
-updated_at          timestamp       
-avatar_url          text            
-full_name           text            
-bio                 text            
-website             text            
+username            text
+created_at          timestamp
+updated_at          timestamp
+avatar_url          text
+full_name           text
+bio                 text
+website             text
 email               text
 is_verified         boolean
 ```
@@ -51,8 +51,8 @@ is_verified         boolean
 id                  uuid            NOT NULL (PK)
 user_id             uuid            NOT NULL (FK -> auth.users.id)
 role                user_role       NOT NULL (enum: admin, validator, verified, registered)
-created_at          timestamp       
-updated_at          timestamp       
+created_at          timestamp
+updated_at          timestamp
 ```
 
 ### language_proposals
@@ -60,17 +60,17 @@ updated_at          timestamp
 ```plaintext
 id                  integer         NOT NULL (PK)
 name                varchar         NOT NULL
-type                varchar         
-description         text            
-created_year        integer         
-creator             varchar         
-used_for            text            
-strengths           array           
-popular_frameworks  array           
-user_id             uuid            
+type                varchar
+description         text
+created_year        integer
+creator             varchar
+used_for            text
+strengths           array
+popular_frameworks  array
+user_id             uuid
 status              varchar         NOT NULL
-created_at          timestamp       
-updated_at          timestamp       
+created_at          timestamp
+updated_at          timestamp
 ```
 
 ### corrections
@@ -78,14 +78,14 @@ updated_at          timestamp
 ```plaintext
 id                  integer         NOT NULL (PK)
 language_id         integer         NOT NULL (FK -> languages.id)
-framework           text            
+framework           text
 correction_text     text            NOT NULL
 status              text            NOT NULL
-created_at          timestamp       
-updated_at          timestamp       
-field               varchar         
-suggestion          text            
-user_id             uuid            
+created_at          timestamp
+updated_at          timestamp
+field               varchar
+suggestion          text
+user_id             uuid
 ```
 
 ## Relations entre les Tables
@@ -101,7 +101,6 @@ user_id             uuid
 9. **todos.status_id** -> todo_status.id
 10. **user_roles.user_id** -> auth.users.id
 
-
 ## Système de Rôles et Permissions
 
 ### Rôles Utilisateurs
@@ -112,7 +111,6 @@ user_id             uuid
 - **registered** - Utilisateur simplement enregistré
 - **anonymous** - Utilisateur non connecté (implicite)
 
-
 ### Politiques d'Accès (RLS)
 
 #### Table corrections
@@ -121,7 +119,6 @@ user_id             uuid
 2. **Modification**: Seuls les admins et validateurs peuvent modifier les corrections
 3. **Insertion**: Tout le monde peut soumettre des corrections
 
-
 #### Table language_proposals
 
 1. **Lecture**: Les utilisateurs peuvent voir leurs propres propositions; les admins et validateurs peuvent voir toutes les propositions
@@ -129,12 +126,10 @@ user_id             uuid
 3. **Insertion**: Seuls les utilisateurs enregistrés peuvent proposer des langages
 4. **Suppression**: Seuls les admins peuvent supprimer des propositions
 
-
 #### Table languages
 
 1. **Lecture**: Tout le monde peut lire les langages
 2. **Insertion/Modification/Suppression**: Seuls les admins et validateurs peuvent gérer les langages
-
 
 ## Flux de Travail
 
@@ -145,14 +140,12 @@ user_id             uuid
 3. Si approuvée, un admin ou validateur crée une entrée dans la table languages
 4. Le statut de la proposition est mis à jour
 
-
 ### Correction d'un Langage Existant
 
 1. N'importe quel utilisateur peut soumettre une correction via la table corrections
 2. Un validateur ou admin examine la correction
 3. Si approuvée, un admin ou validateur met à jour l'entrée correspondante dans la table languages
 4. Le statut de la correction est mis à jour
-
 
 ## Fonctions de Mapping
 
@@ -181,19 +174,19 @@ export function dbToLanguage(dbLanguage: DbLanguage): Language {
     githubUrl: dbLanguage.github_url || null,
     websiteUrl: dbLanguage.website_url || null,
     // ...autres propriétés
-  }
+  };
 }
 
 // Fonction inverse pour convertir un modèle en objet de base de données
 export function languageToDb(language: Partial<Language>): Partial<DbLanguage> {
-  const dbLanguage: Partial<DbLanguage> = {}
+  const dbLanguage: Partial<DbLanguage> = {};
 
-  if (language.id !== undefined) dbLanguage.id = language.id
-  if (language.name !== undefined) dbLanguage.name = language.name
-  if (language.slug !== undefined) dbLanguage.slug = language.slug
+  if (language.id !== undefined) dbLanguage.id = language.id;
+  if (language.name !== undefined) dbLanguage.name = language.name;
+  if (language.slug !== undefined) dbLanguage.slug = language.slug;
   // ...autres propriétés
 
-  return dbLanguage
+  return dbLanguage;
 }
 ```
 
@@ -209,15 +202,11 @@ import { createClient } from '@supabase/supabase-js';
 import { cache } from 'react';
 
 export const createServerSupabaseClient = cache(() => {
-  return createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      auth: {
-        persistSession: false,
-      }
-    }
-  );
+  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+    auth: {
+      persistSession: false,
+    },
+  });
 });
 ```
 
@@ -240,9 +229,9 @@ export function createBrowserClient() {
     {
       auth: {
         persistSession: true,
-        storageKey: "supabase-auth",
-      }
-    }
+        storageKey: 'supabase-auth',
+      },
+    },
   );
 
   return supabaseClient;
@@ -257,35 +246,33 @@ export function createBrowserClient() {
 // lib/server/api/languages.ts
 export async function getLanguages(options = {}) {
   const { page = 1, pageSize = 10, search, category, subtype } = options;
-  
+
   const supabase = createServerClient();
-  
-  let query = supabase.from("languages").select("*", { count: "exact" });
-  
+
+  let query = supabase.from('languages').select('*', { count: 'exact' });
+
   // Appliquer les filtres
   if (search) {
     query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
   }
-  
+
   if (category) {
-    query = query.eq("type", category);
+    query = query.eq('type', category);
   }
-  
+
   // Pagination
   const offset = (page - 1) * pageSize;
-  
-  const { data, error, count } = await query
-    .range(offset, offset + pageSize - 1)
-    .order("name");
-  
+
+  const { data, error, count } = await query.range(offset, offset + pageSize - 1).order('name');
+
   if (error) {
-    console.error("Erreur lors de la récupération des langages:", error);
+    console.error('Erreur lors de la récupération des langages:', error);
     throw error;
   }
-  
+
   // Convertir les données avec la fonction de mapping
   const mappedData = data ? data.map(dbToLanguage) : [];
-  
+
   return {
     data: mappedData,
     totalCount: count || 0,
@@ -299,48 +286,44 @@ export async function getLanguages(options = {}) {
 
 ```typescript
 // app/actions/language-actions.ts
-"use server"
+'use server';
 
 export async function createLanguageAction(formData: FormData) {
   try {
     const language = {
-      name: formData.get("name") as string,
+      name: formData.get('name') as string,
       // ...autres propriétés
-      slug: (formData.get("name") as string).toLowerCase().replace(/\s+/g, "-"),
+      slug: (formData.get('name') as string).toLowerCase().replace(/\s+/g, '-'),
       createdAt: new Date().toISOString(),
     };
-    
+
     const supabase = createServerClient();
     const dbData = languageToDb(language);
-    
-    const { data, error } = await supabase
-      .from("languages")
-      .insert(dbData)
-      .select()
-      .single();
-    
+
+    const { data, error } = await supabase.from('languages').insert(dbData).select().single();
+
     if (error) {
-      console.error("Erreur lors de la création du langage:", error);
+      console.error('Erreur lors de la création du langage:', error);
       return {
         success: false,
-        message: "Erreur lors de la création du langage",
+        message: 'Erreur lors de la création du langage',
       };
     }
-    
+
     // Revalider les chemins pour mettre à jour les données
-    revalidatePath("/");
-    revalidatePath("/admin/languages");
-    
+    revalidatePath('/');
+    revalidatePath('/admin/languages');
+
     return {
       success: true,
-      message: "Langage créé avec succès",
+      message: 'Langage créé avec succès',
       data: dbToLanguage(data),
     };
   } catch (error) {
-    console.error("Erreur lors de la création du langage:", error);
+    console.error('Erreur lors de la création du langage:', error);
     return {
       success: false,
-      message: "Une erreur est survenue lors de la création du langage",
+      message: 'Une erreur est survenue lors de la création du langage',
     };
   }
 }
@@ -350,7 +333,7 @@ export async function createLanguageAction(formData: FormData) {
 
 Cette documentation fournit une vue d'ensemble de la structure de la base de données du projet Pokedex Langage de Programmation, ainsi que des informations sur les relations entre les tables, les rôles utilisateurs, les politiques d'accès et les flux de travail. Pour des cas d'utilisation plus spécifiques ou des questions, n'hésitez pas à consulter l'équipe de développement.
 
-```plaintext
+````plaintext
 
 ## 2. Updated api.md
 
@@ -433,7 +416,7 @@ Récupère la liste des langages de programmation.
   "page": 1,
   "pageSize": 10
 }
-```
+````
 
 #### GET /api/languages/[id]
 
@@ -442,7 +425,6 @@ Récupère les détails d'un langage spécifique.
 **Paramètres de chemin :**
 
 - `id` : ID du langage
-
 
 **Réponse :**
 
@@ -476,7 +458,6 @@ Récupère les détails d'un langage par son slug.
 
 - `slug` : Slug du langage
 
-
 **Réponse :**
 Identique à GET /api/languages/[id]
 
@@ -487,7 +468,6 @@ Récupère les frameworks associés à un langage.
 **Paramètres de chemin :**
 
 - `id` : ID du langage
-
 
 **Réponse :**
 
@@ -520,7 +500,6 @@ Récupère la liste des bibliothèques et frameworks.
 - `languageId` (optionnel) : Filtrer par langage
 - `technologyType` (optionnel) : Filtrer par type de technologie
 
-
 **Réponse :**
 
 ```json
@@ -547,7 +526,6 @@ Récupère les détails d'une bibliothèque spécifique.
 **Paramètres de chemin :**
 
 - `id` : ID de la bibliothèque
-
 
 **Réponse :**
 
@@ -638,7 +616,6 @@ Crée un nouveau langage.
 
 - `formData` : FormData contenant les données du langage
 
-
 **Exemple d'utilisation :**
 
 ```typescriptreact
@@ -675,7 +652,6 @@ Met à jour un langage existant.
 - `id` : ID du langage
 - `formData` : FormData contenant les données à mettre à jour
 
-
 **Exemple d'utilisation :**
 
 ```typescriptreact
@@ -707,7 +683,6 @@ Supprime un langage.
 - `id` : ID du langage
 - `logoUrl` (optionnel) : URL du logo à supprimer
 
-
 **Exemple d'utilisation :**
 
 ```typescriptreact
@@ -736,7 +711,6 @@ Crée un nouveau framework.
 **Paramètres :**
 
 - `formData` : FormData contenant les données du framework
-
 
 **Exemple d'utilisation :**
 
@@ -786,7 +760,7 @@ export async function getLanguages(options = {}) {
   const offset = (page - 1) * pageSize;
 
   // Construire la requête de base
-  let query = supabase.from("languages").select("*", { count: "exact" });
+  let query = supabase.from('languages').select('*', { count: 'exact' });
 
   // Appliquer les filtres si nécessaire
   if (search) {
@@ -794,25 +768,23 @@ export async function getLanguages(options = {}) {
   }
 
   if (category) {
-    query = query.eq("type", category);
+    query = query.eq('type', category);
   }
 
   if (subtype) {
-    query = query.contains("subtypes", [subtype]);
+    query = query.contains('subtypes', [subtype]);
   }
 
   // Exécuter la requête avec pagination
-  const { data, error, count } = await query
-    .range(offset, offset + pageSize - 1)
-    .order("name");
+  const { data, error, count } = await query.range(offset, offset + pageSize - 1).order('name');
 
   if (error) {
-    console.error("Erreur lors de la récupération des langages:", error);
+    console.error('Erreur lors de la récupération des langages:', error);
     throw error;
   }
 
   // Convertir les données avec la fonction de mapping
-  const mappedData = data ? data.map((item) => dbToLanguage(item as DbLanguage)) : [];
+  const mappedData = data ? data.map(item => dbToLanguage(item as DbLanguage)) : [];
 
   return {
     data: mappedData,
@@ -831,7 +803,7 @@ L'API utilise un système standardisé de gestion des erreurs :
 // lib/server/api/error-handling.ts
 export class ApiError extends Error {
   statusCode: number;
-  
+
   constructor(message: string, statusCode: number = 500) {
     super(message);
     this.statusCode = statusCode;
@@ -841,18 +813,18 @@ export class ApiError extends Error {
 
 export function handleApiError(error: unknown) {
   console.error('API Error:', error);
-  
+
   if (error instanceof ApiError) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: error.statusCode, headers: { 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: error.statusCode,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
-  
-  return new Response(
-    JSON.stringify({ error: 'Une erreur inattendue est survenue' }),
-    { status: 500, headers: { 'Content-Type': 'application/json' } }
-  );
+
+  return new Response(JSON.stringify({ error: 'Une erreur inattendue est survenue' }), {
+    status: 500,
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
 ```
 
@@ -867,29 +839,31 @@ import { ApiError } from '@/lib/server/api/error-handling';
 
 export async function requireAuth() {
   const supabase = createServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
   if (!session) {
     throw new ApiError('Non authentifié', 401);
   }
-  
+
   return session;
 }
 
 export async function requireAdmin() {
   const session = await requireAuth();
   const supabase = createServerClient();
-  
+
   const { data, error } = await supabase
     .from('user_roles')
     .select('role')
     .eq('user_id', session.user.id)
     .single();
-  
+
   if (error || !data || data.role !== 'admin') {
     throw new ApiError('Accès non autorisé', 403);
   }
-  
+
   return session;
 }
 ```
@@ -956,7 +930,6 @@ export async function createLanguageClient(languageData: Partial<Language>) {
 7. **Journaliser les actions** : Enregistrer les actions importantes pour le débogage et l'audit.
 8. **Utiliser les Server Actions** : Pour les opérations de mutation, privilégier les Server Actions qui offrent une meilleure expérience utilisateur.
 
-
 ## Conclusion
 
 Cette API fournit une interface complète pour interagir avec la base de données du projet. Elle est conçue pour être sécurisée, performante et facile à utiliser. Pour toute question ou problème, consultez les fichiers source ou contactez l'équipe de développement.
@@ -974,7 +947,6 @@ Nous avons organisé nos hooks TanStack Query en deux catégories principales :
 1. **Hooks de requête** (`hooks/use-queries.ts`) : Pour récupérer des données
 2. **Hooks de mutation** (`hooks/use-mutations.ts`) : Pour modifier des données
 
-
 ### Clés de requête
 
 Nous utilisons un système centralisé de clés de requête pour organiser notre cache :
@@ -982,18 +954,18 @@ Nous utilisons un système centralisé de clés de requête pour organiser notre
 ```typescript
 // hooks/query-keys.ts
 export const QUERY_KEYS = {
-  languages: "languages",
-  languageDetail: (id: string | number) => ["language", id.toString()],
-  languageBySlug: (slug: string) => ["language", "slug", slug],
-  frameworks: (languageId: string | number) => ["frameworks", languageId.toString()],
-  libraries: "libraries",
-  libraryDetail: (id: string | number) => ["library", id.toString()],
-  corrections: "corrections",
-  correctionDetail: (id: string | number) => ["correction", id.toString()],
-  proposals: "proposals",
-  proposalDetail: (id: string | number) => ["proposal", id.toString()],
-  userProfile: (userId: string) => ["user", userId],
-}
+  languages: 'languages',
+  languageDetail: (id: string | number) => ['language', id.toString()],
+  languageBySlug: (slug: string) => ['language', 'slug', slug],
+  frameworks: (languageId: string | number) => ['frameworks', languageId.toString()],
+  libraries: 'libraries',
+  libraryDetail: (id: string | number) => ['library', id.toString()],
+  corrections: 'corrections',
+  correctionDetail: (id: string | number) => ['correction', id.toString()],
+  proposals: 'proposals',
+  proposalDetail: (id: string | number) => ['proposal', id.toString()],
+  userProfile: (userId: string) => ['user', userId],
+};
 ```
 
 ## Hooks de requête
@@ -1002,16 +974,16 @@ export const QUERY_KEYS = {
 
 ```typescript
 // hooks/use-queries.ts
-import { useQuery } from '@tanstack/react-query'
-import { QUERY_KEYS } from './query-keys'
-import { fetchLanguages } from '@/lib/client/api'
-import type { Language } from '@/types/models/language'
+import { useQuery } from '@tanstack/react-query';
+import { QUERY_KEYS } from './query-keys';
+import { fetchLanguages } from '@/lib/client/api';
+import type { Language } from '@/types/models/language';
 
 export function useLanguages(options = {}) {
-  return useQuery<{ data: Language[], totalCount: number, page: number, pageSize: number }>({
+  return useQuery<{ data: Language[]; totalCount: number; page: number; pageSize: number }>({
     queryKey: [QUERY_KEYS.languages, options],
     queryFn: () => fetchLanguages(options),
-  })
+  });
 }
 ```
 
@@ -1019,17 +991,17 @@ export function useLanguages(options = {}) {
 
 ```typescript
 // hooks/use-queries.ts
-import { useQuery } from '@tanstack/react-query'
-import { QUERY_KEYS } from './query-keys'
-import { fetchLanguageById } from '@/lib/client/api'
-import type { Language } from '@/types/models/language'
+import { useQuery } from '@tanstack/react-query';
+import { QUERY_KEYS } from './query-keys';
+import { fetchLanguageById } from '@/lib/client/api';
+import type { Language } from '@/types/models/language';
 
 export function useLanguage(id: string | number) {
   return useQuery<Language>({
     queryKey: [QUERY_KEYS.languageDetail(id)],
     queryFn: () => fetchLanguageById(id.toString()),
     enabled: !!id,
-  })
+  });
 }
 ```
 
@@ -1059,7 +1031,7 @@ export function LanguageList() {
   if (error) {
     return <div className="text-red-500">Erreur: {error.message}</div>
   }
-  
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {data?.data.map(language => (
@@ -1076,21 +1048,21 @@ export function LanguageList() {
 
 ```typescript
 // hooks/use-mutations.ts
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { QUERY_KEYS } from './query-keys'
-import { createLanguageClient } from '@/lib/client/api'
-import type { Language } from '@/types/models/language'
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from './query-keys';
+import { createLanguageClient } from '@/lib/client/api';
+import type { Language } from '@/types/models/language';
 
 export function useCreateLanguage() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (newLanguage: Omit<Language, "id">) => createLanguageClient(newLanguage),
+    mutationFn: (newLanguage: Omit<Language, 'id'>) => createLanguageClient(newLanguage),
     onSuccess: () => {
       // Invalider la requête des langages pour forcer un rechargement
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.languages] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.languages] });
     },
-  })
+  });
 }
 ```
 
@@ -1098,22 +1070,23 @@ export function useCreateLanguage() {
 
 ```typescript
 // hooks/use-mutations.ts
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { QUERY_KEYS } from './query-keys'
-import { updateLanguageClient } from '@/lib/client/api'
-import type { Language } from '@/types/models/language'
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from './query-keys';
+import { updateLanguageClient } from '@/lib/client/api';
+import type { Language } from '@/types/models/language';
 
 export function useUpdateLanguage(id: string | number) {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (updatedLanguage: Partial<Language>) => updateLanguageClient(id.toString(), updatedLanguage),
+    mutationFn: (updatedLanguage: Partial<Language>) =>
+      updateLanguageClient(id.toString(), updatedLanguage),
     onSuccess: () => {
       // Invalider les requêtes concernées
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.languageDetail(id)] })
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.languages] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.languageDetail(id)] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.languages] });
     },
-  })
+  });
 }
 ```
 
@@ -1136,9 +1109,9 @@ export function LanguageForm() {
     type: '',
     shortDescription: '',
   })
-  
+
   const createLanguage = useCreateLanguage()
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
@@ -1157,7 +1130,7 @@ export function LanguageForm() {
       })
     }
   }
-  
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
@@ -1215,10 +1188,10 @@ import { toast } from '@/components/ui/use-toast'
 export function LanguageFormWithServerAction() {
   const formRef = useRef<HTMLFormElement>(null)
   const queryClient = useQueryClient()
-  
+
   async function handleAction(formData: FormData) {
     const result = await createLanguageAction(formData)
-    
+
     if (result.success) {
       toast({
         title: 'Succès',
@@ -1236,7 +1209,7 @@ export function LanguageFormWithServerAction() {
       })
     }
   }
-  
+
   return (
     <form ref={formRef} action={handleAction} className="space-y-4">
       <div>
@@ -1289,8 +1262,8 @@ Après une mutation, invalider les requêtes concernées :
 
 ```typescript
 onSuccess: () => {
-  queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.languages] })
-}
+  queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.languages] });
+};
 ```
 
 ### 4. Optimistic Updates
@@ -1301,13 +1274,13 @@ Pour une meilleure UX, utiliser les mises à jour optimistes :
 onMutate: async (newTodo) => {
   // Annuler les requêtes en cours
   await queryClient.cancelQueries({ queryKey: ['todos'] })
-  
+
   // Sauvegarder l'état précédent
   const previousTodos = queryClient.getQueryData(['todos'])
-  
+
   // Mettre à jour le cache de manière optimiste
   queryClient.setQueryData(['todos'], old => [...old, newTodo])
-  
+
   // Retourner le contexte avec l'état précédent
   return { previousTodos }
 },
@@ -1323,13 +1296,13 @@ Pour améliorer les performances, précharger les données qui seront probableme
 
 ```typescript
 // Précharger les détails d'un langage au survol
-const queryClient = useQueryClient()
+const queryClient = useQueryClient();
 
 function handleMouseEnter(id: string) {
   queryClient.prefetchQuery({
     queryKey: [QUERY_KEYS.languageDetail(id)],
     queryFn: () => fetchLanguageById(id),
-  })
+  });
 }
 ```
 
@@ -1352,8 +1325,7 @@ Cela vous permettra de voir toutes les requêtes, leur état, les données mises
 - [Optimistic Updates](https://tanstack.com/query/latest/docs/react/guides/optimistic-updates)
 - [Infinite Queries](https://tanstack.com/query/latest/docs/react/guides/infinite-queries)
 
-
-```plaintext
+````plaintext
 
 ## 4. Updated utils.md
 
@@ -1407,7 +1379,7 @@ toArrayOrNull<T>(value: any): T[] | null
 nullToUndefined(value: any): any | undefined
 undefinedToNull(value: any): any | null
 nullToDefault<T>(value: T | null | undefined, defaultValue: T): T
-```
+````
 
 #### Exemple d'utilisation
 
@@ -1427,7 +1399,6 @@ Le module `formatting` fournit des fonctions pour formater différents types de 
 - `index.ts` : Exporte toutes les fonctions du module
 - `format-date.ts` : Fonctions de formatage de date
 - `get-image-name.ts` : Extraction de noms de fichiers
-
 
 #### Fonctions principales
 
@@ -1474,12 +1445,12 @@ Convertit une valeur en nombre.
  * @returns Nombre converti
  */
 export function toNumber(value: any): number {
-  if (typeof value === "number") return value
-  if (typeof value === "string") {
-    const parsed = Number(value)
-    return isNaN(parsed) ? 0 : parsed
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    return isNaN(parsed) ? 0 : parsed;
   }
-  return 0
+  return 0;
 }
 ```
 
@@ -1494,9 +1465,9 @@ Convertit une valeur en chaîne de caractères.
  * @returns Chaîne de caractères convertie
  */
 export function toString(value: any): string {
-  if (typeof value === "string") return value
-  if (value === null || value === undefined) return ""
-  return String(value)
+  if (typeof value === 'string') return value;
+  if (value === null || value === undefined) return '';
+  return String(value);
 }
 ```
 
@@ -1511,9 +1482,9 @@ Convertit une valeur en booléen.
  * @returns Booléen converti
  */
 export function toBoolean(value: any): boolean {
-  if (typeof value === "boolean") return value
-  if (typeof value === "string") return value.toLowerCase() === "true"
-  return Boolean(value)
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') return value.toLowerCase() === 'true';
+  return Boolean(value);
 }
 ```
 
@@ -1528,9 +1499,9 @@ Convertit une valeur en tableau.
  * @returns Tableau converti
  */
 export function toArray<T>(value: any): T[] {
-  if (Array.isArray(value)) return value
-  if (value === null || value === undefined) return []
-  return [value] as T[]
+  if (Array.isArray(value)) return value;
+  if (value === null || value === undefined) return [];
+  return [value] as T[];
 }
 ```
 
@@ -1550,15 +1521,15 @@ Formate une date en chaîne de caractères lisible.
 export function formatDate(
   date: Date | string | number,
   options: Intl.DateTimeFormatOptions = {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
   },
 ): string {
-  const dateObj = date instanceof Date ? date : new Date(date)
+  const dateObj = date instanceof Date ? date : new Date(date);
 
   // Utiliser l'API Intl pour le formatage localisé
-  return new Intl.DateTimeFormat("fr-FR", options).format(dateObj)
+  return new Intl.DateTimeFormat('fr-FR', options).format(dateObj);
 }
 ```
 
@@ -1573,13 +1544,13 @@ Extrait le nom de fichier d'une URL ou d'un chemin d'image.
  * @returns Nom du fichier sans extension
  */
 export function getImageName(path: string): string {
-  if (!path) return ""
+  if (!path) return '';
 
   // Extraire le nom de fichier du chemin
-  const filename = path.split("/").pop() || ""
+  const filename = path.split('/').pop() || '';
 
   // Supprimer l'extension
-  return filename.split(".")[0]
+  return filename.split('.')[0];
 }
 ```
 
@@ -1613,7 +1584,6 @@ Lorsque vous créez une nouvelle fonction utilitaire :
 2. **Créez un nouveau module si nécessaire** : Si la fonction ne correspond à aucun module existant, créez un nouveau module.
 3. **Exportez depuis index.ts** : Assurez-vous d'exporter la fonction depuis le fichier index.ts du module.
 4. **Ajoutez au fichier principal** : Ajoutez l'exportation au fichier utils/index.ts principal si nécessaire.
-
 
 ### 3. Tests
 
@@ -1657,7 +1627,7 @@ export function dbToLanguage(dbLanguage: DbLanguage): Language {
     strengths: toArray(dbLanguage.strengths),
     isOpenSource: toBoolean(dbLanguage.is_open_source),
     // ...autres propriétés
-  }
+  };
 }
 ```
 

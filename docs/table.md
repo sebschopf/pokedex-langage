@@ -12,15 +12,15 @@ I'll update each of the documentation files to reflect the changes we've made to
 id                  integer         NOT NULL (PK)
 name                varchar         NOT NULL
 slug                varchar         NOT NULL
-description         text            
+description         text
 language_id         integer         NOT NULL (FK -> languages.id)
-technology_type     varchar         
-website_url         varchar         
-github_url          varchar         
-logo_path           varchar         
-is_popular          boolean         
-created_at          timestamp       
-updated_at          timestamp       
+technology_type     varchar
+website_url         varchar
+github_url          varchar
+logo_path           varchar
+is_popular          boolean
+created_at          timestamp
+updated_at          timestamp
 documentation_url   varchar
 best_for            text
 category            varchar
@@ -38,13 +38,13 @@ is_open_source      boolean
 
 ```plaintext
 id                  uuid            NOT NULL (PK)
-username            text            
-created_at          timestamp       
-updated_at          timestamp       
-avatar_url          text            
-full_name           text            
-bio                 text            
-website             text            
+username            text
+created_at          timestamp
+updated_at          timestamp
+avatar_url          text
+full_name           text
+bio                 text
+website             text
 email               text
 is_verified         boolean
 ```
@@ -55,8 +55,8 @@ is_verified         boolean
 id                  uuid            NOT NULL (PK)
 user_id             uuid            NOT NULL (FK -> auth.users.id)
 role                user_role       NOT NULL (enum: admin, validator, verified, registered)
-created_at          timestamp       
-updated_at          timestamp       
+created_at          timestamp
+updated_at          timestamp
 ```
 
 ### language_proposals
@@ -64,17 +64,17 @@ updated_at          timestamp
 ```plaintext
 id                  integer         NOT NULL (PK)
 name                varchar         NOT NULL
-type                varchar         
-description         text            
-created_year        integer         
-creator             varchar         
-used_for            text            
-strengths           array           
-popular_frameworks  array           
-user_id             uuid            
+type                varchar
+description         text
+created_year        integer
+creator             varchar
+used_for            text
+strengths           array
+popular_frameworks  array
+user_id             uuid
 status              varchar         NOT NULL
-created_at          timestamp       
-updated_at          timestamp       
+created_at          timestamp
+updated_at          timestamp
 ```
 
 ### corrections
@@ -82,14 +82,14 @@ updated_at          timestamp
 ```plaintext
 id                  integer         NOT NULL (PK)
 language_id         integer         NOT NULL (FK -> languages.id)
-framework           text            
+framework           text
 correction_text     text            NOT NULL
 status              text            NOT NULL
-created_at          timestamp       
-updated_at          timestamp       
-field               varchar         
-suggestion          text            
-user_id             uuid            
+created_at          timestamp
+updated_at          timestamp
+field               varchar
+suggestion          text
+user_id             uuid
 ```
 
 ## Relations entre les Tables
@@ -105,7 +105,6 @@ user_id             uuid
 9. **todos.status_id** -> todo_status.id
 10. **user_roles.user_id** -> auth.users.id
 
-
 ## Système de Rôles et Permissions
 
 ### Rôles Utilisateurs
@@ -116,7 +115,6 @@ user_id             uuid
 - **registered** - Utilisateur simplement enregistré
 - **anonymous** - Utilisateur non connecté (implicite)
 
-
 ### Politiques d'Accès (RLS)
 
 #### Table corrections
@@ -125,7 +123,6 @@ user_id             uuid
 2. **Modification**: Seuls les admins et validateurs peuvent modifier les corrections
 3. **Insertion**: Tout le monde peut soumettre des corrections
 
-
 #### Table language_proposals
 
 1. **Lecture**: Les utilisateurs peuvent voir leurs propres propositions; les admins et validateurs peuvent voir toutes les propositions
@@ -133,12 +130,10 @@ user_id             uuid
 3. **Insertion**: Seuls les utilisateurs enregistrés peuvent proposer des langages
 4. **Suppression**: Seuls les admins peuvent supprimer des propositions
 
-
 #### Table languages
 
 1. **Lecture**: Tout le monde peut lire les langages
 2. **Insertion/Modification/Suppression**: Seuls les admins et validateurs peuvent gérer les langages
-
 
 ## Flux de Travail
 
@@ -149,14 +144,12 @@ user_id             uuid
 3. Si approuvée, un admin ou validateur crée une entrée dans la table languages
 4. Le statut de la proposition est mis à jour
 
-
 ### Correction d'un Langage Existant
 
 1. N'importe quel utilisateur peut soumettre une correction via la table corrections
 2. Un validateur ou admin examine la correction
 3. Si approuvée, un admin ou validateur met à jour l'entrée correspondante dans la table languages
 4. Le statut de la correction est mis à jour
-
 
 ## Fonctions de Mapping
 
@@ -185,19 +178,19 @@ export function dbToLanguage(dbLanguage: DbLanguage): Language {
     githubUrl: dbLanguage.github_url || null,
     websiteUrl: dbLanguage.website_url || null,
     // ...autres propriétés
-  }
+  };
 }
 
 // Fonction inverse pour convertir un modèle en objet de base de données
 export function languageToDb(language: Partial<Language>): Partial<DbLanguage> {
-  const dbLanguage: Partial<DbLanguage> = {}
+  const dbLanguage: Partial<DbLanguage> = {};
 
-  if (language.id !== undefined) dbLanguage.id = language.id
-  if (language.name !== undefined) dbLanguage.name = language.name
-  if (language.slug !== undefined) dbLanguage.slug = language.slug
+  if (language.id !== undefined) dbLanguage.id = language.id;
+  if (language.name !== undefined) dbLanguage.name = language.name;
+  if (language.slug !== undefined) dbLanguage.slug = language.slug;
   // ...autres propriétés
 
-  return dbLanguage
+  return dbLanguage;
 }
 ```
 
@@ -213,15 +206,11 @@ import { createClient } from '@supabase/supabase-js';
 import { cache } from 'react';
 
 export const createServerSupabaseClient = cache(() => {
-  return createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      auth: {
-        persistSession: false,
-      }
-    }
-  );
+  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+    auth: {
+      persistSession: false,
+    },
+  });
 });
 ```
 
@@ -244,9 +233,9 @@ export function createBrowserClient() {
     {
       auth: {
         persistSession: true,
-        storageKey: "supabase-auth",
-      }
-    }
+        storageKey: 'supabase-auth',
+      },
+    },
   );
 
   return supabaseClient;
@@ -261,35 +250,33 @@ export function createBrowserClient() {
 // lib/server/api/languages.ts
 export async function getLanguages(options = {}) {
   const { page = 1, pageSize = 10, search, category, subtype } = options;
-  
+
   const supabase = createServerClient();
-  
-  let query = supabase.from("languages").select("*", { count: "exact" });
-  
+
+  let query = supabase.from('languages').select('*', { count: 'exact' });
+
   // Appliquer les filtres
   if (search) {
     query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
   }
-  
+
   if (category) {
-    query = query.eq("type", category);
+    query = query.eq('type', category);
   }
-  
+
   // Pagination
   const offset = (page - 1) * pageSize;
-  
-  const { data, error, count } = await query
-    .range(offset, offset + pageSize - 1)
-    .order("name");
-  
+
+  const { data, error, count } = await query.range(offset, offset + pageSize - 1).order('name');
+
   if (error) {
-    console.error("Erreur lors de la récupération des langages:", error);
+    console.error('Erreur lors de la récupération des langages:', error);
     throw error;
   }
-  
+
   // Convertir les données avec la fonction de mapping
   const mappedData = data ? data.map(dbToLanguage) : [];
-  
+
   return {
     data: mappedData,
     totalCount: count || 0,
@@ -303,48 +290,44 @@ export async function getLanguages(options = {}) {
 
 ```typescript
 // app/actions/language-actions.ts
-"use server"
+'use server';
 
 export async function createLanguageAction(formData: FormData) {
   try {
     const language = {
-      name: formData.get("name") as string,
+      name: formData.get('name') as string,
       // ...autres propriétés
-      slug: (formData.get("name") as string).toLowerCase().replace(/\s+/g, "-"),
+      slug: (formData.get('name') as string).toLowerCase().replace(/\s+/g, '-'),
       createdAt: new Date().toISOString(),
     };
-    
+
     const supabase = createServerClient();
     const dbData = languageToDb(language);
-    
-    const { data, error } = await supabase
-      .from("languages")
-      .insert(dbData)
-      .select()
-      .single();
-    
+
+    const { data, error } = await supabase.from('languages').insert(dbData).select().single();
+
     if (error) {
-      console.error("Erreur lors de la création du langage:", error);
+      console.error('Erreur lors de la création du langage:', error);
       return {
         success: false,
-        message: "Erreur lors de la création du langage",
+        message: 'Erreur lors de la création du langage',
       };
     }
-    
+
     // Revalider les chemins pour mettre à jour les données
-    revalidatePath("/");
-    revalidatePath("/admin/languages");
-    
+    revalidatePath('/');
+    revalidatePath('/admin/languages');
+
     return {
       success: true,
-      message: "Langage créé avec succès",
+      message: 'Langage créé avec succès',
       data: dbToLanguage(data),
     };
   } catch (error) {
-    console.error("Erreur lors de la création du langage:", error);
+    console.error('Erreur lors de la création du langage:', error);
     return {
       success: false,
-      message: "Une erreur est survenue lors de la création du langage",
+      message: 'Une erreur est survenue lors de la création du langage',
     };
   }
 }

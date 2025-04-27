@@ -7,6 +7,7 @@ Ce projet est une application web moderne qui catalogue et présente différents
 ## Stack Technologique
 
 ### Frontend
+
 - **Next.js 14+** : Framework React avec rendu côté serveur (SSR) et génération statique (SSG)
 - **React 18+** : Bibliothèque UI pour la construction d'interfaces utilisateur
 - **TypeScript** : Superset typé de JavaScript pour une meilleure maintenabilité
@@ -14,6 +15,7 @@ Ce projet est une application web moderne qui catalogue et présente différents
 - **shadcn/ui** : Composants UI réutilisables basés sur Radix UI
 
 ### Backend
+
 - **Next.js API Routes** : Points d'entrée API serverless
 - **Supabase** : Plateforme backend-as-a-service (alternative open source à Firebase)
   - Base de données PostgreSQL
@@ -21,11 +23,13 @@ Ce projet est une application web moderne qui catalogue et présente différents
   - Stockage de fichiers
 
 ### Outils de développement
+
 - **ESLint** : Linting du code JavaScript/TypeScript
 - **Prettier** : Formatage du code
 - **TanStack Query** (anciennement React Query) : Gestion des états serveur et mise en cache
 
 ### Déploiement
+
 - **Vercel** : Plateforme de déploiement optimisée pour Next.js
 - **GitHub** : Gestion de version et CI/CD
 
@@ -34,27 +38,32 @@ Ce projet est une application web moderne qui catalogue et présente différents
 L'application suit une architecture en couches avec une séparation claire des responsabilités :
 
 ### 1. Couche Présentation
+
 - **Components** (`/components`) : Composants React réutilisables
 - **Pages** (`/app`) : Routes et pages de l'application (App Router de Next.js)
 
 ### 2. Couche Logique Métier
+
 - **Hooks** (`/hooks`) : Hooks React personnalisés pour la logique métier
 - **Utilitaires** (`/utils`) : Fonctions utilitaires génériques
 - **Lib** (`/lib`) : Logique métier spécifique à l'application
 - **Actions** (`/app/actions`) : Server Actions pour les opérations côté serveur
 
 ### 3. Couche Accès aux Données
+
 - **API** (`/lib/server/api`) : Fonctions d'accès aux données
 - **Mapping** (`/lib/server/mapping`) : Conversion entre les types de base de données et les modèles
 - **Client API** (`/lib/client/api.ts`) : Fonctions client pour interagir avec l'API
 
 ### 4. Couche Infrastructure
+
 - **Supabase** (`/lib/server/supabase`) : Configuration et clients Supabase
 - **Middleware** (`/middleware.ts`) : Middleware Next.js pour l'authentification et la protection des routes
 
 ## Méthodologies et Principes
 
 ### 1. Principes SOLID
+
 - **Single Responsibility** : Chaque module a une seule raison de changer
 - **Open/Closed** : Les modules sont ouverts à l'extension mais fermés à la modification
 - **Liskov Substitution** : Les sous-types doivent être substituables à leurs types de base
@@ -62,18 +71,21 @@ L'application suit une architecture en couches avec une séparation claire des r
 - **Dependency Inversion** : Dépendre des abstractions, pas des implémentations
 
 ### 2. Architecture Orientée Composants
+
 - Composants autonomes et réutilisables
 - Composition plutôt qu'héritage
 - Props pour la configuration et les données
 - État local pour les interactions utilisateur
 
 ### 3. Gestion des Types
+
 - Types stricts avec TypeScript
 - Séparation entre types de base de données et modèles d'application
 - Utilisation d'interfaces pour définir les contrats
 - Fonctions de conversion entre types de base de données et modèles
 
 ### 4. Gestion d'État
+
 - État local avec `useState` et `useReducer`
 - État global avec React Context API
 - État serveur avec TanStack Query
@@ -82,69 +94,69 @@ L'application suit une architecture en couches avec une séparation claire des r
 ## Structure des Dossiers
 
 \`\`\`
-/app                   # Routes et pages Next.js (App Router)
-  /actions             # Server Actions pour les opérations côté serveur
-  /api                 # Routes API
-  /admin               # Pages d'administration
-  /languages           # Pages des langages
-  /suggestions         # Pages de suggestions et corrections
-/components            # Composants React réutilisables
-  /admin               # Composants d'administration
-  /ui                  # Composants UI génériques
-/hooks                 # Hooks React personnalisés
-/lib                   # Logique métier et utilitaires spécifiques
-  /client              # Code côté client
-    /api.ts            # Fonctions client pour interagir avec l'API
-    /auth-helpers.ts   # Helpers pour l'authentification côté client
-    /permissions.ts    # Vérification des permissions
-    /supabase.ts       # Client Supabase côté client
-  /server              # Code côté serveur
-    /api               # Fonctions d'accès aux données
-      /languages.ts    # API pour les langages
-      /libraries.ts    # API pour les bibliothèques
-      /corrections.ts  # API pour les corrections
-      /users.ts        # API pour les utilisateurs
-    /mapping           # Fonctions de transformation
-      /language-mapping.ts  # Mapping pour les langages
-      /library-mapping.ts   # Mapping pour les bibliothèques
-      /correction-mapping.ts # Mapping pour les corrections
-      /index.ts        # Point d'entrée pour les mappings
-    /supabase          # Configuration Supabase
-      /client.ts       # Client Supabase côté serveur
-      /index.ts        # Point d'entrée pour Supabase
-  /database-mapping.ts # Fonctions de mapping (legacy)
-  /database-types.ts   # Types de base de données (legacy)
-  /storage.ts          # Gestion du stockage de fichiers
-  /supabase-app-router.ts # Client Supabase pour App Router
-  /supabase-server.ts  # Client Supabase côté serveur (legacy)
-  /utils               # Utilitaires spécifiques à l'application
-/middleware.ts         # Middleware Next.js pour l'authentification
-/types                 # Définitions de types TypeScript
-  /database            # Types correspondant aux tables
-    /language.ts       # Type pour la table languages
-    /library.ts        # Type pour la table libraries
-    /correction.ts     # Type pour la table corrections
-    /todo.ts           # Type pour la table todos
-    /index.ts          # Point d'entrée pour les types de base de données
-  /models              # Types utilisés dans l'application
-    /language.ts       # Type Language pour l'application
-    /library.ts        # Type Library pour l'application
-    /correction.ts     # Type Correction pour l'application
-    /todo.ts           # Type Todo pour l'application
-  /dto                 # Types pour les transferts de données
-  /database-types.ts   # Types générés par Supabase
-  /index.ts            # Point d'entrée pour tous les types
-/utils                 # Utilitaires génériques
-  /conversion          # Conversion entre types
-    /type-conversion.ts # Conversion de types
-    /null-undefined.ts # Gestion des valeurs null et undefined
-    /index.ts          # Point d'entrée pour les conversions
-  /formatting          # Formatage de données
-    /format-date.ts    # Formatage de dates
-    /get-image-name.ts # Extraction de noms de fichiers
-    /index.ts          # Point d'entrée pour le formatage
-  /date.ts             # Alias pour formatting/format-date.ts
-/public                # Fichiers statiques
+/app # Routes et pages Next.js (App Router)
+/actions # Server Actions pour les opérations côté serveur
+/api # Routes API
+/admin # Pages d'administration
+/languages # Pages des langages
+/suggestions # Pages de suggestions et corrections
+/components # Composants React réutilisables
+/admin # Composants d'administration
+/ui # Composants UI génériques
+/hooks # Hooks React personnalisés
+/lib # Logique métier et utilitaires spécifiques
+/client # Code côté client
+/api.ts # Fonctions client pour interagir avec l'API
+/auth-helpers.ts # Helpers pour l'authentification côté client
+/permissions.ts # Vérification des permissions
+/supabase.ts # Client Supabase côté client
+/server # Code côté serveur
+/api # Fonctions d'accès aux données
+/languages.ts # API pour les langages
+/libraries.ts # API pour les bibliothèques
+/corrections.ts # API pour les corrections
+/users.ts # API pour les utilisateurs
+/mapping # Fonctions de transformation
+/language-mapping.ts # Mapping pour les langages
+/library-mapping.ts # Mapping pour les bibliothèques
+/correction-mapping.ts # Mapping pour les corrections
+/index.ts # Point d'entrée pour les mappings
+/supabase # Configuration Supabase
+/client.ts # Client Supabase côté serveur
+/index.ts # Point d'entrée pour Supabase
+/database-mapping.ts # Fonctions de mapping (legacy)
+/database-types.ts # Types de base de données (legacy)
+/storage.ts # Gestion du stockage de fichiers
+/supabase-app-router.ts # Client Supabase pour App Router
+/supabase-server.ts # Client Supabase côté serveur (legacy)
+/utils # Utilitaires spécifiques à l'application
+/middleware.ts # Middleware Next.js pour l'authentification
+/types # Définitions de types TypeScript
+/database # Types correspondant aux tables
+/language.ts # Type pour la table languages
+/library.ts # Type pour la table libraries
+/correction.ts # Type pour la table corrections
+/todo.ts # Type pour la table todos
+/index.ts # Point d'entrée pour les types de base de données
+/models # Types utilisés dans l'application
+/language.ts # Type Language pour l'application
+/library.ts # Type Library pour l'application
+/correction.ts # Type Correction pour l'application
+/todo.ts # Type Todo pour l'application
+/dto # Types pour les transferts de données
+/database-types.ts # Types générés par Supabase
+/index.ts # Point d'entrée pour tous les types
+/utils # Utilitaires génériques
+/conversion # Conversion entre types
+/type-conversion.ts # Conversion de types
+/null-undefined.ts # Gestion des valeurs null et undefined
+/index.ts # Point d'entrée pour les conversions
+/formatting # Formatage de données
+/format-date.ts # Formatage de dates
+/get-image-name.ts # Extraction de noms de fichiers
+/index.ts # Point d'entrée pour le formatage
+/date.ts # Alias pour formatting/format-date.ts
+/public # Fichiers statiques
 \`\`\`
 
 ## Flux de Données
@@ -195,4 +207,3 @@ This updated architecture.md file now reflects the changes we've made to your co
 
 Is there anything specific you'd like me to emphasize or add to this updated documentation?
 \`\`\`
-

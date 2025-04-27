@@ -93,6 +93,7 @@ const maxRetryCount = 3;
 
 \`\`\`
 // Bon
+
 - utils/
   - string-utils.ts
   - date-formatter.ts
@@ -101,13 +102,14 @@ const maxRetryCount = 3;
   - LanguageCard.tsx
 
 // Mauvais
+
 - utils/
   - stringUtils.ts
   - DateFormatter.ts
 - components/
   - user-profile.tsx
   - language_card.tsx
-\`\`\`
+    \`\`\`
 
 ### Exports
 
@@ -148,13 +150,13 @@ const sum=a+b;
 \`\`\`typescript
 // Bon
 if (condition) {
-  doSomething();
+doSomething();
 }
 
 // Mauvais
 if (condition)
 {
-  doSomething();
+doSomething();
 }
 \`\`\`
 
@@ -163,7 +165,7 @@ if (condition)
 \`\`\`typescript
 // Bon
 if (condition) {
-  doSomething();
+doSomething();
 }
 
 // Mauvais
@@ -178,13 +180,13 @@ if (condition) doSomething();
 // Bon
 const name = 'John';
 function sayHello() {
-  console.log('Hello');
+console.log('Hello');
 }
 
 // Mauvais
 const name = 'John'
 function sayHello() {
-  console.log('Hello')
+console.log('Hello')
 }
 \`\`\`
 
@@ -204,9 +206,11 @@ const name = "John";
 
 \`\`\`tsx
 // Bon
+
 <div className="container">
 
 // Mauvais
+
 <div className='container'>
 \`\`\`
 
@@ -216,28 +220,28 @@ const name = "John";
 
 \`\`\`
 /
-├── app/                  # Routes Next.js (App Router)
-│   ├── api/              # Routes API
-│   ├── language/         # Pages des langages
-│   └── ...
-├── components/           # Composants React
-│   ├── ui/               # Composants UI réutilisables
-│   ├── admin/            # Composants pour l'administration
-│   └── ...
-├── lib/                  # Logique métier et utilitaires
-│   ├── server/           # Code côté serveur
-│   ├── client/           # Code côté client
-│   └── ...
-├── hooks/                # Hooks React personnalisés
-├── types/                # Définitions de types TypeScript
-│   ├── database/         # Types pour les tables de la base de données
-│   ├── models/           # Types pour les modèles de données
-│   └── ...
-├── utils/                # Fonctions utilitaires
-│   ├── string/           # Utilitaires pour les chaînes
-│   ├── date/             # Utilitaires pour les dates
-│   └── ...
-├── public/               # Fichiers statiques
+├── app/ # Routes Next.js (App Router)
+│ ├── api/ # Routes API
+│ ├── language/ # Pages des langages
+│ └── ...
+├── components/ # Composants React
+│ ├── ui/ # Composants UI réutilisables
+│ ├── admin/ # Composants pour l'administration
+│ └── ...
+├── lib/ # Logique métier et utilitaires
+│ ├── server/ # Code côté serveur
+│ ├── client/ # Code côté client
+│ └── ...
+├── hooks/ # Hooks React personnalisés
+├── types/ # Définitions de types TypeScript
+│ ├── database/ # Types pour les tables de la base de données
+│ ├── models/ # Types pour les modèles de données
+│ └── ...
+├── utils/ # Fonctions utilitaires
+│ ├── string/ # Utilitaires pour les chaînes
+│ ├── date/ # Utilitaires pour les dates
+│ └── ...
+├── public/ # Fichiers statiques
 └── ...
 \`\`\`
 
@@ -257,7 +261,7 @@ export function LanguageCardSkeleton() { ... }
 
 // components/LanguageCard/index.ts
 export { default } from './LanguageCard';
-export * from './LanguageCardSkeleton';
+export \* from './LanguageCardSkeleton';
 \`\`\`
 
 ## TypeScript et typage
@@ -275,12 +279,12 @@ type UserWithRole = User & { role: string };
 
 \`\`\`typescript
 interface User {
-  id: number;
-  name: string;
+id: number;
+name: string;
 }
 
 interface AdminUser extends User {
-  permissions: string[];
+permissions: string[];
 }
 \`\`\`
 
@@ -291,12 +295,12 @@ interface AdminUser extends User {
 \`\`\`typescript
 // Bon
 function getUser(id: number): User | null {
-  // ...
+// ...
 }
 
 // Mauvais
 function getUser(id) {
-  // ...
+// ...
 }
 \`\`\`
 
@@ -305,12 +309,12 @@ function getUser(id) {
 \`\`\`typescript
 // Bon
 function parseData(data: unknown): User {
-  // Vérification de type et conversion
+// Vérification de type et conversion
 }
 
 // Mauvais
 function parseData(data: any): User {
-  // Pas de vérification de type
+// Pas de vérification de type
 }
 \`\`\`
 
@@ -348,7 +352,7 @@ import { Button } from '@/components/ui/button';
 
 // Types
 interface UserProfileProps {
-  userId: string;
+userId: string;
 }
 
 // Constantes
@@ -356,26 +360,27 @@ const MAX_RETRIES = 3;
 
 // Composant principal
 export default function UserProfile({ userId }: UserProfileProps) {
-  // État
-  const [isLoading, setIsLoading] = useState(false);
-  
-  // Gestionnaires d'événements
-  const handleClick = () => {
-    // ...
-  };
-  
-  // Rendu
-  return (
-    <div>
-      <ProfileHeader />
-      <Button onClick={handleClick}>Modifier</Button>
-    </div>
-  );
+// État
+const [isLoading, setIsLoading] = useState(false);
+
+// Gestionnaires d'événements
+const handleClick = () => {
+// ...
+};
+
+// Rendu
+return (
+
+<div>
+<ProfileHeader />
+<Button onClick={handleClick}>Modifier</Button>
+</div>
+);
 }
 
 // Sous-composants
 function ProfileHeader() {
-  return <h1>Profil utilisateur</h1>;
+return <h1>Profil utilisateur</h1>;
 }
 \`\`\`
 
@@ -387,18 +392,18 @@ function ProfileHeader() {
 
 \`\`\`typescript
 function UserProfile() {
-  // Hooks d'état
-  const [user, setUser] = useState(null);
-  
-  // Hooks d'effet
-  useEffect(() => {
-    // ...
-  }, []);
-  
-  // Hooks personnalisés
-  const { isLoading, error } = useUser(userId);
-  
-  // Reste du composant...
+// Hooks d'état
+const [user, setUser] = useState(null);
+
+// Hooks d'effet
+useEffect(() => {
+// ...
+}, []);
+
+// Hooks personnalisés
+const { isLoading, error } = useUser(userId);
+
+// Reste du composant...
 }
 \`\`\`
 
@@ -409,13 +414,13 @@ function UserProfile() {
 \`\`\`typescript
 // Bon
 function UserCard({ name, email, avatar }: UserCardProps) {
-  // ...
+// ...
 }
 
 // Mauvais
 function UserCard(props: UserCardProps) {
-  const { name, email, avatar } = props;
-  // ...
+const { name, email, avatar } = props;
+// ...
 }
 \`\`\`
 
@@ -423,7 +428,7 @@ function UserCard(props: UserCardProps) {
 
 \`\`\`typescript
 function Button({ variant = 'primary', children }: ButtonProps) {
-  // ...
+// ...
 }
 \`\`\`
 
@@ -437,21 +442,21 @@ function Button({ variant = 'primary', children }: ButtonProps) {
 
 \`\`\`
 app/
-├── page.tsx              # Route: /
-├── layout.tsx            # Layout racine
+├── page.tsx # Route: /
+├── layout.tsx # Layout racine
 ├── language/
-│   ├── page.tsx          # Route: /language
-│   ├── [slug]/
-│   │   ├── page.tsx      # Route: /language/[slug]
-│   │   └── layout.tsx    # Layout pour /language/[slug]
-│   └── id/
-│       └── [id]/
-│           └── page.tsx  # Route: /language/id/[id]
+│ ├── page.tsx # Route: /language
+│ ├── [slug]/
+│ │ ├── page.tsx # Route: /language/[slug]
+│ │ └── layout.tsx # Layout pour /language/[slug]
+│ └── id/
+│ └── [id]/
+│ └── page.tsx # Route: /language/id/[id]
 └── api/
-    └── languages/
-        ├── route.ts      # API: /api/languages
-        └── [id]/
-            └── route.ts  # API: /api/languages/[id]
+└── languages/
+├── route.ts # API: /api/languages
+└── [id]/
+└── route.ts # API: /api/languages/[id]
 \`\`\`
 
 ### Composants serveur vs client
@@ -463,8 +468,8 @@ app/
 \`\`\`typescript
 // Composant serveur (par défaut)
 export default function LanguageList() {
-  // Ce code s'exécute sur le serveur
-  return <div>...</div>;
+// Ce code s'exécute sur le serveur
+return <div>...</div>;
 }
 
 // Composant client
@@ -473,9 +478,9 @@ export default function LanguageList() {
 import { useState } from 'react';
 
 export default function InteractiveForm() {
-  // Ce code s'exécute sur le client
-  const [value, setValue] = useState('');
-  return <div>...</div>;
+// Ce code s'exécute sur le client
+const [value, setValue] = useState('');
+return <div>...</div>;
 }
 \`\`\`
 
@@ -489,19 +494,20 @@ export default function InteractiveForm() {
 \`\`\`typescript
 // app/language/[slug]/loading.tsx
 export default function Loading() {
-  return <div>Chargement en cours...</div>;
+return <div>Chargement en cours...</div>;
 }
 
 // app/language/[slug]/error.tsx
 'use client';
 
 export default function Error({ error, reset }: { error: Error; reset: () => void }) {
-  return (
-    <div>
-      <h2>Une erreur s'est produite</h2>
-      <button onClick={reset}>Réessayer</button>
-    </div>
-  );
+return (
+
+<div>
+<h2>Une erreur s'est produite</h2>
+<button onClick={reset}>Réessayer</button>
+</div>
+);
 }
 \`\`\`
 
@@ -518,8 +524,8 @@ export default function Error({ error, reset }: { error: Error; reset: () => voi
 import { createClient } from '@supabase/supabase-js';
 
 export const supabaseAdmin = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+process.env.SUPABASE_URL!,
+process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 // lib/client/supabase.ts
@@ -528,13 +534,13 @@ import { createBrowserClient } from '@supabase/ssr';
 let supabaseClient: ReturnType<typeof createBrowserClient> | null = null;
 
 export function getSupabaseClient() {
-  if (!supabaseClient) {
-    supabaseClient = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-  }
-  return supabaseClient;
+if (!supabaseClient) {
+supabaseClient = createBrowserClient(
+process.env.NEXT_PUBLIC_SUPABASE_URL!,
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+}
+return supabaseClient;
 }
 \`\`\`
 
@@ -550,23 +556,24 @@ import { supabaseAdmin } from '../supabase/client';
 import type { Language } from '@/types/models';
 
 export async function getLanguageBySlug(slug: string): Promise<Language | null> {
-  try {
-    const { data, error } = await supabaseAdmin
-      .from('languages')
-      .select('*')
-      .eq('slug', slug)
-      .single();
-      
+try {
+const { data, error } = await supabaseAdmin
+.from('languages')
+.select('\*')
+.eq('slug', slug)
+.single();
+
     if (error) {
       console.error('Error fetching language:', error);
       return null;
     }
-    
+
     return data;
-  } catch (error) {
-    console.error('Unexpected error:', error);
-    return null;
-  }
+
+} catch (error) {
+console.error('Unexpected error:', error);
+return null;
+}
 }
 \`\`\`
 
@@ -582,18 +589,18 @@ import { useQuery } from '@tanstack/react-query';
 import type { Language } from '@/types/models';
 
 async function fetchLanguages(): Promise<Language[]> {
-  const response = await fetch('/api/languages');
-  if (!response.ok) {
-    throw new Error('Failed to fetch languages');
-  }
-  return response.json();
+const response = await fetch('/api/languages');
+if (!response.ok) {
+throw new Error('Failed to fetch languages');
+}
+return response.json();
 }
 
 export function useLanguages() {
-  return useQuery({
-    queryKey: ['languages'],
-    queryFn: fetchLanguages,
-  });
+return useQuery({
+queryKey: ['languages'],
+queryFn: fetchLanguages,
+});
 }
 \`\`\`
 
@@ -610,6 +617,7 @@ export function useLanguages() {
 
 \`\`\`tsx
 // Bon
+
 <div className="
   flex items-center justify-between
   p-4 my-2
@@ -619,6 +627,7 @@ export function useLanguages() {
 ">
 
 // Mauvais (mélangé sans ordre)
+
 <div className="text-sm bg-white p-4 flex hover:bg-gray-50 items-center border-gray-200 rounded-lg my-2 border font-medium justify-between">
 \`\`\`
 
@@ -633,42 +642,41 @@ export function useLanguages() {
 import { cn } from '@/utils';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline';
-  size?: 'sm' | 'md' | 'lg';
+variant?: 'primary' | 'secondary' | 'outline';
+size?: 'sm' | 'md' | 'lg';
 }
 
 export function Button({
-  variant = 'primary',
-  size = 'md',
-  className,
-  children,
-  ...props
+variant = 'primary',
+size = 'md',
+className,
+children,
+...props
 }: ButtonProps) {
-  return (
-    <button
-      className={cn(
-        // Base styles
-        'inline-flex items-center justify-center rounded-md font-medium transition-colors',
-        // Size variants
-        {
-          'h-8 px-3 text-xs': size === 'sm',
-          'h-10 px-4 text-sm': size === 'md',
-          'h-12 px-6 text-base': size === 'lg',
-        },
-        // Color variants
-        {
-          'bg-primary text-white hover:bg-primary/90': variant === 'primary',
-          'bg-secondary text-secondary-foreground hover:bg-secondary/80': variant === 'secondary',
-          'border border-input bg-transparent hover:bg-accent hover:text-accent-foreground': variant === 'outline',
-        },
-        // Additional classes
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </button>
-  );
+return (
+<button
+className={cn(
+// Base styles
+'inline-flex items-center justify-center rounded-md font-medium transition-colors',
+// Size variants
+{
+'h-8 px-3 text-xs': size === 'sm',
+'h-10 px-4 text-sm': size === 'md',
+'h-12 px-6 text-base': size === 'lg',
+},
+// Color variants
+{
+'bg-primary text-white hover:bg-primary/90': variant === 'primary',
+'bg-secondary text-secondary-foreground hover:bg-secondary/80': variant === 'secondary',
+'border border-input bg-transparent hover:bg-accent hover:text-accent-foreground': variant === 'outline',
+},
+// Additional classes
+className
+)}
+{...props} >
+{children}
+</button>
+);
 }
 \`\`\`
 
@@ -679,6 +687,7 @@ export function Button({
 - Testez sur différentes tailles d'écran
 
 \`\`\`tsx
+
 <div className="
   grid grid-cols-1 gap-4
   sm:grid-cols-2
@@ -702,17 +711,17 @@ export function Button({
 import { capitalizeFirstLetter } from './string-utils';
 
 describe('capitalizeFirstLetter', () => {
-  it('capitalizes the first letter of a string', () => {
-    expect(capitalizeFirstLetter('hello')).toBe('Hello');
-  });
-  
-  it('returns an empty string when given an empty string', () => {
-    expect(capitalizeFirstLetter('')).toBe('');
-  });
-  
-  it('does not change already capitalized strings', () => {
-    expect(capitalizeFirstLetter('Hello')).toBe('Hello');
-  });
+it('capitalizes the first letter of a string', () => {
+expect(capitalizeFirstLetter('hello')).toBe('Hello');
+});
+
+it('returns an empty string when given an empty string', () => {
+expect(capitalizeFirstLetter('')).toBe('');
+});
+
+it('does not change already capitalized strings', () => {
+expect(capitalizeFirstLetter('Hello')).toBe('Hello');
+});
 });
 \`\`\`
 
@@ -729,18 +738,19 @@ import userEvent from '@testing-library/user-event';
 import LanguageCard from './LanguageCard';
 
 describe('LanguageCard', () => {
-  it('displays the language name', () => {
-    render(<LanguageCard name="TypeScript" />);
-    expect(screen.getByText('TypeScript')).toBeInTheDocument();
-  });
-  
-  it('calls the onClick handler when clicked', async () => {
-    const handleClick = jest.fn();
-    render(<LanguageCard name="TypeScript" onClick={handleClick} />);
-    
+it('displays the language name', () => {
+render(<LanguageCard name="TypeScript" />);
+expect(screen.getByText('TypeScript')).toBeInTheDocument();
+});
+
+it('calls the onClick handler when clicked', async () => {
+const handleClick = jest.fn();
+render(<LanguageCard name="TypeScript" onClick={handleClick} />);
+
     await userEvent.click(screen.getByRole('button'));
     expect(handleClick).toHaveBeenCalledTimes(1);
-  });
+
+});
 });
 \`\`\`
 
@@ -758,27 +768,28 @@ import { NextResponse } from 'next/server';
 import { getLanguageById } from '@/lib/server/api/languages';
 
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+request: Request,
+{ params }: { params: { id: string } }
 ) {
-  try {
-    const language = await getLanguageById(params.id);
-    
+try {
+const language = await getLanguageById(params.id);
+
     if (!language) {
       return NextResponse.json(
         { error: 'Language not found' },
         { status: 404 }
       );
     }
-    
+
     return NextResponse.json(language);
-  } catch (error) {
-    console.error('Error fetching language:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+
+} catch (error) {
+console.error('Error fetching language:', error);
+return NextResponse.json(
+{ error: 'Internal server error' },
+{ status: 500 }
+);
+}
 }
 \`\`\`
 
@@ -795,21 +806,22 @@ export async function GET(
 import { Button } from '@/components/ui/button';
 
 export default function Error({
-  error,
-  reset,
+error,
+reset,
 }: {
-  error: Error & { digest?: string };
-  reset: () => void;
+error: Error & { digest?: string };
+reset: () => void;
 }) {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-[50vh] p-4 text-center">
-      <h2 className="text-2xl font-bold mb-4">Une erreur s'est produite</h2>
-      <p className="text-muted-foreground mb-6">
-        Nous n'avons pas pu charger les informations demandées.
-      </p>
-      <Button onClick={reset}>Réessayer</Button>
-    </div>
-  );
+return (
+
+<div className="flex flex-col items-center justify-center min-h-[50vh] p-4 text-center">
+<h2 className="text-2xl font-bold mb-4">Une erreur s'est produite</h2>
+<p className="text-muted-foreground mb-6">
+Nous n'avons pas pu charger les informations demandées.
+</p>
+<Button onClick={reset}>Réessayer</Button>
+</div>
+);
 }
 \`\`\`
 
@@ -825,16 +837,16 @@ export default function Error({
 import Image from 'next/image';
 
 export function LanguageLogo({ src, alt }: { src: string; alt: string }) {
-  return (
-    <Image
-      src={src || "/placeholder.svg"}
-      alt={alt}
-      width={64}
-      height={64}
-      className="rounded-md"
-      priority={false}
-    />
-  );
+return (
+<Image
+src={src || "/placeholder.svg"}
+alt={alt}
+width={64}
+height={64}
+className="rounded-md"
+priority={false}
+/>
+);
 }
 \`\`\`
 
@@ -848,8 +860,8 @@ import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const LanguageChart = dynamic(() => import('@/components/LanguageChart'), {
-  loading: () => <Skeleton className="h-64 w-full" />,
-  ssr: false, // Désactive le SSR pour les composants qui dépendent de window
+loading: () => <Skeleton className="h-64 w-full" />,
+ssr: false, // Désactive le SSR pour les composants qui dépendent de window
 });
 \`\`\`
 
@@ -862,23 +874,24 @@ const LanguageChart = dynamic(() => import('@/components/LanguageChart'), {
 import { useMemo, useCallback, memo } from 'react';
 
 function ExpensiveComponent({ data, onAction }: Props) {
-  // Memoize expensive calculations
-  const processedData = useMemo(() => {
-    return expensiveCalculation(data);
-  }, [data]);
-  
-  // Memoize callback functions
-  const handleClick = useCallback(() => {
-    onAction(data.id);
-  }, [onAction, data.id]);
-  
-  return (
-    <div onClick={handleClick}>
-      {processedData.map(item => (
-        <div key={item.id}>{item.name}</div>
-      ))}
-    </div>
-  );
+// Memoize expensive calculations
+const processedData = useMemo(() => {
+return expensiveCalculation(data);
+}, [data]);
+
+// Memoize callback functions
+const handleClick = useCallback(() => {
+onAction(data.id);
+}, [onAction, data.id]);
+
+return (
+
+<div onClick={handleClick}>
+{processedData.map(item => (
+<div key={item.id}>{item.name}</div>
+))}
+</div>
+);
 }
 
 // Memoize the component itself
@@ -895,6 +908,7 @@ export default memo(ExpensiveComponent);
 
 \`\`\`tsx
 // Bon
+
 <article>
   <h2>TypeScript</h2>
   <p>Un langage de programmation typé.</p>
@@ -905,6 +919,7 @@ export default memo(ExpensiveComponent);
 </article>
 
 // Mauvais
+
 <div>
   <div className="text-xl font-bold">TypeScript</div>
   <div>Un langage de programmation typé.</div>
@@ -923,14 +938,11 @@ export default memo(ExpensiveComponent);
 
 \`\`\`tsx
 <button
-  aria-label="Fermer"
-  aria-expanded={isOpen}
-  onClick={toggleMenu}
->
-  <span className="sr-only">Fermer le menu</span>
-  <XIcon />
-</button>
-\`\`\`
+aria-label="Fermer"
+aria-expanded={isOpen}
+onClick={toggleMenu}
+
+> <span className="sr-only">Fermer le menu</span> > <XIcon /> > </button> > \`\`\`
 
 ### Focus et navigation au clavier
 
@@ -940,12 +952,11 @@ export default memo(ExpensiveComponent);
 
 \`\`\`tsx
 <button
-  className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-  onClick={handleClick}
->
-  Cliquez ici
-</button>
-\`\`\`
+className="p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+onClick={handleClick}
+
+> Cliquez ici
+> </button> > \`\`\`
 
 ## Outils recommandés
 
@@ -971,23 +982,23 @@ export default memo(ExpensiveComponent);
 
 \`\`\`javascript
 module.exports = {
-  extends: [
-    'next/core-web-vitals',
-    'eslint:recommended',
-    'plugin:@typescript-eslint/recommended',
-    'plugin:react/recommended',
-    'plugin:react-hooks/recommended',
-    'plugin:jsx-a11y/recommended',
-    'prettier'
-  ],
-  plugins: ['@typescript-eslint', 'react', 'jsx-a11y'],
-  rules: {
-    'react/react-in-jsx-scope': 'off',
-    'react/prop-types': 'off',
-    '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-    'no-console': ['warn', { allow: ['warn', 'error'] }]
-  }
+extends: [
+'next/core-web-vitals',
+'eslint:recommended',
+'plugin:@typescript-eslint/recommended',
+'plugin:react/recommended',
+'plugin:react-hooks/recommended',
+'plugin:jsx-a11y/recommended',
+'prettier'
+],
+plugins: ['@typescript-eslint', 'react', 'jsx-a11y'],
+rules: {
+'react/react-in-jsx-scope': 'off',
+'react/prop-types': 'off',
+'@typescript-eslint/explicit-module-boundary-types': 'off',
+'@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+'no-console': ['warn', { allow: ['warn', 'error'] }]
+}
 };
 \`\`\`
 
@@ -995,12 +1006,12 @@ module.exports = {
 
 \`\`\`json
 {
-  "semi": true,
-  "singleQuote": true,
-  "tabWidth": 2,
-  "trailingComma": "es5",
-  "printWidth": 100,
-  "bracketSpacing": true
+"semi": true,
+"singleQuote": true,
+"tabWidth": 2,
+"trailingComma": "es5",
+"printWidth": 100,
+"bracketSpacing": true
 }
 \`\`\`
 
@@ -1008,32 +1019,32 @@ module.exports = {
 
 \`\`\`json
 {
-  "compilerOptions": {
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./*"]
-    }
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+"compilerOptions": {
+"target": "es5",
+"lib": ["dom", "dom.iterable", "esnext"],
+"allowJs": true,
+"skipLibCheck": true,
+"strict": true,
+"forceConsistentCasingInFileNames": true,
+"noEmit": true,
+"esModuleInterop": true,
+"module": "esnext",
+"moduleResolution": "node",
+"resolveJsonModule": true,
+"isolatedModules": true,
+"jsx": "preserve",
+"incremental": true,
+"plugins": [
+{
+"name": "next"
+}
+],
+"paths": {
+"@/_": ["./_"]
+}
+},
+"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+"exclude": ["node_modules"]
 }
 \`\`\`
 
