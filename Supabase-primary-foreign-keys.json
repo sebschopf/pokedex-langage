@@ -1,12 +1,12 @@
 [
-    {
-      "table_schema": "public",
-      "table_name": "languages",
-      "constraint_name": "languages_pkey",
-      "constraint_type": "PRIMARY KEY",
-      "column_name": "id",
-      "foreign_table_schema": "public",
-      "foreign_table_name": "languages",
-      "foreign_column_name": "id"
-    }
-  ]
+  {
+    "table_schema": "public",
+    "table_name": "languages",
+    "constraint_name": "languages_pkey",
+    "constraint_type": "PRIMARY KEY",
+    "column_name": "id",
+    "foreign_table_schema": "public",
+    "foreign_table_name": "languages",
+    "foreign_column_name": "id"
+  }
+]
