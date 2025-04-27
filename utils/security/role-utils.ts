@@ -1,5 +1,5 @@
 // utils/security/role-utils.ts
-import type { UserRoleType, UserRoleTypeDB } from "@/lib/client/permissions"
+import type { UserRoleType, UserRoleTypeDB } from '@/lib/client/permissions';
 
 /**
  * Convertit un rôle de base de données en rôle d'application
@@ -7,8 +7,8 @@ import type { UserRoleType, UserRoleTypeDB } from "@/lib/client/permissions"
  * @returns Rôle d'application
  */
 export function dbRoleToAppRole(dbRole: UserRoleTypeDB | null | undefined): UserRoleType {
-  if (!dbRole) return "anonymous"
-  return dbRole // Comme UserRoleTypeDB est un sous-ensemble de UserRoleType, cette conversion est sûre
+  if (!dbRole) return 'anonymous';
+  return dbRole; // Comme UserRoleTypeDB est un sous-ensemble de UserRoleType, cette conversion est sûre
 }
 
 /**
@@ -17,8 +17,8 @@ export function dbRoleToAppRole(dbRole: UserRoleTypeDB | null | undefined): User
  * @returns Rôle de base de données ou null si le rôle est "anonymous"
  */
 export function appRoleToDbRole(appRole: UserRoleType): UserRoleTypeDB | null {
-  if (appRole === "anonymous") return null
-  return appRole as UserRoleTypeDB
+  if (appRole === 'anonymous') return null;
+  return appRole as UserRoleTypeDB;
 }
 
 /**
@@ -27,7 +27,7 @@ export function appRoleToDbRole(appRole: UserRoleType): UserRoleTypeDB | null {
  * @returns true si le rôle est valide pour la base de données
  */
 export function isValidDbRole(role: string): role is UserRoleTypeDB {
-  return ["admin", "validator", "verified", "registered"].includes(role)
+  return ['admin', 'validator', 'verified', 'registered'].includes(role);
 }
 
 /**
@@ -36,5 +36,5 @@ export function isValidDbRole(role: string): role is UserRoleTypeDB {
  * @returns true si le rôle est valide pour l'application
  */
 export function isValidAppRole(role: string): role is UserRoleType {
-  return ["admin", "validator", "verified", "registered", "anonymous"].includes(role)
+  return ['admin', 'validator', 'verified', 'registered', 'anonymous'].includes(role);
 }

@@ -3,7 +3,7 @@
  */
 
 // Importation des fonctions depuis d'autres modules si nécessaire
-import { isNullOrUndefined as checkNullOrUndefined } from "../type-check/is-primitive";
+import { isNullOrUndefined as checkNullOrUndefined } from '../type-check/is-primitive';
 
 // Exportation des fonctions importées avec un alias pour éviter les conflits
 export { checkNullOrUndefined as isNullOrUndefined };
@@ -14,7 +14,7 @@ export { checkNullOrUndefined as isNullOrUndefined };
  * @returns true si la valeur est une chaîne vide
  */
 export function isEmptyString(value: any): boolean {
-  return typeof value === "string" && value.trim() === "";
+  return typeof value === 'string' && value.trim() === '';
 }
 
 /**

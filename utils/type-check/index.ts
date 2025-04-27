@@ -3,6 +3,6 @@
  * Exporte toutes les fonctions du module
  */
 
-export * from "./is-primitive"
-export * from "./is-object"
-export * from "./is-collection"
+export * from './is-primitive';
+export * from './is-object';
+export * from './is-collection';

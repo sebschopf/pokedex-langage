@@ -1,7 +1,7 @@
-import { redirect } from "next/navigation"
-import { createServerClient } from "@/lib/supabase/server"
-import { getUserRole } from "@/lib/server/api/users"
-import type { UserRoleType } from "@/lib/client/permissions"
+import { redirect } from 'next/navigation';
+import { createServerClient } from '@/lib/supabase/server';
+import { getUserRole } from '@/lib/server/api/users';
+import type { UserRoleType } from '@/lib/client/permissions';
 
 /**
  * Vérifie si l'utilisateur est authentifié dans un Server Component
@@ -10,17 +10,19 @@ import type { UserRoleType } from "@/lib/client/permissions"
  * @returns ID de l'utilisateur si authentifié
  */
 export async function requireAuthSC(redirectTo?: string): Promise<string> {
-  const supabase = createServerClient()
+  const supabase = createServerClient();
   const {
     data: { session },
-  } = await supabase.auth.getSession()
+  } = await supabase.auth.getSession();
 
   if (!session) {
-    const redirectUrl = redirectTo ? `/login?redirectTo=${encodeURIComponent(redirectTo)}` : "/login"
-    redirect(redirectUrl)
+    const redirectUrl = redirectTo
+      ? `/login?redirectTo=${encodeURIComponent(redirectTo)}`
+      : '/login';
+    redirect(redirectUrl);
   }
 
-  return session.user.id
+  return session.user.id;
 }
 
 /**
@@ -30,14 +32,17 @@ export async function requireAuthSC(redirectTo?: string): Promise<string> {
  * @param redirectTo URL de redirection si non autorisé (par défaut: /unauthorized)
  * @returns ID de l'utilisateur si autorisé
  */
-export async function requireRoleSC(requiredRole: UserRoleType, redirectTo = "/unauthorized"): Promise<string> {
-  const userId = await requireAuthSC()
+export async function requireRoleSC(
+  requiredRole: UserRoleType,
+  redirectTo = '/unauthorized',
+): Promise<string> {
+  const userId = await requireAuthSC();
 
   // Récupérer le rôle de l'utilisateur
-  const userRole = await getUserRole(userId)
+  const userRole = await getUserRole(userId);
 
   if (!userRole) {
-    redirect(redirectTo)
+    redirect(redirectTo);
   }
 
   // Définir la hiérarchie des rôles
@@ -47,20 +52,20 @@ export async function requireRoleSC(requiredRole: UserRoleType, redirectTo = "/u
     verified: 2,
     registered: 1,
     anonymous: 0,
-  }
+  };
 
   // Vérifier que userRole est une clé valide de roleHierarchy
-  const validRoles: UserRoleType[] = ["admin", "validator", "verified", "registered", "anonymous"]
+  const validRoles: UserRoleType[] = ['admin', 'validator', 'verified', 'registered', 'anonymous'];
   if (!validRoles.includes(userRole as UserRoleType)) {
-    redirect(redirectTo)
+    redirect(redirectTo);
   }
 
   // Vérifier si l'utilisateur a le rôle requis ou supérieur
   if (roleHierarchy[userRole as UserRoleType] < roleHierarchy[requiredRole]) {
-    redirect(redirectTo)
+    redirect(redirectTo);
   }
 
-  return userId
+  return userId;
 }
 
 /**
@@ -68,8 +73,8 @@ export async function requireRoleSC(requiredRole: UserRoleType, redirectTo = "/u
  * @param redirectTo URL de redirection si non autorisé (par défaut: /unauthorized)
  * @returns ID de l'utilisateur si administrateur
  */
-export async function requireAdminSC(redirectTo = "/unauthorized"): Promise<string> {
-  return requireRoleSC("admin", redirectTo)
+export async function requireAdminSC(redirectTo = '/unauthorized'): Promise<string> {
+  return requireRoleSC('admin', redirectTo);
 }
 
 /**
@@ -77,8 +82,8 @@ export async function requireAdminSC(redirectTo = "/unauthorized"): Promise<stri
  * @param redirectTo URL de redirection si non autorisé (par défaut: /unauthorized)
  * @returns ID de l'utilisateur si validateur ou administrateur
  */
-export async function requireValidatorSC(redirectTo = "/unauthorized"): Promise<string> {
-  return requireRoleSC("validator", redirectTo)
+export async function requireValidatorSC(redirectTo = '/unauthorized'): Promise<string> {
+  return requireRoleSC('validator', redirectTo);
 }
 
 /**
@@ -86,6 +91,6 @@ export async function requireValidatorSC(redirectTo = "/unauthorized"): Promise<
  * @param redirectTo URL de redirection si non autorisé (par défaut: /unauthorized)
  * @returns ID de l'utilisateur si vérifié, validateur ou administrateur
  */
-export async function requireVerifiedSC(redirectTo = "/unauthorized"): Promise<string> {
-  return requireRoleSC("verified", redirectTo)
+export async function requireVerifiedSC(redirectTo = '/unauthorized'): Promise<string> {
+  return requireRoleSC('verified', redirectTo);
 }

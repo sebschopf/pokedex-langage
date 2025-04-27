@@ -4,6 +4,5 @@
  */
 
 // Exporter les fonctions principales de mapping
-export { dbToLanguage } from "./db-to-language"
-export { languageToDb } from "./language-to-db"
-
+export { dbToLanguage } from './db-to-language';
+export { languageToDb } from './language-to-db';

@@ -14,11 +14,7 @@ export {
   toArrayOrNull,
   isValidId,
   toStringId,
-} from "./type-conversion"
+} from './type-conversion';
 
 // Réexporter les fonctions de gestion de null et undefined
-export {
-  nullToUndefined,
-  undefinedToNull,
-  nullToDefault,
-} from "./null-undefined"
+export { nullToUndefined, undefinedToNull, nullToDefault } from './null-undefined';

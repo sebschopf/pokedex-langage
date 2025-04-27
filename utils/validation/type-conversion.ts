@@ -4,13 +4,13 @@
  */
 
 // Réexporter depuis le nouveau module pour maintenir la compatibilité
-export * from "../conversion/type-conversion"
+export * from '../conversion/type-conversion';
 
 // Avertissement de console en développement
-if (process.env.NODE_ENV === "development") {
+if (process.env.NODE_ENV === 'development') {
   console.warn(
-    "Avertissement: utils/validation/type-conversion.ts est déprécié. Utilisez utils/conversion/type-conversion.ts à la place.",
-  )
+    'Avertissement: utils/validation/type-conversion.ts est déprécié. Utilisez utils/conversion/type-conversion.ts à la place.',
+  );
 }
 
 /**
@@ -25,15 +25,15 @@ if (process.env.NODE_ENV === "development") {
  */
 export function toNumber(value: any, defaultValue = 0): number {
   if (value === null || value === undefined) {
-    return defaultValue
+    return defaultValue;
   }
 
-  if (typeof value === "number") {
-    return value
+  if (typeof value === 'number') {
+    return value;
   }
 
-  const parsed = Number(value)
-  return isNaN(parsed) ? defaultValue : parsed
+  const parsed = Number(value);
+  return isNaN(parsed) ? defaultValue : parsed;
 }
 
 /**
@@ -42,12 +42,12 @@ export function toNumber(value: any, defaultValue = 0): number {
  * @param defaultValue Valeur par défaut si la conversion échoue
  * @returns Chaîne convertie ou valeur par défaut
  */
-export function toString(value: any, defaultValue = ""): string {
+export function toString(value: any, defaultValue = ''): string {
   if (value === null || value === undefined) {
-    return defaultValue
+    return defaultValue;
   }
 
-  return String(value)
+  return String(value);
 }
 
 /**
@@ -58,18 +58,18 @@ export function toString(value: any, defaultValue = ""): string {
  */
 export function toBoolean(value: any, defaultValue = false): boolean {
   if (value === null || value === undefined) {
-    return defaultValue
+    return defaultValue;
   }
 
-  if (typeof value === "boolean") {
-    return value
+  if (typeof value === 'boolean') {
+    return value;
   }
 
-  if (typeof value === "string") {
-    return value.toLowerCase() === "true"
+  if (typeof value === 'string') {
+    return value.toLowerCase() === 'true';
   }
 
-  return Boolean(value)
+  return Boolean(value);
 }
 
 /**
@@ -78,5 +78,5 @@ export function toBoolean(value: any, defaultValue = false): boolean {
  * @returns La valeur d'origine ou undefined si la valeur est null
  */
 export function nullToUndefined<T>(value: T | null): T | undefined {
-  return value === null ? undefined : value
+  return value === null ? undefined : value;
 }

@@ -5,9 +5,9 @@
  * Interface représentant une catégorie d'usage dans l'application
  */
 export interface UsageCategory {
-  id: number
-  name: string
-  description: string | null
-  createdAt: string | null
-  updatedAt: string | null
+  id: number;
+  name: string;
+  description: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
 }

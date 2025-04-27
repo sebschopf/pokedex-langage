@@ -1,7 +1,7 @@
 /**
  * Fonctions de validation des rôles
  */
-import type { UserRoleType, UserRoleTypeDB } from "./role-types"
+import type { UserRoleType, UserRoleTypeDB } from './role-types';
 
 /**
  * Vérifie si un rôle est valide pour la base de données
@@ -9,7 +9,7 @@ import type { UserRoleType, UserRoleTypeDB } from "./role-types"
  * @returns true si le rôle est valide pour la base de données
  */
 export function isValidDbRole(role: string): role is UserRoleTypeDB {
-  return ["admin", "validator", "verified", "registered"].includes(role)
+  return ['admin', 'validator', 'verified', 'registered'].includes(role);
 }
 
 /**
@@ -18,5 +18,5 @@ export function isValidDbRole(role: string): role is UserRoleTypeDB {
  * @returns true si le rôle est valide pour l'application
  */
 export function isValidAppRole(role: string): role is UserRoleType {
-  return ["admin", "validator", "verified", "registered", "anonymous"].includes(role)
+  return ['admin', 'validator', 'verified', 'registered', 'anonymous'].includes(role);
 }

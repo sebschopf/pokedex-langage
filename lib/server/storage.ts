@@ -1,5 +1,5 @@
 import { createServerClient } from "@/lib/supabase/server"
-import { v4 as uuidv4 } from "uuid"
+import { randomUUID } from "crypto"
 
 /**
  * Télécharge un fichier SVG vers le stockage Supabase
@@ -16,7 +16,7 @@ export async function uploadFile(file: File, bucket = "logos"): Promise<string |
 
     // Générer un nom de fichier unique
     const fileExt = file.name.split(".").pop() || (isSvg ? "svg" : "png")
-    const fileName = `${uuidv4()}.${fileExt}`
+    const fileName = `${randomUUID()}.${fileExt}`
     const filePath = `${fileName}`
 
     // Options pour le téléchargement

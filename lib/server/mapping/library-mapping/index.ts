@@ -4,11 +4,11 @@
  */
 
 // Exporter les fonctions principales de mapping
-export { dbToLibrary } from "./db-to-library"
-export { libraryToDb } from "./library-to-db"
+export { dbToLibrary } from './db-to-library';
+export { libraryToDb } from './library-to-db';
 
 // Exporter les fonctions spécialisées
-export { libraryToDbForInsert } from "./for-insert"
-export { libraryToDbForUpdate } from "./for-update"
+export { libraryToDbForInsert } from './for-insert';
+export { libraryToDbForUpdate } from './for-update';
 
 // Vous pouvez ajouter d'autres exports ici à l'avenir

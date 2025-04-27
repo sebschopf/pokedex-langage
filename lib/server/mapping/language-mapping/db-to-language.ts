@@ -1,5 +1,5 @@
-import type { DbLanguage } from "@/types/database/language"
-import type { Language } from "@/types/models/language"
+import type { DbLanguage } from '@/types/database/language';
+import type { Language } from '@/types/models/language';
 
 /**
  * Convertit un objet de langage de la base de données en objet de langage pour l'application
@@ -8,21 +8,21 @@ import type { Language } from "@/types/models/language"
  */
 export function dbToLanguage(dbLanguage: DbLanguage): Language {
   // Convertir tools de Json à Record<string, any> | null
-  let toolsConverted: Record<string, any> | null = null
+  let toolsConverted: Record<string, any> | null = null;
 
   if (dbLanguage.tools) {
     // Si c'est une chaîne, essayer de la parser en JSON
-    if (typeof dbLanguage.tools === "string") {
+    if (typeof dbLanguage.tools === 'string') {
       try {
-        toolsConverted = JSON.parse(dbLanguage.tools)
+        toolsConverted = JSON.parse(dbLanguage.tools);
       } catch (e) {
-        console.error("Erreur lors de la conversion de tools:", e)
-        toolsConverted = null
+        console.error('Erreur lors de la conversion de tools:', e);
+        toolsConverted = null;
       }
     }
     // Si c'est déjà un objet, l'utiliser directement
-    else if (typeof dbLanguage.tools === "object") {
-      toolsConverted = dbLanguage.tools as Record<string, any>
+    else if (typeof dbLanguage.tools === 'object') {
+      toolsConverted = dbLanguage.tools as Record<string, any>;
     }
   }
 
@@ -50,5 +50,5 @@ export function dbToLanguage(dbLanguage: DbLanguage): Language {
     difficulty: dbLanguage.difficulty ?? null,
     strengths: dbLanguage.strengths ?? null,
     tools: toolsConverted,
-  }
+  };
 }

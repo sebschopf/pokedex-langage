@@ -1,8 +1,8 @@
 /**
  * Fonctions de vérification des rôles
  */
-import type { UserRoleType } from "./role-types"
-import { ROLE_HIERARCHY } from "./role-types"
+import type { UserRoleType } from './role-types';
+import { ROLE_HIERARCHY } from './role-types';
 
 /**
  * Vérifie si un utilisateur a un rôle spécifique ou supérieur
@@ -10,9 +10,12 @@ import { ROLE_HIERARCHY } from "./role-types"
  * @param requiredRole Rôle requis
  * @returns true si l'utilisateur a le rôle requis ou supérieur, false sinon
  */
-export function checkUserRole(userRole: UserRoleType | null | undefined, requiredRole: UserRoleType): boolean {
-  if (!userRole) return requiredRole === "anonymous"
-  return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[requiredRole]
+export function checkUserRole(
+  userRole: UserRoleType | null | undefined,
+  requiredRole: UserRoleType,
+): boolean {
+  if (!userRole) return requiredRole === 'anonymous';
+  return ROLE_HIERARCHY[userRole] >= ROLE_HIERARCHY[requiredRole];
 }
 
 /**
@@ -21,7 +24,7 @@ export function checkUserRole(userRole: UserRoleType | null | undefined, require
  * @returns true si l'utilisateur est administrateur
  */
 export function isAdmin(userRole: UserRoleType | null | undefined): boolean {
-  return checkUserRole(userRole, "admin")
+  return checkUserRole(userRole, 'admin');
 }
 
 /**
@@ -30,7 +33,7 @@ export function isAdmin(userRole: UserRoleType | null | undefined): boolean {
  * @returns true si l'utilisateur est validateur ou administrateur
  */
 export function isValidator(userRole: UserRoleType | null | undefined): boolean {
-  return checkUserRole(userRole, "validator")
+  return checkUserRole(userRole, 'validator');
 }
 
 /**
@@ -39,7 +42,7 @@ export function isValidator(userRole: UserRoleType | null | undefined): boolean 
  * @returns true si l'utilisateur est vérifié, validateur ou administrateur
  */
 export function isVerified(userRole: UserRoleType | null | undefined): boolean {
-  return checkUserRole(userRole, "verified")
+  return checkUserRole(userRole, 'verified');
 }
 
 /**
@@ -48,5 +51,5 @@ export function isVerified(userRole: UserRoleType | null | undefined): boolean {
  * @returns true si l'utilisateur est au moins enregistré
  */
 export function isRegistered(userRole: UserRoleType | null | undefined): boolean {
-  return checkUserRole(userRole, "registered")
+  return checkUserRole(userRole, 'registered');
 }

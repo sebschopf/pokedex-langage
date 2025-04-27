@@ -6,26 +6,26 @@
 /**
  * Type de base pour les paramètres de recherche de Next.js
  */
-export type SearchParamsType = { [key: string]: string | string[] | undefined }
+export type SearchParamsType = { [key: string]: string | string[] | undefined };
 
 /**
  * Paramètres de recherche pour les langages de programmation
  */
 export interface LanguageSearchParams extends SearchParamsType {
   /** Terme de recherche pour filtrer les langages par nom */
-  query?: string
+  query?: string;
   /** Type de langage (ex: "Compilé", "Interprété", etc.) */
-  type?: string
+  type?: string;
   /** Taux d'utilisation minimum (en pourcentage) */
-  usageMin?: string
+  usageMin?: string;
   /** Critère de tri ("name", "usage", "year") */
-  sort?: string
+  sort?: string;
   /** Filtre pour les langages open source ("true" ou "false") */
-  openSource?: string
+  openSource?: string;
   /** Numéro de page pour la pagination */
-  page?: string
+  page?: string;
   /** Nombre d'éléments par page */
-  pageSize?: string
+  pageSize?: string;
 }
 
 /**
@@ -33,19 +33,19 @@ export interface LanguageSearchParams extends SearchParamsType {
  */
 export interface LanguageApiOptions {
   /** Numéro de page (commençant à 1) */
-  page: number
+  page: number;
   /** Nombre d'éléments par page */
-  pageSize: number
+  pageSize: number;
   /** Terme de recherche */
-  search?: string
+  search?: string;
   /** Catégorie ou type de langage */
-  category?: string
+  category?: string;
   /** Taux d'utilisation minimum */
-  minUsage?: number
+  minUsage?: number;
   /** Critère de tri */
-  sort: "name" | "usage" | "year"
+  sort: 'name' | 'usage' | 'year';
   /** Filtre pour les langages open source */
-  openSource?: boolean
+  openSource?: boolean;
 }
 
 /**
@@ -53,16 +53,23 @@ export interface LanguageApiOptions {
  * @param searchParams Paramètres de recherche bruts
  * @returns Options formatées pour l'API
  */
-export function convertSearchParamsToApiOptions(searchParams: LanguageSearchParams): LanguageApiOptions {
+export function convertSearchParamsToApiOptions(
+  searchParams: LanguageSearchParams,
+): LanguageApiOptions {
   return {
     page: Number(searchParams.page) || 1,
     pageSize: Number(searchParams.pageSize) || 100,
     search: searchParams.query,
-    category: searchParams.type !== "all" ? searchParams.type : undefined,
+    category: searchParams.type !== 'all' ? searchParams.type : undefined,
     minUsage: searchParams.usageMin ? Number(searchParams.usageMin) : undefined,
-    sort: (searchParams.sort as "name" | "usage" | "year") || "name",
-    openSource: searchParams.openSource === "true" ? true : searchParams.openSource === "false" ? false : undefined,
-  }
+    sort: (searchParams.sort as 'name' | 'usage' | 'year') || 'name',
+    openSource:
+      searchParams.openSource === 'true'
+        ? true
+        : searchParams.openSource === 'false'
+          ? false
+          : undefined,
+  };
 }
 
 /**
@@ -70,17 +77,17 @@ export function convertSearchParamsToApiOptions(searchParams: LanguageSearchPara
  */
 export interface LibrarySearchParams extends SearchParamsType {
   /** Terme de recherche pour filtrer les bibliothèques par nom */
-  query?: string
+  query?: string;
   /** ID du langage associé */
-  languageId?: string
+  languageId?: string;
   /** Type de technologie (ex: "framework", "library", etc.) */
-  technologyType?: string
+  technologyType?: string;
   /** Critère de tri */
-  sort?: string
+  sort?: string;
   /** Numéro de page pour la pagination */
-  page?: string
+  page?: string;
   /** Nombre d'éléments par page */
-  pageSize?: string
+  pageSize?: string;
 }
 
 /**
@@ -88,15 +95,15 @@ export interface LibrarySearchParams extends SearchParamsType {
  */
 export interface LibraryApiOptions {
   /** Numéro de page */
-  page: number
+  page: number;
   /** Nombre d'éléments par page */
-  pageSize: number
+  pageSize: number;
   /** Terme de recherche */
-  search?: string
+  search?: string;
   /** ID du langage associé */
-  languageId?: number
+  languageId?: number;
   /** Type de technologie */
-  technologyType?: string
+  technologyType?: string;
   /** Critère de tri */
-  sort?: string
+  sort?: string;
 }

@@ -1,5 +1,5 @@
-import type { DbProfile, DbUser, DbUserWithProfile } from "@/types/database/profile"
-import type { Profile, ProfileWithAuth, User, UserWithProfile } from "@/types/models/profile"
+import type { DbProfile, DbUser, DbUserWithProfile } from '@/types/database/profile';
+import type { Profile, ProfileWithAuth, User, UserWithProfile } from '@/types/models/profile';
 
 /**
  * Convertit un profil de la base de données (snake_case) en profil pour l'application (camelCase)
@@ -16,7 +16,7 @@ export function dbProfileToProfile(dbProfile: DbProfile): Profile {
     fullName: dbProfile.full_name,
     bio: dbProfile.bio,
     website: dbProfile.website,
-  }
+  };
 }
 
 /**
@@ -34,7 +34,7 @@ export function profileToDbProfile(profile: Profile): DbProfile {
     full_name: profile.fullName,
     bio: profile.bio,
     website: profile.website,
-  }
+  };
 }
 
 /**
@@ -48,7 +48,7 @@ export function dbUserToUser(dbUser: DbUser): User {
     email: dbUser.email,
     createdAt: dbUser.created_at,
     updatedAt: dbUser.updated_at,
-  }
+  };
 }
 
 /**
@@ -62,7 +62,7 @@ export function userToDbUser(user: User): DbUser {
     email: user.email,
     created_at: user.createdAt,
     updated_at: user.updatedAt,
-  }
+  };
 }
 
 /**
@@ -70,14 +70,16 @@ export function userToDbUser(user: User): DbUser {
  * @param dbUserWithProfile Utilisateur avec profil de la base de données
  * @returns Utilisateur avec profil pour l'application
  */
-export function dbUserWithProfileToUserWithProfile(dbUserWithProfile: DbUserWithProfile): UserWithProfile {
-  const user = dbUserToUser(dbUserWithProfile)
+export function dbUserWithProfileToUserWithProfile(
+  dbUserWithProfile: DbUserWithProfile,
+): UserWithProfile {
+  const user = dbUserToUser(dbUserWithProfile);
 
   return {
     ...user,
     profile: dbUserWithProfile.profile ? dbProfileToProfile(dbUserWithProfile.profile) : undefined,
     role: dbUserWithProfile.role,
-  }
+  };
 }
 
 /**
@@ -85,14 +87,16 @@ export function dbUserWithProfileToUserWithProfile(dbUserWithProfile: DbUserWith
  * @param userWithProfile Utilisateur avec profil pour l'application
  * @returns Utilisateur avec profil pour la base de données
  */
-export function userWithProfileToDbUserWithProfile(userWithProfile: UserWithProfile): DbUserWithProfile {
-  const dbUser = userToDbUser(userWithProfile)
+export function userWithProfileToDbUserWithProfile(
+  userWithProfile: UserWithProfile,
+): DbUserWithProfile {
+  const dbUser = userToDbUser(userWithProfile);
 
   return {
     ...dbUser,
     profile: userWithProfile.profile ? profileToDbProfile(userWithProfile.profile) : undefined,
     role: userWithProfile.role,
-  }
+  };
 }
 
 /**
@@ -109,5 +113,5 @@ export function createProfileWithAuth(
     ...profile,
     email: authData.email,
     isVerified: !!authData.email_confirmed_at,
-  }
+  };
 }

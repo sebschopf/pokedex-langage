@@ -1,11 +1,11 @@
 // Réexporter les fonctions d'API
-export * from "./api"
+export * from './api';
 
 // Réexporter les fonctions de mapping
-export * from "./mapping"
+export * from './mapping';
 
 // Réexporter les fonctions de stockage
-export * from "./storage"
+export * from './storage';
 
 // Réexporter les fonctions d'authentification avec des alias pour éviter les conflits
 export {
@@ -16,7 +16,7 @@ export {
   requireAdminSC,
   requireValidatorSC,
   requireVerifiedSC,
-} from "./auth"
+} from './auth';
 
 // Réexporter les fonctions Supabase depuis le bon chemin
-export { createServerClient, createAdminClient } from "@/lib/supabase"
+export { createServerClient, createAdminClient } from '@/lib/supabase';

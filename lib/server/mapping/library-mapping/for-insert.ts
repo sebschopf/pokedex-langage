@@ -1,32 +1,32 @@
-import type { Library } from "@/types/models/library"
-import { libraryToDb } from "./library-to-db"
-import { generateSlug } from "@/utils/slugs" // Chemin d'import corrigé
+import type { Library } from '@/types/models/library';
+import { libraryToDb } from './library-to-db';
+import { generateSlug } from '@/utils/slugs'; // Chemin d'import corrigé
 
 /**
  * Type pour l'insertion dans la base de données
  * Garantit que les champs obligatoires sont présents
  */
 export type DbLibraryForInsert = {
-  name: string // name est obligatoire
-  slug: string // slug est maintenant obligatoire
-  language_id?: number | null
-  description?: string | null
-  official_website?: string | null
-  github_url?: string | null
-  logo_path?: string | null
-  popularity?: number | null
-  is_open_source?: boolean | null
-  created_at?: string | null
-  updated_at?: string | null
-  features?: string[] | null
-  unique_selling_point?: string | null
-  best_for?: string | null
-  used_for?: string | null
-  documentation_url?: string | null
-  version?: string | null
-  technology_type?: string | null
-  subtype?: string | null
-}
+  name: string; // name est obligatoire
+  slug: string; // slug est maintenant obligatoire
+  language_id?: number | null;
+  description?: string | null;
+  official_website?: string | null;
+  github_url?: string | null;
+  logo_path?: string | null;
+  popularity?: number | null;
+  is_open_source?: boolean | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  features?: string[] | null;
+  unique_selling_point?: string | null;
+  best_for?: string | null;
+  used_for?: string | null;
+  documentation_url?: string | null;
+  version?: string | null;
+  technology_type?: string | null;
+  subtype?: string | null;
+};
 
 /**
  * Convertit un objet Library en objet pour l'insertion dans la base de données
@@ -35,17 +35,17 @@ export type DbLibraryForInsert = {
  * @returns Objet prêt pour l'insertion dans Supabase
  * @throws {Error} Si les champs obligatoires sont manquants
  */
-export function libraryToDbForInsert(library: Omit<Library, "id">): DbLibraryForInsert {
+export function libraryToDbForInsert(library: Omit<Library, 'id'>): DbLibraryForInsert {
   // Validation des champs obligatoires
   if (!library.name) {
-    throw new Error("Le champ 'name' est obligatoire pour l'insertion")
+    throw new Error("Le champ 'name' est obligatoire pour l'insertion");
   }
 
   // Générer un slug si non fourni
-  const slug = library.slug || generateSlug(library.name)
+  const slug = library.slug || generateSlug(library.name);
 
   // Convertir en format DB
-  const dbLibrary = libraryToDb(library)
+  const dbLibrary = libraryToDb(library);
 
   // Créer un nouvel objet avec les propriétés requises
   const result: DbLibraryForInsert = {
@@ -68,7 +68,7 @@ export function libraryToDbForInsert(library: Omit<Library, "id">): DbLibraryFor
     version: dbLibrary.version || null,
     technology_type: dbLibrary.technology_type || null,
     subtype: dbLibrary.subtype || null,
-  }
+  };
 
-  return result
+  return result;
 }

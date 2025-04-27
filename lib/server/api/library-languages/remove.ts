@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase/server"
+import { createServerClient } from '@/lib/supabase/server';
 
 /**
  * Supprime une association entre une bibliothèque/outil et un langage
@@ -8,19 +8,19 @@ import { createServerClient } from "@/lib/supabase/server"
  */
 export async function removeLanguageFromLibrary(libraryId: number, languageId: number) {
   try {
-    const supabase = createServerClient()
+    const supabase = createServerClient();
 
     const { error } = await supabase
-      .from("library_languages")
+      .from('library_languages')
       .delete()
-      .eq("library_id", libraryId)
-      .eq("language_id", languageId)
+      .eq('library_id', libraryId)
+      .eq('language_id', languageId);
 
-    if (error) throw error
+    if (error) throw error;
 
-    return { success: true, message: "Association supprimée avec succès" }
+    return { success: true, message: 'Association supprimée avec succès' };
   } catch (error) {
-    console.error("Erreur lors de la suppression du langage de la bibliothèque:", error)
-    return { success: false, message: "Erreur lors de la suppression du langage" }
+    console.error('Erreur lors de la suppression du langage de la bibliothèque:', error);
+    return { success: false, message: 'Erreur lors de la suppression du langage' };
   }
 }

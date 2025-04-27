@@ -1,4 +1,4 @@
-import type { DbTechnologySubtype, TechnologySubtype } from "@/types/database/technology-subtype"
+import type { DbTechnologySubtype, TechnologySubtype } from '@/types/database/technology-subtype';
 
 /**
  * Convertit un sous-type de technologie de la base de données en modèle d'application
@@ -11,7 +11,7 @@ export function dbToTechnologySubtype(dbSubtype: DbTechnologySubtype): Technolog
     name: dbSubtype.name,
     categoryId: dbSubtype.category_id,
     createdAt: dbSubtype.created_at,
-  }
+  };
 }
 
 /**
@@ -25,5 +25,5 @@ export function technologySubtypeToDb(subtype: TechnologySubtype): DbTechnologyS
     name: subtype.name,
     category_id: subtype.categoryId,
     created_at: subtype.createdAt,
-  }
+  };
 }

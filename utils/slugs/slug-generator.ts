@@ -10,13 +10,13 @@
 export function generateSlug(name: string): string {
   return name
     .toLowerCase()
-    .replace(/\s+/g, "-") // Remplace les espaces par des tirets
-    .replace(/[^\w-]+/g, "") // Supprime les caractères non alphanumériques
-    .replace(/--+/g, "-") // Remplace les tirets multiples par un seul
-    .replace(/^-+/, "") // Supprime les tirets au début
-    .replace(/-+$/, "") // Supprime les tirets à la fin
-    .replace(/\.+/g, "") // Supprime les points
-    .replace(/\/+/g, "-") // Remplace les slashs par des tirets
+    .replace(/\s+/g, '-') // Remplace les espaces par des tirets
+    .replace(/[^\w-]+/g, '') // Supprime les caractères non alphanumériques
+    .replace(/--+/g, '-') // Remplace les tirets multiples par un seul
+    .replace(/^-+/, '') // Supprime les tirets au début
+    .replace(/-+$/, '') // Supprime les tirets à la fin
+    .replace(/\.+/g, '') // Supprime les points
+    .replace(/\/+/g, '-'); // Remplace les slashs par des tirets
 }
 
 /**
@@ -26,17 +26,17 @@ export function generateSlug(name: string): string {
  * @returns Slug unique généré
  */
 export function generateUniqueSlug(name: string, existingSlugs: string[] = []): string {
-  const slug = generateSlug(name)
-  let counter = 1
+  const slug = generateSlug(name);
+  let counter = 1;
 
   // Si le slug existe déjà, ajouter un suffixe numérique
-  let tempSlug = slug
+  let tempSlug = slug;
   while (existingSlugs.includes(tempSlug)) {
-    tempSlug = `${slug}-${counter}`
-    counter++
+    tempSlug = `${slug}-${counter}`;
+    counter++;
   }
 
-  return tempSlug
+  return tempSlug;
 }
 
 /**
@@ -45,5 +45,5 @@ export function generateUniqueSlug(name: string, existingSlugs: string[] = []): 
  * @returns Slug généré pour le langage
  */
 export function generateLanguageSlug(name: string): string {
-  return generateSlug(name)
+  return generateSlug(name);
 }

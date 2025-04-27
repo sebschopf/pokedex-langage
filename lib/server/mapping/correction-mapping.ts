@@ -1,12 +1,14 @@
-import type { DbCorrection } from "@/types/database/correction"
-import type { Correction, CorrectionWithLanguage } from "@/types/models/correction"
+import type { DbCorrection } from '@/types/database/correction';
+import type { Correction, CorrectionWithLanguage } from '@/types/models/correction';
 
 /**
  * Convertit une correction de la base de données en modèle d'application
  * @param dbCorrection Correction de la base de données
  * @returns Correction pour l'application
  */
-export function dbToCorrection(dbCorrection: DbCorrection & { languages?: { name: string } }): Correction {
+export function dbToCorrection(
+  dbCorrection: DbCorrection & { languages?: { name: string } },
+): Correction {
   const correction: Correction = {
     id: dbCorrection.id,
     languageId: dbCorrection.language_id,
@@ -18,9 +20,9 @@ export function dbToCorrection(dbCorrection: DbCorrection & { languages?: { name
     userId: dbCorrection.user_id,
     createdAt: dbCorrection.created_at,
     updatedAt: dbCorrection.updated_at,
-  }
+  };
 
-  return correction
+  return correction;
 }
 
 /**
@@ -40,7 +42,7 @@ export function correctionToDb(correction: Correction): DbCorrection {
     user_id: correction.userId,
     created_at: correction.createdAt,
     updated_at: correction.updatedAt,
-  }
+  };
 }
 
 /**
@@ -49,10 +51,13 @@ export function correctionToDb(correction: Correction): DbCorrection {
  * @param languageName Nom du langage
  * @returns Correction avec le nom du langage
  */
-export function dbToCorrectionWithLanguage(dbCorrection: DbCorrection, languageName: string): CorrectionWithLanguage {
-  const correction = dbToCorrection(dbCorrection)
+export function dbToCorrectionWithLanguage(
+  dbCorrection: DbCorrection,
+  languageName: string,
+): CorrectionWithLanguage {
+  const correction = dbToCorrection(dbCorrection);
   return {
     ...correction,
     languageName,
-  }
+  };
 }

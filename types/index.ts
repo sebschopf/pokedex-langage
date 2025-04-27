@@ -3,10 +3,13 @@
  */
 
 // Types de base de données (structure exacte des tables Supabase)
-export * from "./database"
+export * from './database';
 
 // Types de modèles (versions transformées pour l'application)
-export * from "./models"
+export * from './models';
 
 // Types DTO (Data Transfer Objects)
-export * from "./dto"
+export * from './dto';
+
+// Types d'UI (pour les composants React)
+export * from './ui';

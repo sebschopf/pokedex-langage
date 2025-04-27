@@ -1,7 +1,7 @@
 /**
  * Fonctions de conversion entre types de rôles
  */
-import type { UserRoleType, UserRoleTypeDB } from "./role-types"
+import type { UserRoleType, UserRoleTypeDB } from './role-types';
 
 /**
  * Convertit un rôle de base de données en rôle d'application
@@ -9,8 +9,8 @@ import type { UserRoleType, UserRoleTypeDB } from "./role-types"
  * @returns Rôle d'application
  */
 export function dbRoleToAppRole(dbRole: UserRoleTypeDB | null | undefined): UserRoleType {
-  if (!dbRole) return "anonymous"
-  return dbRole // Comme UserRoleTypeDB est un sous-ensemble de UserRoleType, cette conversion est sûre
+  if (!dbRole) return 'anonymous';
+  return dbRole; // Comme UserRoleTypeDB est un sous-ensemble de UserRoleType, cette conversion est sûre
 }
 
 /**
@@ -19,6 +19,6 @@ export function dbRoleToAppRole(dbRole: UserRoleTypeDB | null | undefined): User
  * @returns Rôle de base de données ou null si le rôle est "anonymous"
  */
 export function appRoleToDbRole(appRole: UserRoleType): UserRoleTypeDB | null {
-  if (appRole === "anonymous") return null
-  return appRole as UserRoleTypeDB
+  if (appRole === 'anonymous') return null;
+  return appRole as UserRoleTypeDB;
 }

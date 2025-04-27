@@ -1,5 +1,5 @@
-import type { DbTechnologyCategory, } from "@/types/database/technology-category"
-import type { TechnologyCategory, } from "@/types/models/technology-category"
+import type { DbTechnologyCategory } from '@/types/database/technology-category';
+import type { TechnologyCategory } from '@/types/models/technology-category';
 /**
  * Convertit une catégorie de technologie de la base de données en modèle d'application
  * @param dbCategory Catégorie de technologie de la base de données
@@ -12,7 +12,7 @@ export function dbToTechnologyCategory(dbCategory: DbTechnologyCategory): Techno
     color: dbCategory.color,
     iconName: dbCategory.icon_name,
     createdAt: dbCategory.created_at,
-  }
+  };
 }
 
 /**
@@ -27,5 +27,5 @@ export function technologyCategoryToDb(category: TechnologyCategory): DbTechnolo
     color: category.color,
     icon_name: category.iconName,
     created_at: category.createdAt,
-  }
+  };
 }

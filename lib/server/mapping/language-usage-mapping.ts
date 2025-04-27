@@ -1,5 +1,5 @@
-import type { DbLanguageUsage, } from "@/types/database/language-usage"
-import type { LanguageUsage, } from "@/types/models/language-usage"
+import type { DbLanguageUsage } from '@/types/database/language-usage';
+import type { LanguageUsage } from '@/types/models/language-usage';
 
 /**
  * Convertit un usage de langage de la base de données en modèle d'application
@@ -12,7 +12,7 @@ export function dbToLanguageUsage(dbUsage: DbLanguageUsage): LanguageUsage {
     languageId: dbUsage.language_id,
     categoryId: dbUsage.category_id,
     createdAt: dbUsage.created_at,
-  }
+  };
 }
 
 /**
@@ -26,5 +26,5 @@ export function languageUsageToDb(usage: LanguageUsage): DbLanguageUsage {
     language_id: usage.languageId,
     category_id: usage.categoryId,
     created_at: usage.createdAt,
-  }
+  };
 }

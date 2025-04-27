@@ -4,7 +4,7 @@
  * @returns true si c'est une erreur de contrainte unique
  */
 export function isUniqueConstraintError(error: any): boolean {
-  return error?.code === "23505"
+  return error?.code === '23505';
 }
 
 /**
@@ -13,7 +13,7 @@ export function isUniqueConstraintError(error: any): boolean {
  * @returns true si c'est une erreur de contrainte de clé étrangère
  */
 export function isForeignKeyConstraintError(error: any): boolean {
-  return error?.code === "23503"
+  return error?.code === '23503';
 }
 
 /**
@@ -22,17 +22,17 @@ export function isForeignKeyConstraintError(error: any): boolean {
  * @returns Message d'erreur formaté
  */
 export function formatSupabaseErrorMessage(error: any): string {
-  if (!error) return "Une erreur inconnue est survenue"
+  if (!error) return 'Une erreur inconnue est survenue';
 
   if (isUniqueConstraintError(error)) {
-    return "Cette entrée existe déjà"
+    return 'Cette entrée existe déjà';
   }
 
   if (isForeignKeyConstraintError(error)) {
-    return "Cette opération fait référence à une entrée qui n'existe pas"
+    return "Cette opération fait référence à une entrée qui n'existe pas";
   }
 
-  return error.message || "Une erreur est survenue"
+  return error.message || 'Une erreur est survenue';
 }
 
 /**
@@ -43,9 +43,9 @@ export function formatSupabaseErrorMessage(error: any): string {
  */
 export function handleSupabaseError<T>(error: any, defaultValue: T): T {
   if (error) {
-    console.error("Erreur Supabase:", formatSupabaseErrorMessage(error), error)
+    console.error('Erreur Supabase:', formatSupabaseErrorMessage(error), error);
   }
-  return defaultValue
+  return defaultValue;
 }
 
 /**
@@ -55,8 +55,8 @@ export function handleSupabaseError<T>(error: any, defaultValue: T): T {
  * @returns URL publique du fichier
  */
 export function getPublicFileUrl(bucket: string, path: string): string {
-  const storageUrl = process.env.NEXT_PUBLIC_STORAGE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-  if (!storageUrl) return ""
+  const storageUrl = process.env.NEXT_PUBLIC_STORAGE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!storageUrl) return '';
 
-  return `${storageUrl}/storage/v1/object/public/${bucket}/${path}`
+  return `${storageUrl}/storage/v1/object/public/${bucket}/${path}`;
 }

@@ -10,11 +10,11 @@
 export function getImageName(name: string): string {
   return name
     .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^\w-]+/g, "")
-    .replace(/--+/g, "-")
-    .replace(/^-+/, "")
-    .replace(/-+$/, "")
+    .replace(/\s+/g, '-')
+    .replace(/[^\w-]+/g, '')
+    .replace(/--+/g, '-')
+    .replace(/^-+/, '')
+    .replace(/-+$/, '');
 }
 
 /**
@@ -23,7 +23,7 @@ export function getImageName(name: string): string {
  * @returns true si l'URL est valide, false sinon
  */
 export function isValidImageUrl(url: string): boolean {
-  return url.startsWith("http") || url.startsWith("/images/")
+  return url.startsWith('http') || url.startsWith('/images/');
 }
 
 /**
@@ -32,5 +32,5 @@ export function isValidImageUrl(url: string): boolean {
  * @returns URL de l'image de secours
  */
 export function getFallbackImageUrl(name: string): string {
-  return `/images/placeholder-${getImageName(name)}.svg`
+  return `/images/placeholder-${getImageName(name)}.svg`;
 }

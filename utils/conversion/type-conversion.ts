@@ -8,12 +8,12 @@
  * @returns Le nombre converti ou 0 si la valeur est invalide
  */
 export function toNumber(value: string | number | null | undefined): number {
-  if (value === null || value === undefined || value === "") {
-    return 0
+  if (value === null || value === undefined || value === '') {
+    return 0;
   }
 
-  const num = typeof value === "number" ? value : Number(value)
-  return isNaN(num) ? 0 : num
+  const num = typeof value === 'number' ? value : Number(value);
+  return isNaN(num) ? 0 : num;
 }
 
 /**
@@ -22,12 +22,12 @@ export function toNumber(value: string | number | null | undefined): number {
  * @returns Le nombre converti ou null si la valeur est invalide
  */
 export function toNumberOrNull(value: string | number | null | undefined): number | null {
-  if (value === null || value === undefined || value === "") {
-    return null
+  if (value === null || value === undefined || value === '') {
+    return null;
   }
 
-  const num = typeof value === "number" ? value : Number(value)
-  return isNaN(num) ? null : num
+  const num = typeof value === 'number' ? value : Number(value);
+  return isNaN(num) ? null : num;
 }
 
 /**
@@ -37,10 +37,10 @@ export function toNumberOrNull(value: string | number | null | undefined): numbe
  */
 export function toStringOrNull(value: string | number | null | undefined): string | null {
   if (value === null || value === undefined) {
-    return null
+    return null;
   }
 
-  return String(value)
+  return String(value);
 }
 
 /**
@@ -48,31 +48,33 @@ export function toStringOrNull(value: string | number | null | undefined): strin
  * @param value - Valeur à convertir
  * @returns Le booléen converti ou null si la valeur est invalide
  */
-export function toBooleanOrNull(value: string | number | boolean | null | undefined): boolean | null {
+export function toBooleanOrNull(
+  value: string | number | boolean | null | undefined,
+): boolean | null {
   if (value === null || value === undefined) {
-    return null
+    return null;
   }
 
-  if (typeof value === "boolean") {
-    return value
+  if (typeof value === 'boolean') {
+    return value;
   }
 
-  if (typeof value === "number") {
-    return value !== 0
+  if (typeof value === 'number') {
+    return value !== 0;
   }
 
-  if (typeof value === "string") {
-    const lowerCaseValue = value.toLowerCase()
-    if (lowerCaseValue === "true" || lowerCaseValue === "1") {
-      return true
-    } else if (lowerCaseValue === "false" || lowerCaseValue === "0") {
-      return false
+  if (typeof value === 'string') {
+    const lowerCaseValue = value.toLowerCase();
+    if (lowerCaseValue === 'true' || lowerCaseValue === '1') {
+      return true;
+    } else if (lowerCaseValue === 'false' || lowerCaseValue === '0') {
+      return false;
     } else {
-      return null
+      return null;
     }
   }
 
-  return null
+  return null;
 }
 
 /**
@@ -82,14 +84,14 @@ export function toBooleanOrNull(value: string | number | boolean | null | undefi
  */
 export function toArrayOrNull<T>(value: T | T[] | null | undefined): T[] | null {
   if (value === null || value === undefined) {
-    return null
+    return null;
   }
 
   if (Array.isArray(value)) {
-    return value
+    return value;
   }
 
-  return [value]
+  return [value];
 }
 
 /**
@@ -99,10 +101,10 @@ export function toArrayOrNull<T>(value: T | T[] | null | undefined): T[] | null 
  */
 export function toString(value: string | number | null | undefined): string {
   if (value === null || value === undefined) {
-    return ""
+    return '';
   }
 
-  return String(value)
+  return String(value);
 }
 
 /**
@@ -112,23 +114,23 @@ export function toString(value: string | number | null | undefined): string {
  */
 export function toBoolean(value: string | number | boolean | null | undefined): boolean {
   if (value === null || value === undefined) {
-    return false
+    return false;
   }
 
-  if (typeof value === "boolean") {
-    return value
+  if (typeof value === 'boolean') {
+    return value;
   }
 
-  if (typeof value === "number") {
-    return value !== 0
+  if (typeof value === 'number') {
+    return value !== 0;
   }
 
-  if (typeof value === "string") {
-    const lowerCaseValue = value.toLowerCase()
-    return lowerCaseValue === "true" || lowerCaseValue === "1"
+  if (typeof value === 'string') {
+    const lowerCaseValue = value.toLowerCase();
+    return lowerCaseValue === 'true' || lowerCaseValue === '1';
   }
 
-  return false
+  return false;
 }
 
 /**
@@ -138,14 +140,14 @@ export function toBoolean(value: string | number | boolean | null | undefined): 
  */
 export function toArray<T>(value: T | T[] | null | undefined): T[] {
   if (value === null || value === undefined) {
-    return []
+    return [];
   }
 
   if (Array.isArray(value)) {
-    return value
+    return value;
   }
 
-  return [value]
+  return [value];
 }
 
 /**
@@ -154,15 +156,15 @@ export function toArray<T>(value: T | T[] | null | undefined): T[] {
  * @returns true si l'ID est valide, false sinon
  */
 export function isValidId(id: string | number | null | undefined): boolean {
-  if (id === null || id === undefined || id === "") {
-    return false
+  if (id === null || id === undefined || id === '') {
+    return false;
   }
 
-  if (typeof id === "number") {
-    return !isNaN(id)
+  if (typeof id === 'number') {
+    return !isNaN(id);
   }
 
-  return id.trim() !== ""
+  return id.trim() !== '';
 }
 
 /**
@@ -174,7 +176,7 @@ export function isValidId(id: string | number | null | undefined): boolean {
  */
 export function toStringId(id: string | number): string {
   if (id === null || id === undefined) {
-    throw new Error("L'ID ne peut pas être null ou undefined")
+    throw new Error("L'ID ne peut pas être null ou undefined");
   }
-  return id.toString()
+  return id.toString();
 }

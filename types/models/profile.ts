@@ -3,14 +3,14 @@
  * Utilise la convention camelCase pour les noms de propriétés
  */
 export interface Profile {
-  id: string
-  username: string | null
-  fullName: string | null
-  avatarUrl: string | null
-  bio: string | null
-  website: string | null
-  createdAt: string | null
-  updatedAt: string | null
+  id: string;
+  username: string | null;
+  fullName: string | null;
+  avatarUrl: string | null;
+  bio: string | null;
+  website: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
 }
 
 /**
@@ -18,26 +18,26 @@ export interface Profile {
  * Combine les données de profil avec les données d'authentification de Supabase Auth
  */
 export interface ProfileWithAuth extends Profile {
-  email?: string | null
-  isVerified?: boolean | null
+  email?: string | null;
+  isVerified?: boolean | null;
 }
 
 /**
  * Interface représentant un utilisateur de base dans l'application
  */
 export interface User {
-  id: string
-  email: string | null
-  createdAt: string | null
-  updatedAt: string | null
+  id: string;
+  email: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
 }
 
 /**
  * Interface représentant un utilisateur avec son profil dans l'application
  */
 export interface UserWithProfile extends User {
-  profile?: Profile
-  role?: string
+  profile?: Profile;
+  role?: string;
 }
 
 /**
@@ -45,14 +45,14 @@ export interface UserWithProfile extends User {
  * Utilise la convention snake_case pour les noms de propriétés
  */
 export interface DbProfile {
-  id: string
-  username: string | null
-  full_name: string | null
-  avatar_url: string | null
-  bio: string | null
-  website: string | null
-  created_at: string | null
-  updated_at: string | null
+  id: string;
+  username: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  website: string | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 /**
@@ -68,7 +68,7 @@ export function dbProfileToProfile(dbProfile: DbProfile): Profile {
     website: dbProfile.website,
     createdAt: dbProfile.created_at,
     updatedAt: dbProfile.updated_at,
-  }
+  };
 }
 
 /**
@@ -84,7 +84,7 @@ export function profileToDbProfile(profile: Profile): DbProfile {
     website: profile.website,
     created_at: profile.createdAt,
     updated_at: profile.updatedAt,
-  }
+  };
 }
 
 /**
@@ -98,5 +98,5 @@ export function combineProfileWithAuth(
     ...profile,
     email: authUser.email,
     isVerified: !!authUser.email_confirmed_at,
-  }
+  };
 }

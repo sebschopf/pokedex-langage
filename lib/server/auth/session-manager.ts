@@ -1,4 +1,4 @@
-import { createServerClient } from "../../supabase/"
+import { createServerClient } from '../../supabase/';
 
 /**
  * Gestionnaire de sessions utilisateur
@@ -9,18 +9,18 @@ export class SessionManager {
    */
   static async getCurrentSession() {
     try {
-      const supabase = createServerClient()
-      const { data, error } = await supabase.auth.getSession()
+      const supabase = createServerClient();
+      const { data, error } = await supabase.auth.getSession();
 
       if (error) {
-        console.error("Erreur lors de la récupération de la session:", error)
-        return null
+        console.error('Erreur lors de la récupération de la session:', error);
+        return null;
       }
 
-      return data.session
+      return data.session;
     } catch (error) {
-      console.error("Erreur lors de la récupération de la session:", error)
-      return null
+      console.error('Erreur lors de la récupération de la session:', error);
+      return null;
     }
   }
 
@@ -28,8 +28,8 @@ export class SessionManager {
    * Vérifie si un utilisateur est actuellement connecté
    */
   static async isUserLoggedIn() {
-    const session = await this.getCurrentSession()
-    return !!session
+    const session = await this.getCurrentSession();
+    return !!session;
   }
 
   /**
@@ -37,18 +37,18 @@ export class SessionManager {
    */
   static async terminateOtherSessions() {
     try {
-      const supabase = createServerClient()
-      const { error } = await supabase.auth.signOut({ scope: "others" })
+      const supabase = createServerClient();
+      const { error } = await supabase.auth.signOut({ scope: 'others' });
 
       if (error) {
-        console.error("Erreur lors de la terminaison des autres sessions:", error)
-        return false
+        console.error('Erreur lors de la terminaison des autres sessions:', error);
+        return false;
       }
 
-      return true
+      return true;
     } catch (error) {
-      console.error("Erreur lors de la terminaison des autres sessions:", error)
-      return false
+      console.error('Erreur lors de la terminaison des autres sessions:', error);
+      return false;
     }
   }
 
@@ -57,28 +57,28 @@ export class SessionManager {
    */
   static async terminateAllSessions(userId?: string) {
     try {
-      const supabase = createServerClient()
-      
+      const supabase = createServerClient();
+
       let error;
       if (userId) {
         // Pour l'administrateur
-        const result = await supabase.auth.admin.signOut(userId)
-        error = result.error
+        const result = await supabase.auth.admin.signOut(userId);
+        error = result.error;
       } else {
         // Pour l'utilisateur courant
-        const result = await supabase.auth.signOut({ scope: "global" })
-        error = result.error
+        const result = await supabase.auth.signOut({ scope: 'global' });
+        error = result.error;
       }
 
       if (error) {
-        console.error("Erreur lors de la terminaison de toutes les sessions:", error)
-        return false
+        console.error('Erreur lors de la terminaison de toutes les sessions:', error);
+        return false;
       }
 
-      return true
+      return true;
     } catch (error) {
-      console.error("Erreur lors de la terminaison de toutes les sessions:", error)
-      return false
+      console.error('Erreur lors de la terminaison de toutes les sessions:', error);
+      return false;
     }
   }
 
@@ -87,18 +87,18 @@ export class SessionManager {
    */
   static async getCurrentUser() {
     try {
-      const supabase = createServerClient()
-      const { data, error } = await supabase.auth.getUser()
+      const supabase = createServerClient();
+      const { data, error } = await supabase.auth.getUser();
 
       if (error) {
-        console.error("Erreur lors de la récupération de l'utilisateur:", error)
-        return null
+        console.error("Erreur lors de la récupération de l'utilisateur:", error);
+        return null;
       }
 
-      return data.user
+      return data.user;
     } catch (error) {
-      console.error("Erreur lors de la récupération de l'utilisateur:", error)
-      return null
+      console.error("Erreur lors de la récupération de l'utilisateur:", error);
+      return null;
     }
   }
 }

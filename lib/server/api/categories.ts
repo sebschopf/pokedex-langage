@@ -1,10 +1,10 @@
 // Fonctions API pour les catégories
 // À implémenter selon vos besoins
 
-import type { TechnologyCategory, UsageCategory } from "@/types/models"
-import { createServerClient } from "@/lib/supabase"
-import { dbToTechnologyCategory } from "@/lib/server/mapping/technology-category-mapping"
-import { dbToUsageCategory } from "@/lib/server/mapping/usage-category-mapping"
+import type { TechnologyCategory, UsageCategory } from '@/types/models';
+import { createServerClient } from '@/lib/supabase';
+import { dbToTechnologyCategory } from '@/lib/server/mapping/technology-category-mapping';
+import { dbToUsageCategory } from '@/lib/server/mapping/usage-category-mapping';
 
 /**
  * Récupère toutes les catégories de technologie
@@ -12,19 +12,19 @@ import { dbToUsageCategory } from "@/lib/server/mapping/usage-category-mapping"
  */
 export async function getTechnologyCategories(): Promise<TechnologyCategory[]> {
   try {
-    const supabase = createServerClient()
-    const { data, error } = await supabase.from("technology_categories").select("*")
+    const supabase = createServerClient();
+    const { data, error } = await supabase.from('technology_categories').select('*');
 
     if (error) {
-      console.error("Erreur lors de la récupération des catégories:", error)
-      return []
+      console.error('Erreur lors de la récupération des catégories:', error);
+      return [];
     }
 
     // Note: Vous devrez créer la fonction dbToTechnologyCategory dans lib/server/mapping
-    return data.map(dbToTechnologyCategory)
+    return data.map(dbToTechnologyCategory);
   } catch (error) {
-    console.error("Erreur lors de la récupération des catégories:", error)
-    return []
+    console.error('Erreur lors de la récupération des catégories:', error);
+    return [];
   }
 }
 
@@ -34,19 +34,19 @@ export async function getTechnologyCategories(): Promise<TechnologyCategory[]> {
  */
 export async function getUsageCategories(): Promise<UsageCategory[]> {
   try {
-    const supabase = createServerClient()
-    const { data, error } = await supabase.from("usage_categories").select("*")
+    const supabase = createServerClient();
+    const { data, error } = await supabase.from('usage_categories').select('*');
 
     if (error) {
-      console.error("Erreur lors de la récupération des catégories d'usage:", error)
-      return []
+      console.error("Erreur lors de la récupération des catégories d'usage:", error);
+      return [];
     }
 
     // Note: Vous devrez créer la fonction dbToUsageCategory dans lib/server/mapping
-    return data.map(dbToUsageCategory)
+    return data.map(dbToUsageCategory);
   } catch (error) {
-    console.error("Erreur lors de la récupération des catégories d'usage:", error)
-    return []
+    console.error("Erreur lors de la récupération des catégories d'usage:", error);
+    return [];
   }
 }
 

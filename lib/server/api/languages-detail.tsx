@@ -1,7 +1,7 @@
-import type { DbLanguage } from "@/types/database/language"
+import type { DbLanguage } from '@/types/database/language';
 
 interface LanguageDetailProps {
-  language: DbLanguage
+  language: DbLanguage;
 }
 
 export function LanguageDetail({ language }: LanguageDetailProps) {
@@ -11,5 +11,5 @@ export function LanguageDetail({ language }: LanguageDetailProps) {
       <h1 className="text-3xl font-bold mb-4">{language.name}</h1>
       {/* Reste du composant */}
     </div>
-  )
+  );
 }

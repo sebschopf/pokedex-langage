@@ -1,5 +1,5 @@
-import type { DbLibrary } from "@/types/database/library"
-import type { Library } from "@/types/models/library"
+import type { DbLibrary } from '@/types/database/library';
+import type { Library } from '@/types/models/library';
 
 /**
  * Convertit un objet de bibliothèque de la base de données en objet de bibliothèque pour l'application
@@ -30,5 +30,5 @@ export function dbToLibrary(dbLibrary: DbLibrary): Library {
     subtype: dbLibrary.subtype,
     license: dbLibrary.license,
     websiteUrl: dbLibrary.website_url,
-  }
+  };
 }
